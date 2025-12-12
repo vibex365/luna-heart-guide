@@ -75,11 +75,11 @@ Deno.serve(async (req) => {
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     const oneWeekAgoISO = oneWeekAgo.toISOString();
 
-    // Get all users with reminder notifications enabled
+    // Get all users with weekly insights notifications enabled
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
       .select('user_id, display_name')
-      .eq('reminder_enabled', true);
+      .eq('weekly_insights_enabled', true);
 
     if (profilesError) {
       console.error('Error fetching profiles:', profilesError);
