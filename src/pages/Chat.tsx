@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, ArrowLeft, Plus, MessageCircle, LogOut, Trash2 } from "lucide-react";
+import { Send, ArrowLeft, Plus, MessageCircle, LogOut, Trash2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
+import UserAvatar from "@/components/UserAvatar";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,6 +21,11 @@ interface Conversation {
   title: string | null;
   created_at: string;
   updated_at: string;
+}
+
+interface Profile {
+  display_name: string | null;
+  avatar_url: string | null;
 }
 
 const quickPrompts = [
@@ -47,6 +53,7 @@ const Chat = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -57,10 +64,11 @@ const Chat = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // Load conversations
+  // Load conversations and profile
   useEffect(() => {
     if (user) {
       loadConversations();
+      loadProfile();
     }
   }, [user]);
 
@@ -79,6 +87,20 @@ const Chat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const loadProfile = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("display_name, avatar_url")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!error && data) {
+      setProfile(data);
+    }
+  };
 
   const loadConversations = async () => {
     const { data, error } = await supabase
@@ -466,15 +488,25 @@ const Chat = () => {
               </div>
 
               <div className="p-4 border-t border-border">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                    <span className="text-sm font-medium text-foreground">
-                      {user?.email?.[0].toUpperCase()}
-                    </span>
+                <div
+                  className="flex items-center gap-3 mb-3 p-2 rounded-xl hover:bg-primary/30 cursor-pointer transition-colors"
+                  onClick={() => navigate("/profile")}
+                >
+                  <UserAvatar
+                    avatarUrl={profile?.avatar_url || null}
+                    displayName={profile?.display_name || null}
+                    email={user?.email}
+                    size="sm"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {profile?.display_name || user?.email?.split("@")[0]}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {user?.email}
+                    </p>
                   </div>
-                  <span className="text-sm text-foreground truncate flex-1">
-                    {user?.email}
-                  </span>
+                  <Settings className="w-4 h-4 text-muted-foreground" />
                 </div>
                 <Button
                   variant="ghost"
@@ -535,9 +567,18 @@ const Chat = () => {
                   transition={{ duration: 0.3 }}
                   className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : ""}`}
                 >
-                  {message.role === "assistant" && (
+                  {message.role === "assistant" ? (
                     <div className="flex-shrink-0">
                       <LunaAvatar size="sm" showGlow={false} />
+                    </div>
+                  ) : (
+                    <div className="flex-shrink-0">
+                      <UserAvatar
+                        avatarUrl={profile?.avatar_url || null}
+                        displayName={profile?.display_name || null}
+                        email={user?.email}
+                        size="sm"
+                      />
                     </div>
                   )}
                   <div
