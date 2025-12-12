@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import MoodChart from "@/components/MoodChart";
 import MoodSelector from "@/components/MoodSelector";
 import MoodHistory from "@/components/MoodHistory";
+import ReminderSettings from "@/components/ReminderSettings";
 
 interface MoodEntry {
   id: string;
@@ -29,6 +30,8 @@ const MoodTracker = () => {
   const [selectedMood, setSelectedMood] = useState<{ level: number; label: string } | null>(null);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderTime, setReminderTime] = useState("09:00");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -39,8 +42,28 @@ const MoodTracker = () => {
   useEffect(() => {
     if (user) {
       loadEntries();
+      loadReminderSettings();
     }
   }, [user]);
+
+  const loadReminderSettings = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("profiles")
+      .select("reminder_enabled, reminder_time")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    
+    if (data) {
+      setReminderEnabled(data.reminder_enabled || false);
+      setReminderTime(data.reminder_time?.slice(0, 5) || "09:00");
+    }
+  };
+
+  const handleReminderUpdate = (enabled: boolean, time: string) => {
+    setReminderEnabled(enabled);
+    setReminderTime(time);
+  };
 
   const loadEntries = async () => {
     try {
@@ -262,6 +285,19 @@ const MoodTracker = () => {
           transition={{ delay: 0.2 }}
         >
           <MoodHistory entries={entries} onDelete={handleDeleteEntry} />
+        </motion.div>
+
+        {/* Reminder Settings */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <ReminderSettings
+            reminderEnabled={reminderEnabled}
+            reminderTime={reminderTime}
+            onUpdate={handleReminderUpdate}
+          />
         </motion.div>
       </main>
     </div>
