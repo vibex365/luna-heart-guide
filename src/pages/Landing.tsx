@@ -1,10 +1,44 @@
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, Shield, Sparkles, Brain, TrendingUp, Clock, Users, Check, Wind, BookOpen, BarChart3, Menu, X } from "lucide-react";
+import { Heart, MessageCircle, Shield, Sparkles, Brain, TrendingUp, Clock, Users, Check, Wind, BookOpen, BarChart3, Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+
+const FAQItem = ({ question, answer, index }: { question: string; answer: string; index: number }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <motion.div
+      className="bg-card rounded-2xl border border-border overflow-hidden"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-primary/20 transition-colors"
+      >
+        <span className="font-semibold text-foreground pr-4">{question}</span>
+        <ChevronDown
+          className={`w-5 h-5 text-accent flex-shrink-0 transition-transform duration-300 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      <motion.div
+        initial={false}
+        animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+        className="overflow-hidden"
+      >
+        <p className="px-6 pb-5 text-muted-foreground leading-relaxed">{answer}</p>
+      </motion.div>
+    </motion.div>
+  );
+};
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -13,8 +47,39 @@ const Landing = () => {
   const navLinks = [
     { label: "Features", href: "#features" },
     { label: "How It Works", href: "#how-it-works" },
-    { label: "Testimonials", href: "#testimonials" },
+    { label: "FAQ", href: "#faq" },
     { label: "Pricing", href: "#pricing" },
+  ];
+
+  const faqs = [
+    {
+      question: "Is Luna a replacement for a real therapist?",
+      answer: "Luna is designed to be a supportive companion for emotional wellness, not a replacement for licensed mental health professionals. For serious mental health concerns, we always recommend consulting with a qualified therapist. Luna is great for daily emotional support, practicing communication skills, and tracking your mood patterns between professional sessions.",
+    },
+    {
+      question: "How does Luna protect my privacy?",
+      answer: "Your conversations with Luna are encrypted and stored securely. We never share your personal data with third parties, and you can delete your conversation history at any time. Luna doesn't remember conversations between sessions unless you choose to save them.",
+    },
+    {
+      question: "Can Luna help with relationship conflicts?",
+      answer: "Yes! Luna specializes in helping you navigate relationship challenges. She can help you understand your feelings, identify communication patterns, and even provide gentle scripts for difficult conversations. Many users find Luna helpful for preparing what they want to say to their partner.",
+    },
+    {
+      question: "Is Luna available 24/7?",
+      answer: "Absolutely. Luna is always here whenever you need support — whether it's 3pm or 3am. There's no scheduling, no waiting rooms, and no judgment. Just open the app and start talking.",
+    },
+    {
+      question: "What if I'm in a crisis situation?",
+      answer: "If you're experiencing a mental health emergency, please reach out to professional crisis services immediately. Luna provides a dedicated Crisis Resources page with hotlines and support services. For immediate help, contact the 988 Suicide & Crisis Lifeline (call or text 988) in the US.",
+    },
+    {
+      question: "How is Luna different from other AI chatbots?",
+      answer: "Luna is specifically trained for emotional intelligence and relationship support. Unlike general-purpose AI assistants, Luna understands attachment styles, relationship dynamics, and therapeutic communication techniques. She's designed to make you feel heard and validated, not just provide information.",
+    },
+    {
+      question: "Can I cancel my subscription anytime?",
+      answer: "Yes, you can cancel your subscription at any time with no questions asked. Your access will continue until the end of your billing period, and you can always come back to the free plan.",
+    },
   ];
 
   const features = [
@@ -510,7 +575,33 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Section 7: Pricing */}
+      {/* Section 7: FAQ */}
+      <section id="faq" className="py-20 md:py-28 scroll-mt-20">
+        <div className="container mx-auto px-6">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+              Everything you need to know about Luna.
+            </p>
+          </motion.div>
+
+          <div className="max-w-3xl mx-auto space-y-4">
+            {faqs.map((faq, index) => (
+              <FAQItem key={index} question={faq.question} answer={faq.answer} index={index} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Section 8: Pricing */}
       <section id="pricing" className="py-20 md:py-28 scroll-mt-20">
         <div className="container mx-auto px-6">
           <motion.div
