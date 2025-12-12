@@ -4,3 +4,4 @@ export { default as AdminSubscriptions } from "./AdminSubscriptions";
 export { default as AdminFeatures } from "./AdminFeatures";
 export { default as AdminLuna } from "./AdminLuna";
 export { default as AdminContent } from "./AdminContent";
+export { default as AdminSafety } from "./AdminSafety";
