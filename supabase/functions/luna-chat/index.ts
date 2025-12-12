@@ -569,13 +569,90 @@ function generatePreferencesContext(prefs: UserPreferences): string {
   return context;
 }
 
+// Module detection based on user message patterns
+function detectModuleFromMessage(message: string): { module: string; trigger: string } {
+  const lowerMessage = message.toLowerCase();
+  
+  // Communication Coaching - user asking what to say
+  if (lowerMessage.includes("what should i say") || 
+      lowerMessage.includes("how do i tell") || 
+      lowerMessage.includes("how should i bring") ||
+      lowerMessage.includes("what do i say") ||
+      lowerMessage.includes("help me say")) {
+    return { module: "communication_coaching", trigger: "asking_what_to_say" };
+  }
+  
+  // Conflict Deescalation - user is heated/angry
+  if (lowerMessage.includes("so mad") || 
+      lowerMessage.includes("want to scream") ||
+      lowerMessage.includes("want to yell") ||
+      lowerMessage.includes("furious") ||
+      lowerMessage.includes("blow up") ||
+      lowerMessage.includes("lose it")) {
+    return { module: "conflict_deescalation", trigger: "user_heated" };
+  }
+  
+  // Breakup/Healing Mode
+  if (lowerMessage.includes("broke up") || 
+      lowerMessage.includes("breakup") ||
+      lowerMessage.includes("ended things") ||
+      lowerMessage.includes("dumped me") ||
+      lowerMessage.includes("left me") ||
+      lowerMessage.includes("getting over") ||
+      lowerMessage.includes("miss them so much")) {
+    return { module: "breakup_healing", trigger: "processing_breakup" };
+  }
+  
+  // Boundary Building
+  if (lowerMessage.includes("boundary") || 
+      lowerMessage.includes("boundaries") ||
+      lowerMessage.includes("not okay with") ||
+      lowerMessage.includes("won't tolerate") ||
+      lowerMessage.includes("crossed the line") ||
+      lowerMessage.includes("disrespected")) {
+    return { module: "boundary_building", trigger: "boundary_concerns" };
+  }
+  
+  // Pattern Spotting - recurring issues
+  if (lowerMessage.includes("keeps happening") || 
+      lowerMessage.includes("same fight") ||
+      lowerMessage.includes("always does this") ||
+      lowerMessage.includes("every time") ||
+      lowerMessage.includes("pattern") ||
+      lowerMessage.includes("cycle")) {
+    return { module: "pattern_spotting", trigger: "recurring_issues" };
+  }
+  
+  // Self-Worth Mode
+  if (lowerMessage.includes("am i too much") || 
+      lowerMessage.includes("maybe i'm the problem") ||
+      lowerMessage.includes("not good enough") ||
+      lowerMessage.includes("don't deserve") ||
+      lowerMessage.includes("my fault") ||
+      lowerMessage.includes("unlovable")) {
+    return { module: "self_worth", trigger: "self_doubt" };
+  }
+  
+  // Emotional Mirror - confusion about feelings
+  if (lowerMessage.includes("don't know how i feel") || 
+      lowerMessage.includes("confused about") ||
+      lowerMessage.includes("mixed feelings") ||
+      lowerMessage.includes("don't understand why") ||
+      lowerMessage.includes("what am i feeling")) {
+    return { module: "emotional_mirror", trigger: "feeling_confusion" };
+  }
+  
+  // Default - general support
+  return { module: "general_support", trigger: "conversation" };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages, userId } = await req.json();
+    const { messages, userId, conversationId } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -587,10 +664,13 @@ serve(async (req) => {
 
     let moodContext = "";
     let preferencesContext = "";
+    let supabase: ReturnType<typeof createClient> | null = null;
 
-    if (userId && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-      
+    if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+      supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    }
+
+    if (userId && supabase) {
       // Fetch mood data
       try {
         const sevenDaysAgo = new Date();
@@ -625,6 +705,38 @@ serve(async (req) => {
         }
       } catch (prefError) {
         console.error("Error fetching preferences:", prefError);
+      }
+
+      // Detect and log module usage
+      if (messages && messages.length > 0) {
+        const lastUserMessage = [...messages].reverse().find((m: { role: string }) => m.role === "user");
+        if (lastUserMessage) {
+          const { module, trigger } = detectModuleFromMessage(lastUserMessage.content);
+          console.log("Detected module:", module, "trigger:", trigger);
+          
+          // Log analytics (non-blocking) - using fetch directly since types aren't synced yet
+          fetch(`${SUPABASE_URL}/rest/v1/conversation_analytics`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": SUPABASE_SERVICE_ROLE_KEY!,
+              "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+              "Prefer": "return=minimal",
+            },
+            body: JSON.stringify({
+              user_id: userId,
+              conversation_id: conversationId || null,
+              module_activated: module,
+              trigger_detected: trigger,
+            }),
+          }).then(res => {
+            if (!res.ok) {
+              console.error("Error logging analytics:", res.status);
+            } else {
+              console.log("Logged analytics for module:", module);
+            }
+          }).catch(err => console.error("Analytics error:", err));
+        }
       }
     }
 
