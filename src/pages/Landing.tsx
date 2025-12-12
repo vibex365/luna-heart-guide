@@ -714,6 +714,7 @@ const Landing = () => {
             <div>
               <h4 className="font-semibold text-foreground mb-4">Resources</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><button onClick={() => navigate("/resources")} className="hover:text-foreground transition-colors">Blog & Articles</button></li>
                 <li><button onClick={() => navigate("/crisis")} className="hover:text-foreground transition-colors">Crisis Resources</button></li>
                 <li><button onClick={() => navigate("/breathe")} className="hover:text-foreground transition-colors">Breathing Exercises</button></li>
               </ul>
