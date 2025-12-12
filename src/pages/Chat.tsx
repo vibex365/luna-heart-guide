@@ -216,7 +216,7 @@ const Chat = () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
       },
-      body: JSON.stringify({ messages: messagesToSend, userId: user?.id }),
+      body: JSON.stringify({ messages: messagesToSend, userId: user?.id, conversationId: currentConversationId }),
     });
 
     if (!resp.ok) {
