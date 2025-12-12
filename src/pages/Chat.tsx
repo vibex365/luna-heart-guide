@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, ArrowLeft, Plus, MessageCircle, LogOut, Trash2, Settings, Heart, BookOpen, Wind, LifeBuoy, History, Search, X } from "lucide-react";
+import { Send, ArrowLeft, Plus, MessageCircle, LogOut, Trash2, Settings, Heart, BookOpen, Wind, LifeBuoy, History, Search, X, Pencil, Check } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
@@ -57,9 +57,12 @@ const Chat = () => {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [editingConversationId, setEditingConversationId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
   const [profile, setProfile] = useState<Profile | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -200,6 +203,54 @@ const Chat = () => {
       title: "Conversation deleted",
       description: "The conversation has been removed.",
     });
+  };
+
+  const startEditingTitle = (conv: Conversation, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingConversationId(conv.id);
+    setEditingTitle(conv.title || "");
+    setTimeout(() => editInputRef.current?.focus(), 0);
+  };
+
+  const saveConversationTitle = async () => {
+    if (!editingConversationId) return;
+
+    const trimmedTitle = editingTitle.trim();
+    if (!trimmedTitle) {
+      setEditingConversationId(null);
+      return;
+    }
+
+    const { error } = await supabase
+      .from("conversations")
+      .update({ title: trimmedTitle })
+      .eq("id", editingConversationId);
+
+    if (error) {
+      console.error("Error renaming conversation:", error);
+      toast({
+        title: "Error",
+        description: "Could not rename conversation.",
+        variant: "destructive",
+      });
+    } else {
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === editingConversationId ? { ...c, title: trimmedTitle } : c
+        )
+      );
+    }
+
+    setEditingConversationId(null);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      saveConversationTitle();
+    } else if (e.key === "Escape") {
+      setEditingConversationId(null);
+    }
   };
 
   const startNewChat = () => {
@@ -536,21 +587,59 @@ const Chat = () => {
                                         ? "bg-primary/50"
                                         : "hover:bg-primary/30"
                                     }`}
-                                    onClick={() => loadConversation(conv.id)}
+                                    onClick={() => editingConversationId !== conv.id && loadConversation(conv.id)}
                                   >
                                     <MessageCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                                    <span className="text-sm text-foreground truncate flex-1">
-                                      {conv.title || "Untitled"}
-                                    </span>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        deleteConversation(conv.id);
-                                      }}
-                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/20 rounded transition-all"
-                                    >
-                                      <Trash2 className="w-3 h-3 text-destructive" />
-                                    </button>
+                                    
+                                    {editingConversationId === conv.id ? (
+                                      <input
+                                        ref={editInputRef}
+                                        type="text"
+                                        value={editingTitle}
+                                        onChange={(e) => setEditingTitle(e.target.value)}
+                                        onKeyDown={handleEditKeyDown}
+                                        onBlur={saveConversationTitle}
+                                        className="flex-1 text-sm bg-background border border-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary"
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                    ) : (
+                                      <span 
+                                        className="text-sm text-foreground truncate flex-1"
+                                        onDoubleClick={(e) => startEditingTitle(conv, e)}
+                                      >
+                                        {conv.title || "Untitled"}
+                                      </span>
+                                    )}
+                                    
+                                    {editingConversationId === conv.id ? (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          saveConversationTitle();
+                                        }}
+                                        className="p-1 hover:bg-primary/30 rounded transition-all"
+                                      >
+                                        <Check className="w-3 h-3 text-primary" />
+                                      </button>
+                                    ) : (
+                                      <>
+                                        <button
+                                          onClick={(e) => startEditingTitle(conv, e)}
+                                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-primary/20 rounded transition-all"
+                                        >
+                                          <Pencil className="w-3 h-3 text-muted-foreground" />
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteConversation(conv.id);
+                                          }}
+                                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/20 rounded transition-all"
+                                        >
+                                          <Trash2 className="w-3 h-3 text-destructive" />
+                                        </button>
+                                      </>
+                                    )}
                                   </div>
                                 ))}
                               </div>
