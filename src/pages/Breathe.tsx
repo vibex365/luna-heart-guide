@@ -4,8 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Play, Pause, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useAmbientSound } from "@/hooks/useAmbientSound";
-import AmbientSoundPlayer from "@/components/AmbientSoundPlayer";
 
 type BreathPhase = "inhale" | "hold" | "exhale" | "rest";
 
@@ -69,7 +67,6 @@ const phaseColors: Record<BreathPhase, string> = {
 
 const Breathe = () => {
   const navigate = useNavigate();
-  const { sounds, currentSound, volume, isLoading, toggleSound, updateVolume, stopSound } = useAmbientSound();
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [isActive, setIsActive] = useState(false);
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
@@ -141,7 +138,6 @@ const Breathe = () => {
     setSelectedExercise(null);
     setIsActive(false);
     setIsComplete(false);
-    stopSound();
   };
 
   // Calculate circle scale based on phase
@@ -216,27 +212,6 @@ const Breathe = () => {
                   </Card>
                 </motion.div>
               ))}
-
-              {/* Ambient Sound Player on selection screen */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="mt-8"
-              >
-                <Card className="shadow-soft border-border/50">
-                  <CardContent className="p-6">
-                    <AmbientSoundPlayer
-                      sounds={sounds}
-                      currentSound={currentSound}
-                      volume={volume}
-                      isLoading={isLoading}
-                      onToggleSound={toggleSound}
-                      onVolumeChange={updateVolume}
-                    />
-                  </CardContent>
-                </Card>
-              </motion.div>
             </motion.div>
           ) : (
             // Active exercise
@@ -360,20 +335,6 @@ const Breathe = () => {
                       )}
                     </Button>
                   </div>
-
-                  {/* Ambient sounds during exercise */}
-                  <Card className="w-full max-w-md shadow-soft border-border/50">
-                    <CardContent className="p-4">
-                      <AmbientSoundPlayer
-                        sounds={sounds}
-                        currentSound={currentSound}
-                        volume={volume}
-                        isLoading={isLoading}
-                        onToggleSound={toggleSound}
-                        onVolumeChange={updateVolume}
-                      />
-                    </CardContent>
-                  </Card>
                 </>
               )}
             </motion.div>
