@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, ArrowLeft, Plus, MessageCircle, LogOut, Trash2, Settings, Heart, BookOpen, Wind, LifeBuoy } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import UserAvatar from "@/components/UserAvatar";
@@ -579,6 +580,7 @@ const Chat = () => {
                 <p className="text-xs text-muted-foreground">Your relationship therapist</p>
               </div>
             </div>
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="icon"
