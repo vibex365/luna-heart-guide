@@ -93,11 +93,11 @@ const Landing = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <Button variant="peach" size="xl" onClick={() => navigate("/onboarding")}>
+            <Button variant="peach" size="xl" onClick={() => navigate("/auth")}>
               Talk to Luna
             </Button>
-            <Button variant="luna" size="xl" onClick={() => navigate("/chat")}>
-              Skip to Chat
+            <Button variant="luna" size="xl" onClick={() => navigate("/auth")}>
+              Sign In
             </Button>
           </motion.div>
         </div>
@@ -175,7 +175,7 @@ const Landing = () => {
           <p className="text-foreground/80 text-lg mb-8 max-w-lg mx-auto">
             Whether you're hurting, confused, or just need someone to listen — Luna is here for you, 24/7.
           </p>
-          <Button variant="accent" size="xl" onClick={() => navigate("/onboarding")}>
+          <Button variant="accent" size="xl" onClick={() => navigate("/auth")}>
             Start Your Journey
           </Button>
         </motion.div>
