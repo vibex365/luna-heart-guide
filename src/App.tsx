@@ -10,6 +10,7 @@ import Chat from "./pages/Chat";
 import Auth from "./pages/Auth";
 import ProfileSettings from "./pages/ProfileSettings";
 import MoodTracker from "./pages/MoodTracker";
+import Journal from "./pages/Journal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile" element={<ProfileSettings />} />
             <Route path="/mood" element={<MoodTracker />} />
+            <Route path="/journal" element={<Journal />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
