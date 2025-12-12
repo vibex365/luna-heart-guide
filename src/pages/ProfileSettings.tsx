@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import LunaAvatar from "@/components/LunaAvatar";
 import ConversationAnalytics from "@/components/ConversationAnalytics";
 import WeeklyInsights from "@/components/WeeklyInsights";
+import StreakDisplay from "@/components/StreakDisplay";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -438,6 +439,11 @@ const ProfileSettings = () => {
                 onChange={(val) => setPreferences({ ...preferences, communication_style: val })}
               />
             </div>
+          </div>
+
+          {/* Streak Section */}
+          <div className="bg-card rounded-3xl p-8 shadow-luna border border-border">
+            <StreakDisplay />
           </div>
 
           {/* Weekly Insights Section */}
