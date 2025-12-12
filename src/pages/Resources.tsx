@@ -4,102 +4,15 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import LunaAvatar from "@/components/LunaAvatar";
 import ThemeToggle from "@/components/ThemeToggle";
-
-interface Article {
-  id: string;
-  title: string;
-  excerpt: string;
-  category: string;
-  readTime: string;
-  icon: typeof Heart;
-  featured?: boolean;
-}
-
-const articles: Article[] = [
-  {
-    id: "attachment-styles",
-    title: "Understanding Your Attachment Style",
-    excerpt: "Discover how your early relationships shape the way you connect with partners today, and learn strategies to build more secure bonds.",
-    category: "Relationships",
-    readTime: "8 min read",
-    icon: Heart,
-    featured: true,
-  },
-  {
-    id: "healthy-communication",
-    title: "5 Keys to Healthy Communication",
-    excerpt: "Learn the essential communication techniques that therapists recommend for resolving conflicts and deepening intimacy.",
-    category: "Communication",
-    readTime: "6 min read",
-    icon: MessageCircle,
-    featured: true,
-  },
-  {
-    id: "anxiety-relationships",
-    title: "Managing Anxiety in Relationships",
-    excerpt: "Practical strategies for when worries about your relationship feel overwhelming. Calm your mind and reconnect with your partner.",
-    category: "Mental Health",
-    readTime: "7 min read",
-    icon: Brain,
-    featured: true,
-  },
-  {
-    id: "setting-boundaries",
-    title: "Setting Healthy Boundaries",
-    excerpt: "Why boundaries are acts of love, not rejection — and how to communicate them clearly without guilt.",
-    category: "Self-Care",
-    readTime: "5 min read",
-    icon: Sparkles,
-  },
-  {
-    id: "love-languages",
-    title: "The 5 Love Languages Explained",
-    excerpt: "Understanding how you and your partner give and receive love can transform your relationship overnight.",
-    category: "Relationships",
-    readTime: "6 min read",
-    icon: Heart,
-  },
-  {
-    id: "healing-after-breakup",
-    title: "Healing After a Breakup",
-    excerpt: "A compassionate guide to processing grief, rediscovering yourself, and opening your heart again when you're ready.",
-    category: "Healing",
-    readTime: "10 min read",
-    icon: BookOpen,
-  },
-  {
-    id: "conflict-resolution",
-    title: "Fighting Fair: Conflict Resolution 101",
-    excerpt: "Disagreements are normal — it's how you handle them that matters. Learn to fight in ways that bring you closer.",
-    category: "Communication",
-    readTime: "7 min read",
-    icon: Users,
-  },
-  {
-    id: "self-compassion",
-    title: "The Power of Self-Compassion",
-    excerpt: "Before you can fully love another, you must learn to be kind to yourself. Start your self-compassion practice here.",
-    category: "Self-Care",
-    readTime: "5 min read",
-    icon: Sparkles,
-  },
-  {
-    id: "emotional-intelligence",
-    title: "Building Emotional Intelligence",
-    excerpt: "Develop your ability to recognize, understand, and manage emotions — both yours and your partner's.",
-    category: "Mental Health",
-    readTime: "8 min read",
-    icon: Brain,
-  },
-];
+import { articlesData } from "./ArticleDetail";
 
 const categories = ["All", "Relationships", "Communication", "Mental Health", "Self-Care", "Healing"];
 
 const Resources = () => {
   const navigate = useNavigate();
 
-  const featuredArticles = articles.filter((a) => a.featured);
-  const allArticles = articles;
+  const featuredArticles = articlesData.filter((_, i) => i < 3);
+  const allArticles = articlesData;
 
   return (
     <div className="min-h-screen bg-background">
@@ -167,6 +80,7 @@ const Resources = () => {
             {featuredArticles.map((article, index) => (
               <motion.article
                 key={article.id}
+                onClick={() => navigate(`/resources/${article.id}`)}
                 className="group bg-card rounded-2xl border border-border overflow-hidden hover:shadow-luna transition-all duration-300 cursor-pointer"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -231,6 +145,7 @@ const Resources = () => {
             {allArticles.map((article, index) => (
               <motion.article
                 key={article.id}
+                onClick={() => navigate(`/resources/${article.id}`)}
                 className="group bg-card rounded-2xl p-6 border border-border hover:border-accent/30 hover:shadow-soft transition-all duration-300 cursor-pointer"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
