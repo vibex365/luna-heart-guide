@@ -646,6 +646,80 @@ function detectModuleFromMessage(message: string): { module: string; trigger: st
   return { module: "general_support", trigger: "conversation" };
 }
 
+// Crisis detection keywords and severity levels
+interface CrisisDetection {
+  isCrisis: boolean;
+  severity: "critical" | "high" | "medium" | "low";
+  triggerPhrase: string | null;
+  flagType: string;
+}
+
+function detectCrisis(message: string): CrisisDetection {
+  const lowerMessage = message.toLowerCase();
+  
+  // Critical - immediate danger
+  const criticalPhrases = [
+    "kill myself", "want to die", "end my life", "suicide", "suicidal",
+    "don't want to live", "better off dead", "no reason to live",
+    "going to hurt myself", "self harm", "cutting myself"
+  ];
+  
+  for (const phrase of criticalPhrases) {
+    if (lowerMessage.includes(phrase)) {
+      return {
+        isCrisis: true,
+        severity: "critical",
+        triggerPhrase: phrase,
+        flagType: "self_harm"
+      };
+    }
+  }
+  
+  // High - abuse/violence mentions
+  const highPhrases = [
+    "he hit me", "she hit me", "beats me", "physical abuse",
+    "threatened to kill", "going to hurt", "scared for my life",
+    "forced me to", "raped", "sexual abuse", "domestic violence",
+    "afraid of him", "afraid of her", "he's violent", "she's violent"
+  ];
+  
+  for (const phrase of highPhrases) {
+    if (lowerMessage.includes(phrase)) {
+      return {
+        isCrisis: true,
+        severity: "high",
+        triggerPhrase: phrase,
+        flagType: "abuse_violence"
+      };
+    }
+  }
+  
+  // Medium - concerning patterns
+  const mediumPhrases = [
+    "no one cares", "all alone", "hopeless", "giving up",
+    "can't take it anymore", "exhausted from life", "nothing matters",
+    "trapped", "no way out", "feel worthless"
+  ];
+  
+  for (const phrase of mediumPhrases) {
+    if (lowerMessage.includes(phrase)) {
+      return {
+        isCrisis: true,
+        severity: "medium",
+        triggerPhrase: phrase,
+        flagType: "emotional_distress"
+      };
+    }
+  }
+  
+  return {
+    isCrisis: false,
+    severity: "low",
+    triggerPhrase: null,
+    flagType: "none"
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -707,14 +781,46 @@ serve(async (req) => {
         console.error("Error fetching preferences:", prefError);
       }
 
-      // Detect and log module usage
+      // Detect and log module usage + crisis detection
       if (messages && messages.length > 0) {
         const lastUserMessage = [...messages].reverse().find((m: { role: string }) => m.role === "user");
         if (lastUserMessage) {
           const { module, trigger } = detectModuleFromMessage(lastUserMessage.content);
           console.log("Detected module:", module, "trigger:", trigger);
           
-          // Log analytics (non-blocking) - using fetch directly since types aren't synced yet
+          // Crisis detection
+          const crisisResult = detectCrisis(lastUserMessage.content);
+          if (crisisResult.isCrisis) {
+            console.log("CRISIS DETECTED:", crisisResult.severity, crisisResult.triggerPhrase);
+            
+            // Flag the conversation (non-blocking)
+            fetch(`${SUPABASE_URL}/rest/v1/flagged_conversations`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "apikey": SUPABASE_SERVICE_ROLE_KEY!,
+                "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                "Prefer": "return=minimal",
+              },
+              body: JSON.stringify({
+                user_id: userId,
+                conversation_id: conversationId || null,
+                flag_type: crisisResult.flagType,
+                severity: crisisResult.severity,
+                trigger_phrase: crisisResult.triggerPhrase,
+                message_content: lastUserMessage.content.substring(0, 500), // Limit length
+                status: "pending",
+              }),
+            }).then(res => {
+              if (!res.ok) {
+                console.error("Error flagging conversation:", res.status);
+              } else {
+                console.log("Flagged conversation for crisis:", crisisResult.severity);
+              }
+            }).catch(err => console.error("Flagging error:", err));
+          }
+          
+          // Log analytics (non-blocking)
           fetch(`${SUPABASE_URL}/rest/v1/conversation_analytics`, {
             method: "POST",
             headers: {
@@ -726,8 +832,8 @@ serve(async (req) => {
             body: JSON.stringify({
               user_id: userId,
               conversation_id: conversationId || null,
-              module_activated: module,
-              trigger_detected: trigger,
+              module_activated: crisisResult.isCrisis ? `crisis_${crisisResult.flagType}` : module,
+              trigger_detected: crisisResult.isCrisis ? crisisResult.triggerPhrase : trigger,
             }),
           }).then(res => {
             if (!res.ok) {
