@@ -168,6 +168,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          communication_style: string | null
+          created_at: string | null
+          desired_outcome: string | null
+          id: string
+          relationship_reason: string | null
+          relationship_status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          communication_style?: string | null
+          created_at?: string | null
+          desired_outcome?: string | null
+          id?: string
+          relationship_reason?: string | null
+          relationship_status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          communication_style?: string | null
+          created_at?: string | null
+          desired_outcome?: string | null
+          id?: string
+          relationship_reason?: string | null
+          relationship_status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
