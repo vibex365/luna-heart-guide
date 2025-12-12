@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, ArrowLeft, Plus, MessageCircle, LogOut, Trash2, Settings, Heart, BookOpen, Wind } from "lucide-react";
+import { Send, ArrowLeft, Plus, MessageCircle, LogOut, Trash2, Settings, Heart, BookOpen, Wind, LifeBuoy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import UserAvatar from "@/components/UserAvatar";
@@ -534,6 +534,15 @@ const Chat = () => {
                 >
                   <Wind className="w-4 h-4 mr-2" />
                   Breathe
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-muted-foreground mb-3"
+                  onClick={() => navigate("/crisis")}
+                >
+                  <LifeBuoy className="w-4 h-4 mr-2" />
+                  Crisis Resources
                 </Button>
                 <Button
                   variant="ghost"

@@ -12,6 +12,7 @@ import ProfileSettings from "./pages/ProfileSettings";
 import MoodTracker from "./pages/MoodTracker";
 import Journal from "./pages/Journal";
 import Breathe from "./pages/Breathe";
+import CrisisResources from "./pages/CrisisResources";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/mood" element={<MoodTracker />} />
             <Route path="/journal" element={<Journal />} />
             <Route path="/breathe" element={<Breathe />} />
+            <Route path="/crisis" element={<CrisisResources />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
