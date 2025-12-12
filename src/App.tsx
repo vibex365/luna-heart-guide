@@ -16,7 +16,7 @@ import Breathe from "./pages/Breathe";
 import CrisisResources from "./pages/CrisisResources";
 import Resources from "./pages/Resources";
 import ArticleDetail from "./pages/ArticleDetail";
-import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures } from "./pages/admin";
+import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna } from "./pages/admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -69,6 +69,14 @@ const App = () => (
               element={
                 <AdminRoute>
                   <AdminFeatures />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/luna"
+              element={
+                <AdminRoute>
+                  <AdminLuna />
                 </AdminRoute>
               }
             />
