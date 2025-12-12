@@ -16,7 +16,7 @@ import Breathe from "./pages/Breathe";
 import CrisisResources from "./pages/CrisisResources";
 import Resources from "./pages/Resources";
 import ArticleDetail from "./pages/ArticleDetail";
-import { AdminDashboard } from "./pages/admin";
+import { AdminDashboard, AdminUsers } from "./pages/admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,10 +41,18 @@ const App = () => (
             <Route path="/resources" element={<Resources />} />
             <Route path="/resources/:articleId" element={<ArticleDetail />} />
             <Route
-              path="/admin/*"
+              path="/admin"
               element={
                 <AdminRoute>
                   <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <AdminRoute>
+                  <AdminUsers />
                 </AdminRoute>
               }
             />
