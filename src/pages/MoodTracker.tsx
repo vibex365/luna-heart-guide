@@ -12,6 +12,7 @@ import MoodChart from "@/components/MoodChart";
 import MoodSelector from "@/components/MoodSelector";
 import MoodHistory from "@/components/MoodHistory";
 import ReminderSettings from "@/components/ReminderSettings";
+import StreakWidget from "@/components/StreakWidget";
 
 interface MoodEntry {
   id: string;
@@ -162,6 +163,7 @@ const MoodTracker = () => {
             <h1 className="text-xl font-semibold text-foreground">Mood Tracker</h1>
             <p className="text-sm text-muted-foreground">Track your emotional journey</p>
           </div>
+          <StreakWidget />
         </div>
       </header>
 
