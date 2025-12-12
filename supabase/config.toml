@@ -2,3 +2,6 @@ project_id = "vbfccooslnruiyhtrbrm"
 
 [functions.luna-chat]
 verify_jwt = false
+
+[functions.weekly-insights]
+verify_jwt = false
