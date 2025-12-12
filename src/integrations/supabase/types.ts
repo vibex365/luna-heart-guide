@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      breathing_exercises: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          cycles: number
+          description: string | null
+          difficulty: string | null
+          duration_seconds: number
+          exhale_seconds: number
+          hold_seconds: number
+          id: string
+          inhale_seconds: number
+          is_active: boolean | null
+          is_premium: boolean | null
+          sort_order: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          cycles?: number
+          description?: string | null
+          difficulty?: string | null
+          duration_seconds?: number
+          exhale_seconds?: number
+          hold_seconds?: number
+          id?: string
+          inhale_seconds?: number
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          sort_order?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          cycles?: number
+          description?: string | null
+          difficulty?: string | null
+          duration_seconds?: number
+          exhale_seconds?: number
+          hold_seconds?: number
+          id?: string
+          inhale_seconds?: number
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          sort_order?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       conversation_analytics: {
         Row: {
           conversation_id: string | null
@@ -111,6 +165,45 @@ export type Database = {
           },
         ]
       }
+      journal_templates: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_premium: boolean | null
+          prompts: Json | null
+          sort_order: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          prompts?: Json | null
+          sort_order?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          prompts?: Json | null
+          sort_order?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       luna_config: {
         Row: {
           description: string | null
@@ -194,6 +287,39 @@ export type Database = {
           mood_level?: number
           notes?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      mood_prompts: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_premium: boolean | null
+          mood_category: string | null
+          prompt_text: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          mood_category?: string | null
+          prompt_text: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          mood_category?: string | null
+          prompt_text?: string
+          sort_order?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }

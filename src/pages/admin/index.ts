@@ -3,3 +3,4 @@ export { default as AdminUsers } from "./AdminUsers";
 export { default as AdminSubscriptions } from "./AdminSubscriptions";
 export { default as AdminFeatures } from "./AdminFeatures";
 export { default as AdminLuna } from "./AdminLuna";
+export { default as AdminContent } from "./AdminContent";
