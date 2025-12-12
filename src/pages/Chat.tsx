@@ -5,6 +5,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import UserAvatar from "@/components/UserAvatar";
+import { MessageFeedback } from "@/components/MessageFeedback";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -619,14 +620,22 @@ const Chat = () => {
                       />
                     </div>
                   )}
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                      message.role === "assistant"
-                        ? "bg-luna-bubble text-foreground rounded-tl-md"
-                        : "bg-user-bubble text-foreground rounded-tr-md"
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                  <div className="max-w-[80%]">
+                    <div
+                      className={`rounded-2xl px-4 py-3 ${
+                        message.role === "assistant"
+                          ? "bg-luna-bubble text-foreground rounded-tl-md"
+                          : "bg-user-bubble text-foreground rounded-tr-md"
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                    </div>
+                    {/* Feedback button for assistant messages (not welcome message) */}
+                    {message.role === "assistant" && message.id !== "welcome" && !message.id.startsWith("luna-error") && (
+                      <div className="mt-1 flex justify-start">
+                        <MessageFeedback messageId={message.id} />
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               ))}

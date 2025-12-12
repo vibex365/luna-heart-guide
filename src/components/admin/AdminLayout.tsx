@@ -10,7 +10,8 @@ import {
   FileText,
   BarChart3,
   AlertTriangle,
-  LogOut
+  LogOut,
+  MessageSquare
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ const navItems = [
   { icon: FileText, label: "Content", path: "/admin/content" },
   { icon: AlertTriangle, label: "Safety", path: "/admin/safety" },
   { icon: BarChart3, label: "Analytics", path: "/admin/analytics" },
+  { icon: MessageSquare, label: "Feedback", path: "/admin/feedback" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },
 ];
 
