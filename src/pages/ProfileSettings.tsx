@@ -8,6 +8,7 @@ import LunaAvatar from "@/components/LunaAvatar";
 import ConversationAnalytics from "@/components/ConversationAnalytics";
 import WeeklyInsights from "@/components/WeeklyInsights";
 import StreakDisplay from "@/components/StreakDisplay";
+import ReminderSettings from "@/components/ReminderSettings";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,6 +68,8 @@ const ProfileSettings = () => {
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [weeklyInsightsEnabled, setWeeklyInsightsEnabled] = useState(true);
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderTime, setReminderTime] = useState("09:00");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -113,6 +116,8 @@ const ProfileSettings = () => {
       setDisplayName(data.display_name || "");
       setAvatarUrl(data.avatar_url);
       setWeeklyInsightsEnabled(data.weekly_insights_enabled ?? true);
+      setReminderEnabled(data.reminder_enabled ?? false);
+      setReminderTime(data.reminder_time ?? "09:00");
     }
 
     setLoading(false);
@@ -451,6 +456,18 @@ const ProfileSettings = () => {
             <WeeklyInsights 
               weeklyInsightsEnabled={weeklyInsightsEnabled}
               onUpdate={(enabled) => setWeeklyInsightsEnabled(enabled)}
+            />
+          </div>
+
+          {/* Reminder Settings Section */}
+          <div className="bg-card rounded-3xl p-8 shadow-luna border border-border">
+            <ReminderSettings 
+              reminderEnabled={reminderEnabled}
+              reminderTime={reminderTime}
+              onUpdate={(enabled, time) => {
+                setReminderEnabled(enabled);
+                setReminderTime(time);
+              }}
             />
           </div>
 

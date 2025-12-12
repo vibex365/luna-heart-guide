@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, ArrowLeft, Plus, MessageCircle, LogOut, Trash2, Settings, Heart, BookOpen, Wind, LifeBuoy } from "lucide-react";
+import { Send, ArrowLeft, Plus, MessageCircle, LogOut, Trash2, Settings, Heart, BookOpen, Wind, LifeBuoy, History } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
@@ -568,11 +568,17 @@ const Chat = () => {
           <div className="container mx-auto px-4 py-4 flex items-center gap-4">
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={() => setShowSidebar(!showSidebar)}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground gap-2"
             >
-              <MessageCircle className="w-5 h-5" />
+              <History className="w-4 h-4" />
+              <span className="hidden sm:inline">History</span>
+              {conversations.length > 0 && (
+                <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+                  {conversations.length}
+                </span>
+              )}
             </Button>
             <div className="flex items-center gap-3 flex-1">
               <LunaAvatar size="sm" />
