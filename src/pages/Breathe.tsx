@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Play, Pause, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 
 type BreathPhase = "inhale" | "hold" | "exhale" | "rest";
 
@@ -149,24 +150,27 @@ const Breathe = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-hero">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={selectedExercise ? goBack : () => navigate("/chat")}
-            className="rounded-full"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-xl font-semibold text-foreground">Breathe</h1>
-            <p className="text-sm text-muted-foreground">Find your calm</p>
+    <MobileOnlyLayout>
+      <div className="min-h-screen gradient-hero">
+        {/* Header */}
+        <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+            {selectedExercise && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={goBack}
+                className="rounded-full"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            )}
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold text-foreground">Breathe</h1>
+              <p className="text-sm text-muted-foreground">Find your calm</p>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         <AnimatePresence mode="wait">
@@ -341,7 +345,8 @@ const Breathe = () => {
           )}
         </AnimatePresence>
       </main>
-    </div>
+      </div>
+    </MobileOnlyLayout>
   );
 };
 

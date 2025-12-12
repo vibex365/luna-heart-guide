@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
 
 interface LunaAvatarProps {
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
   showGlow?: boolean;
   className?: string;
 }
 
 const sizeClasses = {
+  xs: "w-6 h-6",
   sm: "w-10 h-10",
   md: "w-14 h-14",
   lg: "w-20 h-20",
@@ -37,7 +38,7 @@ const LunaAvatar = ({ size = "md", showGlow = true, className = "" }: LunaAvatar
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
         <div className="absolute inset-1 rounded-full bg-gradient-to-br from-secondary/80 to-primary/60 flex items-center justify-center">
-          <span className="text-accent font-heading font-bold" style={{ fontSize: size === "xl" ? "2rem" : size === "lg" ? "1.25rem" : "0.875rem" }}>
+          <span className="text-accent font-heading font-bold" style={{ fontSize: size === "xl" ? "2rem" : size === "lg" ? "1.25rem" : size === "xs" ? "0.5rem" : "0.875rem" }}>
             L
           </span>
         </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Plus, TrendingUp, Calendar, Smile } from "lucide-react";
+import { Plus, TrendingUp, Calendar, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ import MoodSelector from "@/components/MoodSelector";
 import MoodHistory from "@/components/MoodHistory";
 import ReminderSettings from "@/components/ReminderSettings";
 import StreakWidget from "@/components/StreakWidget";
+import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 
 interface MoodEntry {
   id: string;
@@ -129,15 +130,17 @@ const MoodTracker = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen gradient-hero flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-muted-foreground"
-        >
-          Loading...
-        </motion.div>
-      </div>
+      <MobileOnlyLayout>
+        <div className="min-h-screen gradient-hero flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-muted-foreground"
+          >
+            Loading...
+          </motion.div>
+        </div>
+      </MobileOnlyLayout>
     );
   }
 
@@ -147,25 +150,18 @@ const MoodTracker = () => {
   });
 
   return (
-    <div className="min-h-screen gradient-hero">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/chat")}
-            className="rounded-full"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-xl font-semibold text-foreground">Mood Tracker</h1>
-            <p className="text-sm text-muted-foreground">Track your emotional journey</p>
+    <MobileOnlyLayout>
+      <div className="min-h-screen gradient-hero">
+        {/* Header */}
+        <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold text-foreground">Mood Tracker</h1>
+              <p className="text-sm text-muted-foreground">Track your emotional journey</p>
+            </div>
+            <StreakWidget />
           </div>
-          <StreakWidget />
-        </div>
-      </header>
+        </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Streak Motivation */}
@@ -307,7 +303,8 @@ const MoodTracker = () => {
           />
         </motion.div>
       </main>
-    </div>
+      </div>
+    </MobileOnlyLayout>
   );
 };
 
