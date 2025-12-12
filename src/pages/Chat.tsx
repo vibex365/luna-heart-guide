@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, ArrowLeft, Plus, MessageCircle, LogOut, Trash2, Settings, Heart, BookOpen, Wind, LifeBuoy, History, Search, X } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { isToday, isYesterday, isThisWeek, parseISO } from "date-fns";
 
 interface Message {
   id: string;
@@ -492,34 +493,70 @@ const Chat = () => {
                         </p>
                       );
                     }
+
+                    // Group conversations by date
+                    const grouped = filteredConversations.reduce((acc, conv) => {
+                      const date = parseISO(conv.updated_at);
+                      let group: string;
+                      
+                      if (isToday(date)) {
+                        group = "Today";
+                      } else if (isYesterday(date)) {
+                        group = "Yesterday";
+                      } else if (isThisWeek(date)) {
+                        group = "This Week";
+                      } else {
+                        group = "Older";
+                      }
+                      
+                      if (!acc[group]) acc[group] = [];
+                      acc[group].push(conv);
+                      return acc;
+                    }, {} as Record<string, typeof filteredConversations>);
+
+                    const groupOrder = ["Today", "Yesterday", "This Week", "Older"];
                     
                     return (
-                      <div className="space-y-1">
-                        {filteredConversations.map((conv) => (
-                          <div
-                            key={conv.id}
-                            className={`group flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-colors ${
-                              currentConversationId === conv.id
-                                ? "bg-primary/50"
-                                : "hover:bg-primary/30"
-                            }`}
-                            onClick={() => loadConversation(conv.id)}
-                          >
-                            <MessageCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-sm text-foreground truncate flex-1">
-                              {conv.title || "Untitled"}
-                            </span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteConversation(conv.id);
-                              }}
-                              className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/20 rounded transition-all"
-                            >
-                              <Trash2 className="w-3 h-3 text-destructive" />
-                            </button>
-                          </div>
-                        ))}
+                      <div className="space-y-4">
+                        {groupOrder.map(groupName => {
+                          const groupConvs = grouped[groupName];
+                          if (!groupConvs || groupConvs.length === 0) return null;
+                          
+                          return (
+                            <div key={groupName}>
+                              <p className="text-xs font-medium text-muted-foreground px-2 py-1 uppercase tracking-wider">
+                                {groupName}
+                              </p>
+                              <div className="space-y-1">
+                                {groupConvs.map((conv) => (
+                                  <div
+                                    key={conv.id}
+                                    className={`group flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-colors ${
+                                      currentConversationId === conv.id
+                                        ? "bg-primary/50"
+                                        : "hover:bg-primary/30"
+                                    }`}
+                                    onClick={() => loadConversation(conv.id)}
+                                  >
+                                    <MessageCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                                    <span className="text-sm text-foreground truncate flex-1">
+                                      {conv.title || "Untitled"}
+                                    </span>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        deleteConversation(conv.id);
+                                      }}
+                                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/20 rounded transition-all"
+                                    >
+                                      <Trash2 className="w-3 h-3 text-destructive" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     );
                   })()
