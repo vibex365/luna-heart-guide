@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import LunaAvatar from "@/components/LunaAvatar";
 import ConversationAnalytics from "@/components/ConversationAnalytics";
+import WeeklyInsights from "@/components/WeeklyInsights";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -434,6 +435,11 @@ const ProfileSettings = () => {
                 onChange={(val) => setPreferences({ ...preferences, communication_style: val })}
               />
             </div>
+          </div>
+
+          {/* Weekly Insights Section */}
+          <div className="bg-card rounded-3xl p-8 shadow-luna border border-border">
+            <WeeklyInsights />
           </div>
 
           {/* Analytics Section */}
