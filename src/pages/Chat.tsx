@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, ArrowLeft, Plus, MessageCircle, LogOut, Trash2, Settings, Heart, BookOpen, Wind, LifeBuoy, History } from "lucide-react";
+import { Send, ArrowLeft, Plus, MessageCircle, LogOut, Trash2, Settings, Heart, BookOpen, Wind, LifeBuoy, History, Search, X } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
@@ -55,6 +55,7 @@ const Chat = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [profile, setProfile] = useState<Profile | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -442,7 +443,7 @@ const Chat = () => {
               exit={{ x: -288 }}
               transition={{ type: "spring", damping: 25 }}
             >
-              <div className="p-4 border-b border-border">
+              <div className="p-4 border-b border-border space-y-3">
                 <Button
                   variant="peach"
                   className="w-full"
@@ -451,6 +452,26 @@ const Chat = () => {
                   <Plus className="w-4 h-4 mr-2" />
                   New Conversation
                 </Button>
+                
+                {/* Search input */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Search conversations..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-8 py-2 text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-muted-foreground"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto p-2">
@@ -459,33 +480,49 @@ const Chat = () => {
                     No conversations yet
                   </p>
                 ) : (
-                  <div className="space-y-1">
-                    {conversations.map((conv) => (
-                      <div
-                        key={conv.id}
-                        className={`group flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-colors ${
-                          currentConversationId === conv.id
-                            ? "bg-primary/50"
-                            : "hover:bg-primary/30"
-                        }`}
-                        onClick={() => loadConversation(conv.id)}
-                      >
-                        <MessageCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <span className="text-sm text-foreground truncate flex-1">
-                          {conv.title || "Untitled"}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteConversation(conv.id);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/20 rounded transition-all"
-                        >
-                          <Trash2 className="w-3 h-3 text-destructive" />
-                        </button>
+                  (() => {
+                    const filteredConversations = conversations.filter(conv =>
+                      (conv.title || "Untitled").toLowerCase().includes(searchQuery.toLowerCase())
+                    );
+                    
+                    if (filteredConversations.length === 0) {
+                      return (
+                        <p className="text-center text-muted-foreground text-sm py-8">
+                          No conversations match "{searchQuery}"
+                        </p>
+                      );
+                    }
+                    
+                    return (
+                      <div className="space-y-1">
+                        {filteredConversations.map((conv) => (
+                          <div
+                            key={conv.id}
+                            className={`group flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-colors ${
+                              currentConversationId === conv.id
+                                ? "bg-primary/50"
+                                : "hover:bg-primary/30"
+                            }`}
+                            onClick={() => loadConversation(conv.id)}
+                          >
+                            <MessageCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-sm text-foreground truncate flex-1">
+                              {conv.title || "Untitled"}
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteConversation(conv.id);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/20 rounded transition-all"
+                            >
+                              <Trash2 className="w-3 h-3 text-destructive" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })()
                 )}
               </div>
 
