@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AdminRoute } from "@/components/AdminRoute";
 import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Chat from "./pages/Chat";
@@ -15,6 +16,7 @@ import Breathe from "./pages/Breathe";
 import CrisisResources from "./pages/CrisisResources";
 import Resources from "./pages/Resources";
 import ArticleDetail from "./pages/ArticleDetail";
+import AdminPlaceholder from "./pages/AdminPlaceholder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +40,14 @@ const App = () => (
             <Route path="/crisis" element={<CrisisResources />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/resources/:articleId" element={<ArticleDetail />} />
+            <Route
+              path="/admin/*"
+              element={
+                <AdminRoute>
+                  <AdminPlaceholder />
+                </AdminRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
