@@ -4,10 +4,11 @@ import { Send, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
-  role: "user" | "luna";
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
 }
@@ -19,12 +20,14 @@ const quickPrompts = [
   { label: "I need a script", message: "Can you help me with what to say to my partner?" },
 ];
 
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/luna-chat`;
+
 const Chat = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      role: "luna",
+      role: "assistant",
       content: "Hi, I'm Luna. 💜 I'm here to listen and support you through whatever you're going through. There's no judgment here — just a safe space to explore your feelings.\n\nWhat's on your heart today?",
       timestamp: new Date(),
     },
@@ -50,20 +53,109 @@ const Chat = () => {
     }
   }, [input]);
 
-  const generateLunaResponse = (userMessage: string): string => {
-    // Simulated responses - in production this would call an AI API
-    const responses = [
-      `I hear you. ${userMessage.includes("hurt") ? "That sounds really painful, and I'm sorry you're carrying that." : "Thank you for sharing that with me."}\n\nCan you tell me more about what happened? What did that moment feel like for you?`,
-      `That sounds incredibly difficult. 💜 It takes courage to open up about these feelings.\n\nWhen you say that, what do you wish the other person understood about how you're feeling right now?`,
-      `I understand. Sometimes our hearts carry so much weight, and it helps just to let it out.\n\nWhat feels like the biggest weight on your heart right now?`,
-      `Thank you for trusting me with this. Your feelings are completely valid.\n\nLet's explore this together. What outcome would feel most healing for you in this situation?`,
-      `I can feel how much this matters to you. 💜\n\nSometimes when we're in the middle of something painful, it's hard to see clearly. What would you tell a close friend if they were going through the same thing?`,
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
+  const streamChat = async (
+    messagesToSend: { role: string; content: string }[],
+    onDelta: (deltaText: string) => void,
+    onDone: () => void
+  ) => {
+    const resp = await fetch(CHAT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ messages: messagesToSend }),
+    });
+
+    if (!resp.ok) {
+      const errorData = await resp.json().catch(() => ({}));
+      
+      if (resp.status === 429) {
+        toast({
+          title: "Please slow down",
+          description: "Luna is a bit overwhelmed. Try again in a moment.",
+          variant: "destructive",
+        });
+      } else if (resp.status === 402) {
+        toast({
+          title: "Service unavailable",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Something went wrong",
+          description: errorData.error || "Please try again.",
+          variant: "destructive",
+        });
+      }
+      throw new Error(errorData.error || "Failed to start stream");
+    }
+
+    if (!resp.body) throw new Error("No response body");
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let textBuffer = "";
+    let streamDone = false;
+
+    while (!streamDone) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      textBuffer += decoder.decode(value, { stream: true });
+
+      // Process line-by-line as data arrives
+      let newlineIndex: number;
+      while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+        let line = textBuffer.slice(0, newlineIndex);
+        textBuffer = textBuffer.slice(newlineIndex + 1);
+
+        if (line.endsWith("\r")) line = line.slice(0, -1);
+        if (line.startsWith(":") || line.trim() === "") continue;
+        if (!line.startsWith("data: ")) continue;
+
+        const jsonStr = line.slice(6).trim();
+        if (jsonStr === "[DONE]") {
+          streamDone = true;
+          break;
+        }
+
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+          if (content) onDelta(content);
+        } catch {
+          // Incomplete JSON split across chunks: put it back and wait for more data
+          textBuffer = line + "\n" + textBuffer;
+          break;
+        }
+      }
+    }
+
+    // Final flush
+    if (textBuffer.trim()) {
+      for (let raw of textBuffer.split("\n")) {
+        if (!raw) continue;
+        if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+        if (raw.startsWith(":") || raw.trim() === "") continue;
+        if (!raw.startsWith("data: ")) continue;
+        const jsonStr = raw.slice(6).trim();
+        if (jsonStr === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+          if (content) onDelta(content);
+        } catch {
+          /* ignore partial leftovers */
+        }
+      }
+    }
+
+    onDone();
   };
 
   const sendMessage = async (messageText: string) => {
-    if (!messageText.trim()) return;
+    if (!messageText.trim() || isTyping) return;
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -76,18 +168,58 @@ const Chat = () => {
     setInput("");
     setIsTyping(true);
 
-    // Simulate typing delay
-    await new Promise((resolve) => setTimeout(resolve, 1500 + Math.random() * 1000));
+    // Prepare messages for API (exclude welcome message, use API format)
+    const apiMessages = [...messages, userMessage]
+      .filter((m) => m.id !== "welcome")
+      .map((m) => ({
+        role: m.role === "assistant" ? "assistant" : "user",
+        content: m.content,
+      }));
 
-    const lunaResponse: Message = {
-      id: `luna-${Date.now()}`,
-      role: "luna",
-      content: generateLunaResponse(messageText),
-      timestamp: new Date(),
+    let assistantContent = "";
+
+    const updateAssistantMessage = (chunk: string) => {
+      assistantContent += chunk;
+      setMessages((prev) => {
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg?.role === "assistant" && lastMsg.id.startsWith("luna-")) {
+          return prev.map((m, i) =>
+            i === prev.length - 1 ? { ...m, content: assistantContent } : m
+          );
+        }
+        return [
+          ...prev,
+          {
+            id: `luna-${Date.now()}`,
+            role: "assistant" as const,
+            content: assistantContent,
+            timestamp: new Date(),
+          },
+        ];
+      });
     };
 
-    setIsTyping(false);
-    setMessages((prev) => [...prev, lunaResponse]);
+    try {
+      await streamChat(apiMessages, updateAssistantMessage, () => {
+        setIsTyping(false);
+      });
+    } catch (error) {
+      console.error("Chat error:", error);
+      setIsTyping(false);
+      
+      // Add a fallback message if streaming failed
+      if (!assistantContent) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `luna-error-${Date.now()}`,
+            role: "assistant",
+            content: "I'm sorry, I'm having trouble connecting right now. 💜 Please try again in a moment.",
+            timestamp: new Date(),
+          },
+        ]);
+      }
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -138,14 +270,14 @@ const Chat = () => {
                 transition={{ duration: 0.3 }}
                 className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : ""}`}
               >
-                {message.role === "luna" && (
+                {message.role === "assistant" && (
                   <div className="flex-shrink-0">
                     <LunaAvatar size="sm" showGlow={false} />
                   </div>
                 )}
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                    message.role === "luna"
+                    message.role === "assistant"
                       ? "bg-luna-bubble text-foreground rounded-tl-md"
                       : "bg-user-bubble text-foreground rounded-tr-md"
                   }`}
@@ -158,7 +290,7 @@ const Chat = () => {
 
           {/* Typing indicator */}
           <AnimatePresence>
-            {isTyping && (
+            {isTyping && messages[messages.length - 1]?.role !== "assistant" && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -206,6 +338,7 @@ const Chat = () => {
                 variant="pill"
                 size="sm"
                 onClick={() => sendMessage(prompt.message)}
+                disabled={isTyping}
                 className="flex-shrink-0 text-sm"
               >
                 {prompt.label}
@@ -224,6 +357,7 @@ const Chat = () => {
                 placeholder="Share what's on your mind..."
                 className="w-full resize-none rounded-xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent min-h-[48px] max-h-[120px]"
                 rows={1}
+                disabled={isTyping}
               />
             </div>
             <Button
