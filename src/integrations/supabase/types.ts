@@ -180,6 +180,7 @@ export type Database = {
           reminder_time: string | null
           updated_at: string
           user_id: string
+          weekly_insights_enabled: boolean | null
         }
         Insert: {
           avatar_url?: string | null
@@ -190,6 +191,7 @@ export type Database = {
           reminder_time?: string | null
           updated_at?: string
           user_id: string
+          weekly_insights_enabled?: boolean | null
         }
         Update: {
           avatar_url?: string | null
@@ -200,6 +202,7 @@ export type Database = {
           reminder_time?: string | null
           updated_at?: string
           user_id?: string
+          weekly_insights_enabled?: boolean | null
         }
         Relationships: []
       }

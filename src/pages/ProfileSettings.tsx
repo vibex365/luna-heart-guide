@@ -17,6 +17,7 @@ interface Profile {
   user_id: string;
   display_name: string | null;
   avatar_url: string | null;
+  weekly_insights_enabled: boolean | null;
 }
 
 interface UserPreferences {
@@ -64,6 +65,7 @@ const ProfileSettings = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [weeklyInsightsEnabled, setWeeklyInsightsEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -109,6 +111,7 @@ const ProfileSettings = () => {
       setProfile(data);
       setDisplayName(data.display_name || "");
       setAvatarUrl(data.avatar_url);
+      setWeeklyInsightsEnabled(data.weekly_insights_enabled ?? true);
     }
 
     setLoading(false);
@@ -439,7 +442,10 @@ const ProfileSettings = () => {
 
           {/* Weekly Insights Section */}
           <div className="bg-card rounded-3xl p-8 shadow-luna border border-border">
-            <WeeklyInsights />
+            <WeeklyInsights 
+              weeklyInsightsEnabled={weeklyInsightsEnabled}
+              onUpdate={(enabled) => setWeeklyInsightsEnabled(enabled)}
+            />
           </div>
 
           {/* Analytics Section */}
