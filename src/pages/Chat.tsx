@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, ArrowLeft, Plus, MessageCircle, LogOut, Trash2, Settings, Heart, BookOpen, Wind, LifeBuoy, History, Search, X, Pencil, Check } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
+import { Send, Plus, MessageCircle, LogOut, Trash2, Heart, BookOpen, Wind, LifeBuoy, History, Search, X, Pencil, Check, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import UserAvatar from "@/components/UserAvatar";
 import { MessageFeedback } from "@/components/MessageFeedback";
+import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -480,14 +480,17 @@ const Chat = () => {
 
   if (authLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <LunaAvatar size="lg" />
-      </div>
+      <MobileOnlyLayout hideTabBar>
+        <div className="h-screen flex items-center justify-center bg-background">
+          <LunaAvatar size="lg" />
+        </div>
+      </MobileOnlyLayout>
     );
   }
 
   return (
-    <div className="h-screen flex bg-background">
+    <MobileOnlyLayout>
+      <div className="h-full flex flex-col bg-background">
       {/* Sidebar */}
       <AnimatePresence>
         {showSidebar && (
@@ -761,15 +764,6 @@ const Chat = () => {
                 <p className="text-xs text-muted-foreground">Your relationship therapist</p>
               </div>
             </div>
-            <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/")}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
           </div>
         </header>
 
@@ -936,7 +930,8 @@ const Chat = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </MobileOnlyLayout>
   );
 };
 

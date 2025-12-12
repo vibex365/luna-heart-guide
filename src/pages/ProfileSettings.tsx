@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Camera, User, Save, Heart, Users, Sparkles, MessageCircle } from "lucide-react";
+import { Camera, User, Save, Heart, Users, Sparkles, MessageCircle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import ConversationAnalytics from "@/components/ConversationAnalytics";
 import WeeklyInsights from "@/components/WeeklyInsights";
 import StreakDisplay from "@/components/StreakDisplay";
 import ReminderSettings from "@/components/ReminderSettings";
+import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,7 +64,7 @@ const communicationOptions = [
 
 const ProfileSettings = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -287,36 +288,36 @@ const ProfileSettings = () => {
     </div>
   );
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   if (authLoading || loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <LunaAvatar size="lg" />
-      </div>
+      <MobileOnlyLayout>
+        <div className="h-screen flex items-center justify-center bg-background">
+          <LunaAvatar size="lg" />
+        </div>
+      </MobileOnlyLayout>
     );
   }
 
   return (
-    <div className="min-h-screen gradient-hero">
-      {/* Header */}
-      <header className="container mx-auto px-6 py-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/chat")}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex items-center gap-3">
-            <LunaAvatar size="sm" showGlow={false} />
-            <span className="font-heading font-bold text-xl text-foreground">LUNA</span>
+    <MobileOnlyLayout>
+      <div className="min-h-screen gradient-hero">
+        {/* Header */}
+        <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
+          <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+            <div className="flex items-center gap-3 flex-1">
+              <LunaAvatar size="sm" showGlow={false} />
+              <span className="font-heading font-bold text-xl text-foreground">Profile</span>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Profile Form */}
-      <main className="container mx-auto px-6 py-8 pb-20">
+        {/* Profile Form */}
+        <main className="container mx-auto px-4 py-6 pb-8">
         <motion.div
           className="max-w-md mx-auto space-y-6"
           initial={{ opacity: 0, y: 20 }}
@@ -493,12 +494,23 @@ const ProfileSettings = () => {
             )}
           </Button>
 
+          <Button
+            variant="ghost"
+            size="lg"
+            className="w-full text-muted-foreground"
+            onClick={handleSignOut}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
+
           <p className="text-center text-xs text-muted-foreground">
             Your data is private and secure. 💜
           </p>
         </motion.div>
       </main>
-    </div>
+      </div>
+    </MobileOnlyLayout>
   );
 };
 

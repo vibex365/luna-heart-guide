@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Plus, BookOpen, Pencil, Trash2, X, Save } from "lucide-react";
+import { Plus, BookOpen, Pencil, Trash2, X, Save } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 
 interface JournalEntry {
   id: string;
@@ -188,32 +189,32 @@ const Journal = () => {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen gradient-hero flex items-center justify-center">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-muted-foreground">
-          Loading...
-        </motion.div>
-      </div>
+      <MobileOnlyLayout>
+        <div className="min-h-screen gradient-hero flex items-center justify-center">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-muted-foreground">
+            Loading...
+          </motion.div>
+        </div>
+      </MobileOnlyLayout>
     );
   }
 
   return (
-    <div className="min-h-screen gradient-hero">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/chat")} className="rounded-full">
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-xl font-semibold text-foreground">Journal</h1>
-            <p className="text-sm text-muted-foreground">Your private reflections</p>
+    <MobileOnlyLayout>
+      <div className="min-h-screen gradient-hero">
+        {/* Header */}
+        <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold text-foreground">Journal</h1>
+              <p className="text-sm text-muted-foreground">Your private reflections</p>
+            </div>
+            <Button onClick={openNewEntry} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Plus className="w-4 h-4 mr-2" />
+              New Entry
+            </Button>
           </div>
-          <Button onClick={openNewEntry} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-            <Plus className="w-4 h-4 mr-2" />
-            New Entry
-          </Button>
-        </div>
-      </header>
+        </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-4">
         {entries.length === 0 ? (
@@ -355,7 +356,8 @@ const Journal = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </MobileOnlyLayout>
   );
 };
 
