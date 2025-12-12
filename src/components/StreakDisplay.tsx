@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Trophy, Calendar, Sparkles, Star, Award, Crown, Zap } from "lucide-react";
 import { useStreakTracking } from "@/hooks/useStreakTracking";
+import ShareStreak from "@/components/ShareStreak";
 
 interface Milestone {
   days: number;
@@ -329,6 +330,20 @@ const StreakDisplay = () => {
           <p className="text-xs text-muted-foreground">Last check-in</p>
         </motion.div>
       </div>
+
+      {/* Share Button */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="pt-2"
+      >
+        <ShareStreak
+          currentStreak={streakData.currentStreak}
+          longestStreak={streakData.longestStreak}
+          totalCheckIns={streakData.totalCheckIns}
+        />
+      </motion.div>
     </div>
   );
 };
