@@ -178,6 +178,9 @@ export type Database = {
           id: string
           reminder_enabled: boolean | null
           reminder_time: string | null
+          suspended: boolean | null
+          suspended_at: string | null
+          suspended_reason: string | null
           updated_at: string
           user_id: string
           weekly_insights_enabled: boolean | null
@@ -189,6 +192,9 @@ export type Database = {
           id?: string
           reminder_enabled?: boolean | null
           reminder_time?: string | null
+          suspended?: boolean | null
+          suspended_at?: string | null
+          suspended_reason?: string | null
           updated_at?: string
           user_id: string
           weekly_insights_enabled?: boolean | null
@@ -200,6 +206,9 @@ export type Database = {
           id?: string
           reminder_enabled?: boolean | null
           reminder_time?: string | null
+          suspended?: boolean | null
+          suspended_at?: string | null
+          suspended_reason?: string | null
           updated_at?: string
           user_id?: string
           weekly_insights_enabled?: boolean | null
