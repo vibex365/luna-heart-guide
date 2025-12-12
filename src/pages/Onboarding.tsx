@@ -1,24 +1,38 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, Heart, Users, Sparkles } from "lucide-react";
+import { ChevronRight, Heart, Users, Sparkles, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface OnboardingData {
   reason: string;
   status: string;
   outcome: string;
+  communication: string;
 }
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [step, setStep] = useState(0);
+  const [saving, setSaving] = useState(false);
   const [data, setData] = useState<OnboardingData>({
     reason: "",
     status: "",
     outcome: "",
+    communication: "",
   });
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
 
   const steps = [
     {
@@ -60,6 +74,19 @@ const Onboarding = () => {
       ],
       field: "outcome" as keyof OnboardingData,
     },
+    {
+      title: "How do you prefer to communicate?",
+      subtitle: "This helps me match your style.",
+      icon: MessageCircle,
+      options: [
+        { value: "direct", label: "Direct and honest" },
+        { value: "gentle", label: "Gentle and supportive" },
+        { value: "slow", label: "I like to process slowly" },
+        { value: "validation", label: "I need validation first" },
+        { value: "actionable", label: "Give me actionable steps" },
+      ],
+      field: "communication" as keyof OnboardingData,
+    },
   ];
 
   const currentStep = steps[step];
@@ -68,17 +95,63 @@ const Onboarding = () => {
     setData({ ...data, [currentStep.field]: value });
   };
 
+  const savePreferences = async () => {
+    if (!user) return;
+    
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_preferences")
+        .upsert({
+          user_id: user.id,
+          relationship_reason: data.reason,
+          relationship_status: data.status,
+          desired_outcome: data.outcome,
+          communication_style: data.communication,
+        }, { onConflict: "user_id" });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Preferences saved! 💜",
+        description: "Luna is now personalized for you.",
+      });
+      navigate("/chat");
+    } catch (error) {
+      console.error("Error saving preferences:", error);
+      toast({
+        title: "Couldn't save preferences",
+        description: "We'll try again later. Taking you to chat.",
+        variant: "destructive",
+      });
+      navigate("/chat");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleNext = () => {
     if (step < steps.length - 1) {
       setStep(step + 1);
     } else {
-      // Save to localStorage for context
-      localStorage.setItem("luna-onboarding", JSON.stringify(data));
-      navigate("/chat");
+      savePreferences();
     }
   };
 
+  const handleSkip = async () => {
+    // Just navigate without saving
+    navigate("/chat");
+  };
+
   const canContinue = data[currentStep.field] !== "";
+
+  if (authLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <LunaAvatar size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen gradient-hero flex flex-col">
@@ -167,18 +240,18 @@ const Onboarding = () => {
             variant="peach"
             size="lg"
             onClick={handleNext}
-            disabled={!canContinue}
+            disabled={!canContinue || saving}
             className="min-w-[200px]"
           >
-            {step === steps.length - 1 ? "Start Talking to Luna" : "Continue"}
-            <ChevronRight className="w-5 h-5 ml-1" />
+            {saving ? "Saving..." : step === steps.length - 1 ? "Start Talking to Luna" : "Continue"}
+            {!saving && <ChevronRight className="w-5 h-5 ml-1" />}
           </Button>
         </motion.div>
 
         {/* Skip */}
         <motion.button
           className="mt-4 text-muted-foreground hover:text-accent text-sm transition-colors"
-          onClick={() => navigate("/chat")}
+          onClick={handleSkip}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}

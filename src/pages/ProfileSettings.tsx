@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Camera, User, Save } from "lucide-react";
+import { ArrowLeft, Camera, User, Save, Heart, Users, Sparkles, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,45 @@ interface Profile {
   avatar_url: string | null;
 }
 
+interface UserPreferences {
+  relationship_reason: string | null;
+  relationship_status: string | null;
+  desired_outcome: string | null;
+  communication_style: string | null;
+}
+
+const reasonOptions = [
+  { value: "hurt", label: "I'm feeling hurt or confused" },
+  { value: "communicate", label: "I want to communicate better" },
+  { value: "understand", label: "I need to understand my partner" },
+  { value: "heal", label: "I'm healing from something painful" },
+  { value: "explore", label: "Just exploring my feelings" },
+];
+
+const statusOptions = [
+  { value: "relationship", label: "In a relationship" },
+  { value: "separated", label: "Recently separated" },
+  { value: "dating", label: "Dating / Getting to know someone" },
+  { value: "single", label: "Single and reflecting" },
+  { value: "unsure", label: "It's complicated" },
+];
+
+const outcomeOptions = [
+  { value: "clarity", label: "I want clarity on my feelings" },
+  { value: "peace", label: "I want to feel at peace" },
+  { value: "script", label: "I need help saying something" },
+  { value: "understand", label: "I want to understand patterns" },
+  { value: "support", label: "I just need emotional support" },
+];
+
+const communicationOptions = [
+  { value: "direct", label: "Direct and honest" },
+  { value: "gentle", label: "Gentle and supportive" },
+  { value: "slow", label: "I like to process slowly" },
+  { value: "validation", label: "I need validation first" },
+  { value: "actionable", label: "Give me actionable steps" },
+];
+
 const ProfileSettings = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -27,6 +66,14 @@ const ProfileSettings = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Preferences state
+  const [preferences, setPreferences] = useState<UserPreferences>({
+    relationship_reason: null,
+    relationship_status: null,
+    desired_outcome: null,
+    communication_style: null,
+  });
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -36,6 +83,7 @@ const ProfileSettings = () => {
 
     if (user) {
       loadProfile();
+      loadPreferences();
     }
   }, [user, authLoading, navigate]);
 
@@ -64,6 +112,25 @@ const ProfileSettings = () => {
     setLoading(false);
   };
 
+  const loadPreferences = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("user_preferences")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!error && data) {
+      setPreferences({
+        relationship_reason: data.relationship_reason,
+        relationship_status: data.relationship_status,
+        desired_outcome: data.desired_outcome,
+        communication_style: data.communication_style,
+      });
+    }
+  };
+
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
   };
@@ -72,7 +139,6 @@ const ProfileSettings = () => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Invalid file",
@@ -82,7 +148,6 @@ const ProfileSettings = () => {
       return;
     }
 
-    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast({
         title: "File too large",
@@ -98,14 +163,12 @@ const ProfileSettings = () => {
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}/avatar.${fileExt}`;
 
-      // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: urlData } = supabase.storage
         .from("avatars")
         .getPublicUrl(fileName);
@@ -113,7 +176,6 @@ const ProfileSettings = () => {
       const newAvatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
       setAvatarUrl(newAvatarUrl);
 
-      // Update profile
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: newAvatarUrl })
@@ -143,12 +205,23 @@ const ProfileSettings = () => {
     setSaving(true);
 
     try {
-      const { error } = await supabase
+      // Save profile
+      const { error: profileError } = await supabase
         .from("profiles")
         .update({ display_name: displayName.trim() || null })
         .eq("user_id", user.id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Save preferences
+      const { error: prefError } = await supabase
+        .from("user_preferences")
+        .upsert({
+          user_id: user.id,
+          ...preferences,
+        }, { onConflict: "user_id" });
+
+      if (prefError) throw prefError;
 
       toast({
         title: "Profile saved! 💜",
@@ -165,6 +238,43 @@ const ProfileSettings = () => {
       setSaving(false);
     }
   };
+
+  const PreferenceSelect = ({ 
+    label, 
+    icon: Icon, 
+    value, 
+    options, 
+    onChange 
+  }: { 
+    label: string; 
+    icon: React.ElementType; 
+    value: string | null; 
+    options: { value: string; label: string }[]; 
+    onChange: (val: string) => void;
+  }) => (
+    <div className="space-y-2">
+      <Label className="text-foreground flex items-center gap-2">
+        <Icon className="w-4 h-4 text-accent" />
+        {label}
+      </Label>
+      <div className="grid grid-cols-1 gap-2">
+        {options.map(option => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            className={`p-3 rounded-xl border text-left text-sm transition-all ${
+              value === option.value
+                ? "bg-secondary border-accent"
+                : "bg-background border-border hover:border-accent/50"
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
   if (authLoading || loading) {
     return (
@@ -195,13 +305,14 @@ const ProfileSettings = () => {
       </header>
 
       {/* Profile Form */}
-      <main className="container mx-auto px-6 py-8">
+      <main className="container mx-auto px-6 py-8 pb-20">
         <motion.div
-          className="max-w-md mx-auto"
+          className="max-w-md mx-auto space-y-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
+          {/* Profile Section */}
           <div className="bg-card rounded-3xl p-8 shadow-luna border border-border">
             <h1 className="font-heading text-2xl font-bold text-foreground text-center mb-2">
               Your Profile
@@ -277,27 +388,71 @@ const ProfileSettings = () => {
                   className="h-12 rounded-xl border-border bg-muted text-muted-foreground cursor-not-allowed"
                 />
               </div>
-
-              <Button
-                variant="peach"
-                size="lg"
-                className="w-full"
-                onClick={handleSave}
-                disabled={saving}
-              >
-                {saving ? (
-                  "Saving..."
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
             </div>
           </div>
 
-          <p className="text-center text-xs text-muted-foreground mt-6">
+          {/* Preferences Section */}
+          <div className="bg-card rounded-3xl p-8 shadow-luna border border-border">
+            <h2 className="font-heading text-xl font-bold text-foreground text-center mb-2">
+              Luna Preferences
+            </h2>
+            <p className="text-muted-foreground text-center mb-6 text-sm">
+              Help Luna understand you better
+            </p>
+
+            <div className="space-y-6">
+              <PreferenceSelect
+                label="What brings you here?"
+                icon={Heart}
+                value={preferences.relationship_reason}
+                options={reasonOptions}
+                onChange={(val) => setPreferences({ ...preferences, relationship_reason: val })}
+              />
+
+              <PreferenceSelect
+                label="Current situation"
+                icon={Users}
+                value={preferences.relationship_status}
+                options={statusOptions}
+                onChange={(val) => setPreferences({ ...preferences, relationship_status: val })}
+              />
+
+              <PreferenceSelect
+                label="What you're seeking"
+                icon={Sparkles}
+                value={preferences.desired_outcome}
+                options={outcomeOptions}
+                onChange={(val) => setPreferences({ ...preferences, desired_outcome: val })}
+              />
+
+              <PreferenceSelect
+                label="Communication style"
+                icon={MessageCircle}
+                value={preferences.communication_style}
+                options={communicationOptions}
+                onChange={(val) => setPreferences({ ...preferences, communication_style: val })}
+              />
+            </div>
+          </div>
+
+          <Button
+            variant="peach"
+            size="lg"
+            className="w-full"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? (
+              "Saving..."
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save Changes
+              </>
+            )}
+          </Button>
+
+          <p className="text-center text-xs text-muted-foreground">
             Your data is private and secure. 💜
           </p>
         </motion.div>

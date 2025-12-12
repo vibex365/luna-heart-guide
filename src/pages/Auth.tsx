@@ -100,9 +100,9 @@ const Auth = () => {
         } else {
           toast({
             title: "Account created! 💜",
-            description: "Welcome to Luna. Your safe space awaits.",
+            description: "Let's personalize your experience.",
           });
-          navigate("/chat");
+          navigate("/onboarding");
         }
       }
     } finally {
