@@ -168,8 +168,13 @@ const MoodTracker = () => {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* Today's Mood Card */}
+        {/* Streak Motivation */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <StreakWidget showMessage />
+        </motion.div>
+
+        {/* Today's Mood Card */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <Card className="shadow-soft border-border/50">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
