@@ -299,19 +299,25 @@ const Landing = () => {
           </motion.div>
         </AnimatePresence>
 
-        {/* Side indicators */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-10">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === currentSlide
-                  ? "bg-accent h-6"
-                  : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-              }`}
-            />
-          ))}
+        {/* Side icon navigation */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-10">
+          {slides.map((slide, index) => {
+            const SlideIcon = slide.icon;
+            return (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`p-2 rounded-full transition-all duration-300 ${
+                  index === currentSlide
+                    ? "bg-accent text-accent-foreground scale-110 shadow-lg"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted hover:scale-105"
+                }`}
+                aria-label={slide.title}
+              >
+                <SlideIcon className="w-4 h-4" />
+              </button>
+            );
+          })}
         </div>
 
         {/* Bottom CTA bar */}
