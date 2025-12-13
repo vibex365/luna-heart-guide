@@ -4,6 +4,7 @@ import { BottomTabBar } from "./BottomTabBar";
 import DesktopBlocker from "./DesktopBlocker";
 import SwipeableTabView from "./SwipeableTabView";
 import PWAInstallBanner from "./PWAInstallBanner";
+import OfflineIndicator from "./OfflineIndicator";
 
 interface MobileOnlyLayoutProps {
   children: ReactNode;
@@ -24,6 +25,7 @@ const MobileOnlyLayout = ({ children, hideTabBar = false }: MobileOnlyLayoutProp
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <OfflineIndicator />
       <PWAInstallBanner />
       {!hideTabBar ? (
         <>

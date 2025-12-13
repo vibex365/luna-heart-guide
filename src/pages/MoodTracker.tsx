@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, TrendingUp, Calendar, Smile } from "lucide-react";
@@ -14,6 +14,8 @@ import MoodHistory from "@/components/MoodHistory";
 import ReminderSettings from "@/components/ReminderSettings";
 import StreakWidget from "@/components/StreakWidget";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
+import PullToRefresh from "@/components/PullToRefresh";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 interface MoodEntry {
   id: string;
@@ -26,6 +28,7 @@ interface MoodEntry {
 const MoodTracker = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { isOnline } = useOnlineStatus();
   const [entries, setEntries] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showLogger, setShowLogger] = useState(false);
@@ -34,6 +37,7 @@ const MoodTracker = () => {
   const [saving, setSaving] = useState(false);
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState("09:00");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -67,7 +71,9 @@ const MoodTracker = () => {
     setReminderTime(time);
   };
 
-  const loadEntries = async () => {
+  const loadEntries = useCallback(async () => {
+    if (!isOnline) return;
+    
     try {
       const { data, error } = await supabase
         .from("mood_entries")
@@ -77,13 +83,34 @@ const MoodTracker = () => {
 
       if (error) throw error;
       setEntries(data || []);
+      // Cache data for offline use
+      localStorage.setItem("cached_mood_entries", JSON.stringify(data || []));
     } catch (error) {
       console.error("Error loading mood entries:", error);
-      toast.error("Failed to load mood history");
+      // Try to load from cache
+      const cached = localStorage.getItem("cached_mood_entries");
+      if (cached) {
+        setEntries(JSON.parse(cached));
+      }
+      if (isOnline) {
+        toast.error("Failed to load mood history");
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [isOnline]);
+
+  const handleRefresh = useCallback(async () => {
+    if (!isOnline) {
+      toast.error("You're offline. Can't refresh right now.");
+      return;
+    }
+    setIsRefreshing(true);
+    await loadEntries();
+    await loadReminderSettings();
+    setIsRefreshing(false);
+    toast.success("Refreshed!");
+  }, [isOnline, loadEntries]);
 
   const handleSaveMood = async () => {
     if (!selectedMood || !user) return;
@@ -151,17 +178,18 @@ const MoodTracker = () => {
 
   return (
     <MobileOnlyLayout>
-      <div className="min-h-screen gradient-hero">
-        {/* Header */}
-        <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
-          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-            <div className="flex-1">
-              <h1 className="text-xl font-semibold text-foreground">Mood Tracker</h1>
-              <p className="text-sm text-muted-foreground">Track your emotional journey</p>
+      <PullToRefresh onRefresh={handleRefresh} disabled={isRefreshing}>
+        <div className="min-h-screen gradient-hero">
+          {/* Header */}
+          <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
+            <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+              <div className="flex-1">
+                <h1 className="text-xl font-semibold text-foreground">Mood Tracker</h1>
+                <p className="text-sm text-muted-foreground">Track your emotional journey</p>
+              </div>
+              <StreakWidget />
             </div>
-            <StreakWidget />
-          </div>
-        </header>
+          </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Streak Motivation */}
@@ -302,8 +330,9 @@ const MoodTracker = () => {
             onUpdate={handleReminderUpdate}
           />
         </motion.div>
-      </main>
-      </div>
+        </main>
+        </div>
+      </PullToRefresh>
     </MobileOnlyLayout>
   );
 };
