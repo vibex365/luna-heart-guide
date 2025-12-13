@@ -10,6 +10,7 @@ import WeeklyInsights from "@/components/WeeklyInsights";
 import StreakDisplay from "@/components/StreakDisplay";
 import ReminderSettings from "@/components/ReminderSettings";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
+import { ProfileSkeleton } from "@/components/skeletons/PageSkeletons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -296,16 +297,14 @@ const ProfileSettings = () => {
   if (authLoading || loading) {
     return (
       <MobileOnlyLayout>
-        <div className="h-screen flex items-center justify-center bg-background">
-          <LunaAvatar size="lg" />
-        </div>
+        <ProfileSkeleton />
       </MobileOnlyLayout>
     );
   }
 
   return (
     <MobileOnlyLayout>
-      <div className="min-h-screen gradient-hero">
+      <div className="h-full flex flex-col bg-background overflow-y-auto">
         {/* Header */}
         <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
           <div className="container mx-auto px-4 py-4 flex items-center gap-4">

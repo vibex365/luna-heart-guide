@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
+import { JournalSkeleton } from "@/components/skeletons/PageSkeletons";
 
 interface JournalEntry {
   id: string;
@@ -190,18 +191,14 @@ const Journal = () => {
   if (authLoading || loading) {
     return (
       <MobileOnlyLayout>
-        <div className="min-h-screen gradient-hero flex items-center justify-center">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-muted-foreground">
-            Loading...
-          </motion.div>
-        </div>
+        <JournalSkeleton />
       </MobileOnlyLayout>
     );
   }
 
   return (
     <MobileOnlyLayout>
-      <div className="min-h-screen gradient-hero">
+      <div className="h-full flex flex-col bg-background">
         {/* Header */}
         <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
