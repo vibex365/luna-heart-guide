@@ -4,6 +4,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { StatCard } from "@/components/admin/StatCard";
 import { MoodDistributionChart } from "@/components/admin/MoodDistributionChart";
 import { RecentActivityCard } from "@/components/admin/RecentActivityCard";
+import { AdminActionLog } from "@/components/admin/AdminActionLog";
 import { 
   Users, 
   MessageSquare, 
@@ -217,6 +218,9 @@ const AdminDashboard = () => {
           <MoodDistributionChart data={moodData} />
           <RecentActivityCard activities={recentActivity} />
         </div>
+
+        {/* Admin Action Log */}
+        <AdminActionLog />
       </div>
     </AdminLayout>
   );
