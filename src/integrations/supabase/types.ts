@@ -612,6 +612,65 @@ export type Database = {
         }
         Relationships: []
       }
+      relationship_assessments: {
+        Row: {
+          assessment_date: string
+          communication_answers: Json
+          communication_score: number
+          completed_at: string | null
+          conflict_answers: Json
+          conflict_score: number
+          created_at: string | null
+          id: string
+          intimacy_answers: Json
+          intimacy_score: number
+          partner_link_id: string
+          trust_answers: Json
+          trust_score: number
+          user_id: string
+        }
+        Insert: {
+          assessment_date?: string
+          communication_answers?: Json
+          communication_score: number
+          completed_at?: string | null
+          conflict_answers?: Json
+          conflict_score: number
+          created_at?: string | null
+          id?: string
+          intimacy_answers?: Json
+          intimacy_score: number
+          partner_link_id: string
+          trust_answers?: Json
+          trust_score: number
+          user_id: string
+        }
+        Update: {
+          assessment_date?: string
+          communication_answers?: Json
+          communication_score?: number
+          completed_at?: string | null
+          conflict_answers?: Json
+          conflict_score?: number
+          created_at?: string | null
+          id?: string
+          intimacy_answers?: Json
+          intimacy_score?: number
+          partner_link_id?: string
+          trust_answers?: Json
+          trust_score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relationship_assessments_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       relationship_health_scores: {
         Row: {
           communication_score: number | null
