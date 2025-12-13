@@ -1,11 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles } from "lucide-react";
+import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import { useNavigate } from "react-router-dom";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ReelSlide {
   id: number;
@@ -161,9 +167,23 @@ const Landing = () => {
           >
             {/* Header */}
             <header className="pt-12 px-6 flex items-center justify-between safe-area-top">
-              <div className="flex items-center gap-2">
-                <LunaAvatar size="sm" showGlow={false} />
-                <span className="font-heading font-bold text-lg text-foreground">LUNA</span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <LunaAvatar size="sm" showGlow={false} />
+                  <span className="font-heading font-bold text-lg text-foreground">LUNA</span>
+                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="p-1 rounded-full hover:bg-muted/50 transition-colors">
+                        <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-[200px] text-center">
+                      <p className="text-sm">Swipe up or down to explore Luna's features</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
               <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
                 <User className="w-4 h-4 mr-1" />
