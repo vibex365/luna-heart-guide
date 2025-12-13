@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Camera, User, Save, Heart, Users, Sparkles, MessageCircle, LogOut, Crown, Link2, UserPlus, Download, Lock } from "lucide-react";
+import { Camera, User, Save, Heart, Users, Sparkles, MessageCircle, LogOut, Crown, Link2, UserPlus, Download, Lock, Unlink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import LunaAvatar from "@/components/LunaAvatar";
 import ConversationAnalytics from "@/components/ConversationAnalytics";
 import WeeklyInsights from "@/components/WeeklyInsights";
@@ -18,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
+import { format } from "date-fns";
 
 interface Profile {
   id: string;
@@ -68,6 +71,9 @@ const communicationOptions = [
 
 // Couples Section Component
 const CouplesSection = ({ userId, navigate }: { userId?: string; navigate: (path: string) => void }) => {
+  // Couples account status
+  const { isLinked, partnerId, partnerLink, unlinkPartner } = useCouplesAccount();
+
   // Check subscription
   const { data: subscription } = useQuery({
     queryKey: ["couples-subscription", userId],
@@ -89,18 +95,15 @@ const CouplesSection = ({ userId, navigate }: { userId?: string; navigate: (path
     enabled: !!userId,
   });
 
-  // Couples account status
-  const { isLinked, partnerId } = useCouplesAccount();
-
-  // Fetch partner's display name
+  // Fetch partner's profile
   const { data: partnerProfile } = useQuery({
-    queryKey: ["partner-profile-name", partnerId],
+    queryKey: ["partner-profile-detail", partnerId],
     queryFn: async () => {
       if (!partnerId) return null;
       
       const { data } = await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, avatar_url")
         .eq("user_id", partnerId)
         .maybeSingle();
 
@@ -109,7 +112,29 @@ const CouplesSection = ({ userId, navigate }: { userId?: string; navigate: (path
     enabled: !!partnerId,
   });
 
+  // Fetch own profile for avatar
+  const { data: ownProfile } = useQuery({
+    queryKey: ["own-profile-detail", userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name, avatar_url")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      return data;
+    },
+    enabled: !!userId,
+  });
+
   const hasCouplesSubscription = subscription?.subscription_tiers?.slug === "couples";
+  const linkedDate = partnerLink?.accepted_at 
+    ? format(new Date(partnerLink.accepted_at), "MMM d, yyyy")
+    : partnerLink?.created_at 
+      ? format(new Date(partnerLink.created_at), "MMM d, yyyy")
+      : null;
 
   return (
     <div className="bg-gradient-to-br from-pink-500/5 to-purple-500/5 rounded-3xl p-6 shadow-luna border border-pink-500/20">
@@ -122,7 +147,7 @@ const CouplesSection = ({ userId, navigate }: { userId?: string; navigate: (path
           <p className="text-sm text-muted-foreground">
             {hasCouplesSubscription 
               ? isLinked 
-                ? `Connected with ${partnerProfile?.display_name || "your partner"}`
+                ? "Connected with your partner"
                 : "Link your partner's account"
               : "Share your journey together"
             }
@@ -133,28 +158,108 @@ const CouplesSection = ({ userId, navigate }: { userId?: string; navigate: (path
       {hasCouplesSubscription ? (
         <div className="space-y-3">
           {isLinked ? (
-            <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-xl border border-green-500/20">
-              <Link2 className="w-4 h-4 text-green-500" />
-              <span className="text-sm text-green-600 dark:text-green-400">
-                Partner linked successfully
-              </span>
-            </div>
+            <>
+              {/* Linked Partner Display */}
+              <div className="flex items-center justify-between p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+                <div className="flex items-center gap-3">
+                  {/* Linked Avatars */}
+                  <div className="relative">
+                    <div className="flex -space-x-2">
+                      <Avatar className="w-10 h-10 border-2 border-background">
+                        {ownProfile?.avatar_url ? (
+                          <AvatarImage src={ownProfile.avatar_url} alt="You" />
+                        ) : null}
+                        <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                          {ownProfile?.display_name?.[0]?.toUpperCase() || "Y"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <Avatar className="w-10 h-10 border-2 border-background">
+                        {partnerProfile?.avatar_url ? (
+                          <AvatarImage src={partnerProfile.avatar_url} alt="Partner" />
+                        ) : null}
+                        <AvatarFallback className="bg-pink-500/10 text-pink-500 text-sm">
+                          {partnerProfile?.display_name?.[0]?.toUpperCase() || "P"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2"
+                    >
+                      <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
+                    </motion.div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <Link2 className="w-3.5 h-3.5 text-green-500" />
+                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                        {partnerProfile?.display_name || "Your Partner"}
+                      </span>
+                    </div>
+                    {linkedDate && (
+                      <p className="text-xs text-muted-foreground">
+                        Since {linkedDate}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Quick Unlink */}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-destructive/70 hover:text-destructive hover:bg-destructive/10 h-8 w-8">
+                      <Unlink className="w-4 h-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Unlink Partner Account?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will disconnect your accounts. You'll lose access to shared mood entries, 
+                        relationship health scores, and couples activities. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => unlinkPartner()}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Unlink
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+
+              <Button 
+                variant="outline" 
+                className="w-full border-pink-500/30 hover:bg-pink-500/10"
+                onClick={() => navigate("/couples")}
+              >
+                <Heart className="w-4 h-4 mr-2 text-pink-500" />
+                View Couples Dashboard
+              </Button>
+            </>
           ) : (
-            <div className="flex items-center gap-2 p-3 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
-              <UserPlus className="w-4 h-4 text-yellow-600" />
-              <span className="text-sm text-yellow-600 dark:text-yellow-400">
-                No partner linked yet
-              </span>
-            </div>
+            <>
+              <div className="flex items-center gap-2 p-3 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
+                <UserPlus className="w-4 h-4 text-yellow-600" />
+                <span className="text-sm text-yellow-600 dark:text-yellow-400">
+                  No partner linked yet
+                </span>
+              </div>
+              <Button 
+                variant="outline" 
+                className="w-full border-pink-500/30 hover:bg-pink-500/10"
+                onClick={() => navigate("/couples")}
+              >
+                <Heart className="w-4 h-4 mr-2 text-pink-500" />
+                Link Partner
+              </Button>
+            </>
           )}
-          <Button 
-            variant="outline" 
-            className="w-full border-pink-500/30 hover:bg-pink-500/10"
-            onClick={() => navigate("/couples")}
-          >
-            <Heart className="w-4 h-4 mr-2 text-pink-500" />
-            {isLinked ? "View Couples Dashboard" : "Link Partner"}
-          </Button>
         </div>
       ) : (
         <div className="space-y-3">
