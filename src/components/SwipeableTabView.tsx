@@ -1,6 +1,7 @@
 import { ReactNode, useState } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 
 interface SwipeableTabViewProps {
   children: ReactNode;
@@ -12,6 +13,7 @@ const SwipeableTabView = ({ children }: SwipeableTabViewProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [direction, setDirection] = useState(0);
+  const { trigger } = useHapticFeedback();
 
   const currentIndex = TAB_ROUTES.indexOf(location.pathname);
   
@@ -28,12 +30,14 @@ const SwipeableTabView = ({ children }: SwipeableTabViewProps) => {
     if (offset > threshold || velocity > 500) {
       // Swipe right - go to previous tab
       if (currentIndex > 0) {
+        trigger("light");
         setDirection(-1);
         navigate(TAB_ROUTES[currentIndex - 1]);
       }
     } else if (offset < -threshold || velocity < -500) {
       // Swipe left - go to next tab
       if (currentIndex < TAB_ROUTES.length - 1) {
+        trigger("light");
         setDirection(1);
         navigate(TAB_ROUTES[currentIndex + 1]);
       }

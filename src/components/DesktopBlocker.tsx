@@ -1,9 +1,12 @@
 import { motion } from "framer-motion";
-import { Smartphone, QrCode, Heart } from "lucide-react";
+import { Smartphone, Heart } from "lucide-react";
 import LunaAvatar from "./LunaAvatar";
-import { Button } from "./ui/button";
 
 const DesktopBlocker = () => {
+  // Generate QR code URL using a free QR code API
+  const siteUrl = "https://talkswithluna.com";
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(siteUrl)}&bgcolor=1a1a2e&color=a855f7`;
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-8">
       <motion.div
@@ -133,9 +136,13 @@ const DesktopBlocker = () => {
             Or scan the QR code below with your phone's camera
           </p>
 
-          {/* QR Code placeholder */}
-          <div className="inline-flex items-center justify-center w-32 h-32 bg-card rounded-xl border border-border mx-auto">
-            <QrCode className="w-16 h-16 text-muted-foreground" />
+          {/* QR Code */}
+          <div className="inline-flex items-center justify-center w-40 h-40 bg-white rounded-xl mx-auto overflow-hidden">
+            <img
+              src={qrCodeUrl}
+              alt="QR Code to talkswithluna.com"
+              className="w-full h-full object-contain p-2"
+            />
           </div>
         </motion.div>
 
