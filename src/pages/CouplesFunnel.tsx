@@ -4,30 +4,7 @@ import { Heart, MessageCircleHeart, Target, Sparkles, Shield, ChevronLeft, Chevr
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-// UTM Tracking Hook
-const useUTMTracking = () => {
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const utmData = {
-      utm_source: params.get('utm_source') || 'direct',
-      utm_medium: params.get('utm_medium') || 'none',
-      utm_campaign: params.get('utm_campaign') || 'couples',
-      utm_content: params.get('utm_content') || 'none',
-      landed_at: new Date().toISOString(),
-      landing_page: '/couples-funnel'
-    };
-    sessionStorage.setItem('utm_data', JSON.stringify(utmData));
-    console.log('[CouplesFunnel] UTM Data captured:', utmData);
-  }, []);
-
-  const getUTMData = () => {
-    const stored = sessionStorage.getItem('utm_data');
-    return stored ? JSON.parse(stored) : null;
-  };
-
-  return { getUTMData };
-};
+import { useFunnelTracking } from '@/hooks/useFunnelTracking';
 
 // Testimonial Carousel Component
 const TestimonialCarousel = () => {
@@ -133,13 +110,15 @@ const TestimonialCarousel = () => {
 const CouplesFunnel = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { getUTMData } = useUTMTracking();
+  const { trackEvent, getUTMData } = useFunnelTracking('couples');
 
   const handleCheckout = async () => {
     setIsLoading(true);
     try {
+      // Track checkout start
+      await trackEvent('checkout_start');
+      
       const utmData = getUTMData();
-      console.log('[CouplesFunnel] Starting checkout with UTM:', utmData);
 
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {

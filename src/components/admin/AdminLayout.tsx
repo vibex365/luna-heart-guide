@@ -33,6 +33,7 @@ const navItems = [
   { icon: FileText, label: "Content", path: "/admin/content" },
   { icon: AlertTriangle, label: "Safety", path: "/admin/safety" },
   { icon: BarChart3, label: "Analytics", path: "/admin/analytics" },
+  { icon: BarChart3, label: "Funnels", path: "/admin/funnels" },
   { icon: MessageSquare, label: "Feedback", path: "/admin/feedback" },
   { icon: Bell, label: "Notifications", path: "/admin/notifications" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },
