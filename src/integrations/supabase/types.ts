@@ -1017,6 +1017,53 @@ export type Database = {
           },
         ]
       }
+      relationship_milestones: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_recurring: boolean
+          milestone_date: string
+          partner_link_id: string
+          title: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_recurring?: boolean
+          milestone_date: string
+          partner_link_id: string
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_recurring?: boolean
+          milestone_date?: string
+          partner_link_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relationship_milestones_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shared_activities: {
         Row: {
           category: string
