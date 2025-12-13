@@ -419,6 +419,56 @@ export type Database = {
           },
         ]
       }
+      date_night_ideas: {
+        Row: {
+          category: string
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_completed: boolean
+          is_favorite: boolean
+          notes: string | null
+          partner_link_id: string
+          rating: number | null
+          title: string
+        }
+        Insert: {
+          category?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_completed?: boolean
+          is_favorite?: boolean
+          notes?: string | null
+          partner_link_id: string
+          rating?: number | null
+          title: string
+        }
+        Update: {
+          category?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_completed?: boolean
+          is_favorite?: boolean
+          notes?: string | null
+          partner_link_id?: string
+          rating?: number | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "date_night_ideas_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flagged_conversations: {
         Row: {
           conversation_id: string | null
