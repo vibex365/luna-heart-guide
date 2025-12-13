@@ -44,6 +44,44 @@ export type Database = {
         }
         Relationships: []
       }
+      appreciation_entries: {
+        Row: {
+          appreciation_text: string
+          created_at: string
+          id: string
+          is_visible_to_partner: boolean
+          partner_link_id: string
+          prompt_text: string
+          user_id: string
+        }
+        Insert: {
+          appreciation_text: string
+          created_at?: string
+          id?: string
+          is_visible_to_partner?: boolean
+          partner_link_id: string
+          prompt_text: string
+          user_id: string
+        }
+        Update: {
+          appreciation_text?: string
+          created_at?: string
+          id?: string
+          is_visible_to_partner?: boolean
+          partner_link_id?: string
+          prompt_text?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appreciation_entries_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       breathing_exercises: {
         Row: {
           category: string | null
