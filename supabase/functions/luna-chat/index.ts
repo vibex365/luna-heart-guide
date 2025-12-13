@@ -720,13 +720,91 @@ function detectCrisis(message: string): CrisisDetection {
   };
 }
 
+// Input validation constants
+const MAX_MESSAGE_LENGTH = 2000;
+const MAX_MESSAGES_COUNT = 50;
+const MAX_TOTAL_CHARS = 50000;
+
+// Validate and sanitize messages
+function validateMessages(messages: any[]): { valid: boolean; error?: string; sanitized?: any[] } {
+  if (!Array.isArray(messages)) {
+    return { valid: false, error: "Messages must be an array" };
+  }
+  
+  if (messages.length === 0) {
+    return { valid: false, error: "Messages array cannot be empty" };
+  }
+  
+  if (messages.length > MAX_MESSAGES_COUNT) {
+    return { valid: false, error: `Too many messages. Maximum is ${MAX_MESSAGES_COUNT}` };
+  }
+  
+  let totalChars = 0;
+  const sanitized = [];
+  
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    
+    // Validate message structure
+    if (!msg || typeof msg !== "object") {
+      return { valid: false, error: `Invalid message at index ${i}` };
+    }
+    
+    if (!msg.role || !["user", "assistant", "system"].includes(msg.role)) {
+      return { valid: false, error: `Invalid role at message ${i}` };
+    }
+    
+    if (typeof msg.content !== "string") {
+      return { valid: false, error: `Invalid content at message ${i}` };
+    }
+    
+    // Check individual message length
+    if (msg.content.length > MAX_MESSAGE_LENGTH) {
+      return { valid: false, error: `Message ${i} exceeds maximum length of ${MAX_MESSAGE_LENGTH} characters` };
+    }
+    
+    totalChars += msg.content.length;
+    
+    // Check total character count
+    if (totalChars > MAX_TOTAL_CHARS) {
+      return { valid: false, error: `Total message content exceeds ${MAX_TOTAL_CHARS} characters` };
+    }
+    
+    // Sanitize: trim whitespace, remove null bytes
+    sanitized.push({
+      role: msg.role,
+      content: msg.content.trim().replace(/\0/g, ""),
+    });
+  }
+  
+  return { valid: true, sanitized };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages, userId, conversationId } = await req.json();
+    const body = await req.json();
+    const { messages, userId, conversationId } = body;
+    
+    // Validate input
+    const validation = validateMessages(messages);
+    if (!validation.valid) {
+      console.error("Input validation failed:", validation.error);
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+    
+    const sanitizedMessages = validation.sanitized!;
+    console.log(`Processing ${sanitizedMessages.length} validated messages`);
+    
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -782,8 +860,8 @@ serve(async (req) => {
       }
 
       // Detect and log module usage + crisis detection
-      if (messages && messages.length > 0) {
-        const lastUserMessage = [...messages].reverse().find((m: { role: string }) => m.role === "user");
+      if (sanitizedMessages && sanitizedMessages.length > 0) {
+        const lastUserMessage = [...sanitizedMessages].reverse().find((m: { role: string }) => m.role === "user");
         if (lastUserMessage) {
           const { module, trigger } = detectModuleFromMessage(lastUserMessage.content);
           console.log("Detected module:", module, "trigger:", trigger);
@@ -848,7 +926,7 @@ serve(async (req) => {
 
     const systemPrompt = LUNA_BRAIN_V1 + preferencesContext + moodContext;
 
-    console.log("Sending request to Lovable AI Gateway with", messages.length, "messages");
+    console.log("Sending request to Lovable AI Gateway with", sanitizedMessages.length, "messages");
     console.log("System prompt length:", systemPrompt.length, "characters");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -861,7 +939,7 @@ serve(async (req) => {
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          ...messages,
+          ...sanitizedMessages,
         ],
         stream: true,
       }),
