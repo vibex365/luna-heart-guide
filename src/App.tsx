@@ -18,7 +18,9 @@ import ArticleDetail from "./pages/ArticleDetail";
 import Subscription from "./pages/Subscription";
 import Couples from "./pages/Couples";
 import DMFunnel from "./pages/DMFunnel";
+import CouplesFunnel from "./pages/CouplesFunnel";
 import Welcome from "./pages/Welcome";
+import CouplesWelcome from "./pages/CouplesWelcome";
 import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminAnalytics, AdminSettings, AdminFeedback, AdminNotifications } from "./pages/admin";
 import NotFound from "./pages/NotFound";
 
@@ -46,6 +48,8 @@ const App = () => (
           <Route path="/resources/:articleId" element={<ArticleDetail />} />
           <Route path="/subscription" element={<Subscription />} />
           <Route path="/couples" element={<Couples />} />
+          <Route path="/couples-funnel" element={<CouplesFunnel />} />
+          <Route path="/couples-welcome" element={<CouplesWelcome />} />
           <Route
             path="/admin"
             element={
