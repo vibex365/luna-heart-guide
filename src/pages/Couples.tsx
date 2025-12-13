@@ -12,14 +12,19 @@ import { SharedMoodTracker } from "@/components/couples/SharedMoodTracker";
 import { SharedActivities } from "@/components/couples/SharedActivities";
 import { ConflictResolutionTools } from "@/components/couples/ConflictResolutionTools";
 import { CoupleGoals } from "@/components/couples/CoupleGoals";
+import { LoveLanguageQuiz } from "@/components/couples/LoveLanguageQuiz";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePartnerNotifications } from "@/hooks/usePartnerNotifications";
 
 const Couples = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isLinked, isLoading } = useCouplesAccount();
+  
+  // Enable real-time partner notifications
+  usePartnerNotifications();
 
   // Check if user has couples subscription
   const { data: hasCouplesAccess, isLoading: isLoadingAccess } = useQuery({
@@ -170,6 +175,14 @@ const Couples = () => {
               transition={{ delay: 0.3 }}
             >
               <SharedActivities />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+            >
+              <LoveLanguageQuiz />
             </motion.div>
 
             <motion.div

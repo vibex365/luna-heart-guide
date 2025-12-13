@@ -20,6 +20,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
+import { usePartnerNotifications } from "@/hooks/usePartnerNotifications";
+import { WeeklyRelationshipSummary } from "@/components/couples/WeeklyRelationshipSummary";
 import { format } from "date-fns";
 
 interface Profile {
@@ -305,6 +307,9 @@ const ProfileSettings = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Enable real-time partner notifications
+  usePartnerNotifications();
   
   // Preferences state
   const [preferences, setPreferences] = useState<UserPreferences>({
@@ -764,6 +769,9 @@ const ProfileSettings = () => {
 
           {/* Couples Section */}
           <CouplesSection userId={user?.id} navigate={navigate} />
+
+          {/* Weekly Relationship Summary (only if linked) */}
+          <WeeklyRelationshipSummary />
 
           {/* Data Export Section */}
           <div className="bg-card rounded-3xl p-6 shadow-luna border border-border">
