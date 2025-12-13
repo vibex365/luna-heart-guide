@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Minus, Brain, Smile, Bell, Calendar } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Brain, Smile, Bell, Calendar, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useWeeklyInsights } from "@/hooks/useWeeklyInsights";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 interface WeeklyInsightsProps {
   weeklyInsightsEnabled?: boolean;
@@ -17,6 +19,8 @@ interface WeeklyInsightsProps {
 
 const WeeklyInsights = ({ weeklyInsightsEnabled = true, onUpdate }: WeeklyInsightsProps) => {
   const { user } = useAuth();
+  const { hasFeature, isPro, isLoading: subLoading } = useSubscription();
+  const hasPersonalizedInsights = hasFeature("personalized_insights") || isPro;
   const { insights, loading, sendInsightsNotification } = useWeeklyInsights();
   const { permission, requestPermission, isSupported } = useNotifications();
   const [enabled, setEnabled] = useState(weeklyInsightsEnabled);
@@ -69,7 +73,7 @@ const WeeklyInsights = ({ weeklyInsightsEnabled = true, onUpdate }: WeeklyInsigh
     sendInsightsNotification();
   };
 
-  if (loading) {
+  if (loading || subLoading) {
     return (
       <div className="space-y-4">
         <h3 className="font-heading text-lg font-semibold text-foreground text-center">
@@ -77,6 +81,28 @@ const WeeklyInsights = ({ weeklyInsightsEnabled = true, onUpdate }: WeeklyInsigh
         </h3>
         <div className="flex justify-center py-4">
           <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  // Show upgrade prompt for free users
+  if (!hasPersonalizedInsights) {
+    return (
+      <div className="space-y-4">
+        <h3 className="font-heading text-lg font-semibold text-foreground text-center flex items-center justify-center gap-2">
+          Weekly Insights
+          <Lock className="w-4 h-4 text-muted-foreground" />
+        </h3>
+        <div className="bg-secondary/50 rounded-2xl p-6 text-center space-y-4">
+          <p className="text-muted-foreground text-sm">
+            Get personalized weekly insights about your mood patterns and conversation topics.
+          </p>
+          <Link to="/subscription">
+            <Button variant="outline" size="sm" className="border-primary text-primary">
+              Upgrade to Pro
+            </Button>
+          </Link>
         </div>
       </div>
     );

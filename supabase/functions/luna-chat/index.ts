@@ -908,6 +908,71 @@ serve(async (req) => {
       supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     }
 
+    // Check message limit for free tier users
+    if (userId && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        // Get user's subscription tier
+        const subResponse = await fetch(
+          `${SUPABASE_URL}/rest/v1/user_subscriptions?user_id=eq.${userId}&status=eq.active&select=tier_id,subscription_tiers(slug,limits)`,
+          {
+            headers: {
+              "apikey": SUPABASE_SERVICE_ROLE_KEY,
+              "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            },
+          }
+        );
+        
+        const subData = await subResponse.json();
+        const userSub = subData?.[0];
+        const limits = userSub?.subscription_tiers?.limits || { messages_per_day: 5 };
+        const messagesPerDay = limits.messages_per_day ?? 5;
+        
+        console.log("User subscription:", userSub?.subscription_tiers?.slug || "free", "messages_per_day:", messagesPerDay);
+
+        // Only check if there's a limit (not unlimited = -1)
+        if (messagesPerDay > 0) {
+          // Count messages sent today
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          const countResponse = await fetch(
+            `${SUPABASE_URL}/rest/v1/conversation_analytics?user_id=eq.${userId}&created_at=gte.${today.toISOString()}&select=id`,
+            {
+              headers: {
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                "Prefer": "count=exact",
+              },
+            }
+          );
+          
+          const countHeader = countResponse.headers.get("content-range");
+          const messageCount = countHeader ? parseInt(countHeader.split("/")[1] || "0") : 0;
+          
+          console.log("Messages sent today:", messageCount, "Limit:", messagesPerDay);
+
+          if (messageCount >= messagesPerDay) {
+            console.log("Message limit reached for user:", userId);
+            return new Response(
+              JSON.stringify({ 
+                error: "You've reached your daily message limit. Upgrade to Pro for unlimited conversations with Luna.",
+                limitReached: true,
+                limit: messagesPerDay,
+                used: messageCount,
+              }),
+              {
+                status: 402,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              }
+            );
+          }
+        }
+      } catch (limitError) {
+        console.error("Error checking message limit:", limitError);
+        // Continue anyway - don't block users if limit check fails
+      }
+    }
+
     if (userId && supabase) {
       // Fetch mood data
       try {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Camera, User, Save, Heart, Users, Sparkles, MessageCircle, LogOut, Crown, Link2, UserPlus } from "lucide-react";
+import { Camera, User, Save, Heart, Users, Sparkles, MessageCircle, LogOut, Crown, Link2, UserPlus, Download, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import { ProfileSkeleton } from "@/components/skeletons/PageSkeletons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -204,6 +205,9 @@ const CouplesSection = ({ userId, navigate }: { userId?: string; navigate: (path
 const ProfileSettings = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
+  const { hasFeature, isPro } = useSubscription();
+  const hasDataExport = hasFeature("data_export") || isPro;
+  const [exportingData, setExportingData] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -432,6 +436,63 @@ const ProfileSettings = () => {
     navigate("/");
   };
 
+  const handleExportData = async () => {
+    if (!user || !hasDataExport) {
+      toast({
+        title: "Upgrade Required",
+        description: "Data export is a Pro feature. Upgrade to export your data.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setExportingData(true);
+    try {
+      // Fetch all user data
+      const [moodEntries, journalEntries, conversations] = await Promise.all([
+        supabase.from("mood_entries").select("*").eq("user_id", user.id),
+        supabase.from("journal_entries").select("*").eq("user_id", user.id),
+        supabase.from("conversations").select("*, messages(*)").eq("user_id", user.id),
+      ]);
+
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        userData: {
+          email: user.email,
+          displayName: displayName,
+        },
+        moodEntries: moodEntries.data || [],
+        journalEntries: journalEntries.data || [],
+        conversations: conversations.data || [],
+      };
+
+      // Download as JSON
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `luna-data-export-${new Date().toISOString().split("T")[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Data Exported! 💜",
+        description: "Your data has been downloaded successfully.",
+      });
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      toast({
+        title: "Export Failed",
+        description: "Could not export your data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setExportingData(false);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <MobileOnlyLayout>
@@ -616,6 +677,45 @@ const ProfileSettings = () => {
 
           {/* Couples Section */}
           <CouplesSection userId={user?.id} navigate={navigate} />
+
+          {/* Data Export Section */}
+          <div className="bg-card rounded-3xl p-6 shadow-luna border border-border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-accent/10">
+                  {hasDataExport ? (
+                    <Download className="w-5 h-5 text-accent" />
+                  ) : (
+                    <Lock className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Export Your Data</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {hasDataExport ? "Download all your Luna data" : "Pro feature"}
+                  </p>
+                </div>
+              </div>
+              {hasDataExport ? (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleExportData}
+                  disabled={exportingData}
+                >
+                  {exportingData ? "Exporting..." : "Export"}
+                </Button>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate("/subscription")}
+                >
+                  Upgrade
+                </Button>
+              )}
+            </div>
+          </div>
 
           {/* Subscription Section */}
           <div className="bg-card rounded-3xl p-6 shadow-luna border border-border">
