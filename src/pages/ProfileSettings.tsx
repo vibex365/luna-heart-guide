@@ -17,6 +17,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 
 interface Profile {
   id: string;
@@ -88,33 +89,15 @@ const CouplesSection = ({ userId, navigate }: { userId?: string; navigate: (path
     enabled: !!userId,
   });
 
-  // Check partner link status
-  const { data: partnerLink } = useQuery({
-    queryKey: ["partner-link-status", userId],
-    queryFn: async () => {
-      if (!userId) return null;
-      
-      const { data } = await supabase
-        .from("partner_links")
-        .select("*, profiles!partner_links_partner_id_fkey(display_name)")
-        .or(`user_id.eq.${userId},partner_id.eq.${userId}`)
-        .eq("status", "accepted")
-        .maybeSingle();
-
-      return data;
-    },
-    enabled: !!userId,
-  });
+  // Couples account status
+  const { isLinked, partnerId } = useCouplesAccount();
 
   // Fetch partner's display name
   const { data: partnerProfile } = useQuery({
-    queryKey: ["partner-profile-name", partnerLink],
+    queryKey: ["partner-profile-name", partnerId],
     queryFn: async () => {
-      if (!partnerLink || !userId) return null;
-      
-      const partnerId = partnerLink.user_id === userId ? partnerLink.partner_id : partnerLink.user_id;
       if (!partnerId) return null;
-
+      
       const { data } = await supabase
         .from("profiles")
         .select("display_name")
@@ -123,11 +106,10 @@ const CouplesSection = ({ userId, navigate }: { userId?: string; navigate: (path
 
       return data;
     },
-    enabled: !!partnerLink && !!userId,
+    enabled: !!partnerId,
   });
 
   const hasCouplesSubscription = subscription?.subscription_tiers?.slug === "couples";
-  const isLinked = !!partnerLink;
 
   return (
     <div className="bg-gradient-to-br from-pink-500/5 to-purple-500/5 rounded-3xl p-6 shadow-luna border border-pink-500/20">
