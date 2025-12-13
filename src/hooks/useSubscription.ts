@@ -49,15 +49,76 @@ export const useSubscription = () => {
         };
       }
 
-      // Check Stripe subscription via edge function
-      const { data, error } = await supabase.functions.invoke("check-subscription", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      // First check database for admin-assigned subscriptions
+      const { data: dbSubscription } = await supabase
+        .from("user_subscriptions")
+        .select(`
+          tier_id,
+          status,
+          expires_at,
+          subscription_tiers (
+            name,
+            slug,
+            limits
+          )
+        `)
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .maybeSingle();
 
-      if (error || !data) {
-        console.error("Error checking subscription:", error);
+      if (dbSubscription?.subscription_tiers) {
+        const tier = dbSubscription.subscription_tiers as any;
+        const plan = tier.slug as "free" | "pro" | "couples";
+        const limits = (tier.limits as unknown as SubscriptionLimits) || DEFAULT_FREE_LIMITS;
+
+        return {
+          subscribed: plan !== "free",
+          plan,
+          tierName: tier.name,
+          limits,
+          subscriptionEnd: dbSubscription.expires_at,
+        };
+      }
+
+      // Fall back to Stripe subscription check via edge function
+      try {
+        const { data, error } = await supabase.functions.invoke("check-subscription", {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (error || !data) {
+          console.error("Error checking subscription:", error);
+          return {
+            subscribed: false,
+            plan: "free",
+            tierName: "Free",
+            limits: DEFAULT_FREE_LIMITS,
+            subscriptionEnd: null,
+          };
+        }
+
+        const plan = data.plan as "free" | "pro" | "couples";
+        
+        // Get tier limits from database
+        const { data: tierData } = await supabase
+          .from("subscription_tiers")
+          .select("name, limits")
+          .eq("slug", plan)
+          .maybeSingle();
+
+        const limits = (tierData?.limits as unknown as SubscriptionLimits) || DEFAULT_FREE_LIMITS;
+
+        return {
+          subscribed: data.subscribed,
+          plan,
+          tierName: tierData?.name || (plan === "free" ? "Free" : plan === "pro" ? "Pro" : "Couples"),
+          limits,
+          subscriptionEnd: data.subscription_end,
+        };
+      } catch (err) {
+        console.error("Subscription check failed:", err);
         return {
           subscribed: false,
           plan: "free",
@@ -66,29 +127,10 @@ export const useSubscription = () => {
           subscriptionEnd: null,
         };
       }
-
-      const plan = data.plan as "free" | "pro" | "couples";
-      
-      // Get tier limits from database
-      const { data: tierData } = await supabase
-        .from("subscription_tiers")
-        .select("name, limits")
-        .eq("slug", plan)
-        .maybeSingle();
-
-      const limits = (tierData?.limits as unknown as SubscriptionLimits) || DEFAULT_FREE_LIMITS;
-
-      return {
-        subscribed: data.subscribed,
-        plan,
-        tierName: tierData?.name || (plan === "free" ? "Free" : plan === "pro" ? "Pro" : "Couples"),
-        limits,
-        subscriptionEnd: data.subscription_end,
-      };
     },
     enabled: !!user,
     staleTime: 1000 * 60, // 1 minute
-    refetchInterval: 1000 * 60, // Refresh every minute
+    refetchInterval: 1000 * 60 * 5, // Refresh every 5 minutes
   });
 
   // Refetch when auth state changes

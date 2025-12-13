@@ -8,3 +8,4 @@ export { default as AdminSafety } from "./AdminSafety";
 export { default as AdminAnalytics } from "./AdminAnalytics";
 export { default as AdminSettings } from "./AdminSettings";
 export { default as AdminFeedback } from "./AdminFeedback";
+export { default as AdminNotifications } from "./AdminNotifications";
