@@ -60,6 +60,15 @@ const pricingPlans = [
 const slides: ReelSlide[] = [
   {
     id: 0,
+    gradient: "from-accent/15 via-background to-background",
+    icon: Download,
+    title: "Install Luna",
+    subtitle: "Always Available",
+    description: "",
+    isInstall: true,
+  },
+  {
+    id: 1,
     gradient: "from-primary/30 via-background to-background",
     icon: Heart,
     title: "Meet Luna",
@@ -67,7 +76,7 @@ const slides: ReelSlide[] = [
     description: "A safe space to talk through feelings, relationships, and life's challenges — 24/7, judgment-free.",
   },
   {
-    id: 1,
+    id: 2,
     gradient: "from-accent/20 via-background to-background",
     icon: MessageCircle,
     title: "Talk It Out",
@@ -75,7 +84,7 @@ const slides: ReelSlide[] = [
     description: "Get personalized guidance and communication scripts to navigate difficult conversations with loved ones.",
   },
   {
-    id: 2,
+    id: 3,
     gradient: "from-secondary/40 via-background to-background",
     icon: Sparkles,
     title: "Track Your Mood",
@@ -83,7 +92,7 @@ const slides: ReelSlide[] = [
     description: "Log your emotions daily and discover insights about your emotional journey over time.",
   },
   {
-    id: 3,
+    id: 4,
     gradient: "from-primary/20 via-background to-background",
     icon: Wind,
     title: "Breathe & Relax",
@@ -91,21 +100,12 @@ const slides: ReelSlide[] = [
     description: "Access calming breathing techniques whenever you need to center yourself and find peace.",
   },
   {
-    id: 4,
+    id: 5,
     gradient: "from-accent/30 via-background to-background",
     icon: BookOpen,
     title: "Journal",
     subtitle: "Express Yourself",
     description: "Write freely with thoughtful prompts that help you reflect, process, and grow.",
-  },
-  {
-    id: 5,
-    gradient: "from-accent/15 via-background to-background",
-    icon: Download,
-    title: "Install Luna",
-    subtitle: "Always Available",
-    description: "",
-    isInstall: true,
   },
   {
     id: 6,
