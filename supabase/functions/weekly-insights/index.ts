@@ -65,6 +65,25 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate scheduled/cron requests
+    // This function should only be called by Supabase Cron or with a valid secret
+    const authHeader = req.headers.get('Authorization');
+    const cronSecret = Deno.env.get('CRON_SECRET');
+    
+    // Allow requests with valid cron secret OR service role key
+    const isValidCronRequest = cronSecret && authHeader === `Bearer ${cronSecret}`;
+    const isValidServiceRequest = authHeader?.includes(Deno.env.get('SUPABASE_ANON_KEY') || '');
+    
+    if (!isValidCronRequest && !isValidServiceRequest) {
+      console.error('Unauthorized request to weekly-insights function');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized. This endpoint requires authentication.' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    console.log('Weekly insights function authenticated successfully');
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
