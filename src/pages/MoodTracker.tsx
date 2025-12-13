@@ -16,6 +16,7 @@ import StreakWidget from "@/components/StreakWidget";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import PullToRefresh from "@/components/PullToRefresh";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { MoodSkeleton } from "@/components/skeletons/PageSkeletons";
 
 interface MoodEntry {
   id: string;
@@ -158,15 +159,7 @@ const MoodTracker = () => {
   if (authLoading || loading) {
     return (
       <MobileOnlyLayout>
-        <div className="min-h-screen gradient-hero flex items-center justify-center">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-muted-foreground"
-          >
-            Loading...
-          </motion.div>
-        </div>
+        <MoodSkeleton />
       </MobileOnlyLayout>
     );
   }
@@ -179,7 +172,7 @@ const MoodTracker = () => {
   return (
     <MobileOnlyLayout>
       <PullToRefresh onRefresh={handleRefresh} disabled={isRefreshing}>
-        <div className="min-h-screen gradient-hero">
+        <div className="h-full flex flex-col bg-background">
           {/* Header */}
           <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
             <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">

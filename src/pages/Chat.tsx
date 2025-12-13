@@ -7,6 +7,7 @@ import UserAvatar from "@/components/UserAvatar";
 import { MessageFeedback } from "@/components/MessageFeedback";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import PullToRefresh from "@/components/PullToRefresh";
+import { ChatSkeleton } from "@/components/skeletons/PageSkeletons";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -512,9 +513,7 @@ const Chat = () => {
   if (authLoading) {
     return (
       <MobileOnlyLayout hideTabBar>
-        <div className="h-screen flex items-center justify-center bg-background">
-          <LunaAvatar size="lg" />
-        </div>
+        <ChatSkeleton />
       </MobileOnlyLayout>
     );
   }
