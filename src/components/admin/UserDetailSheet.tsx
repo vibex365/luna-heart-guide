@@ -98,6 +98,7 @@ export const UserDetailSheet = ({
           tier_id,
           status,
           expires_at,
+          source,
           subscription_tiers(name, slug)
         `)
         .eq("user_id", user.user_id)
@@ -111,13 +112,18 @@ export const UserDetailSheet = ({
 
   // Update subscription mutation
   const updateSubscriptionMutation = useMutation({
-    mutationFn: async ({ userId, tierId }: { userId: string; tierId: string }) => {
+    mutationFn: async ({ userId, tierId, tierName }: { userId: string; tierId: string; tierName: string }) => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const adminId = currentUser?.id;
+
       // Check if user has an existing subscription
       const { data: existing } = await supabase
         .from("user_subscriptions")
-        .select("id")
+        .select("id, tier_id, subscription_tiers(name)")
         .eq("user_id", userId)
         .maybeSingle();
+
+      const previousTier = (existing?.subscription_tiers as any)?.name || "None";
 
       if (existing) {
         // Update existing subscription
@@ -126,6 +132,7 @@ export const UserDetailSheet = ({
           .update({
             tier_id: tierId,
             status: "active",
+            source: "admin",
             updated_at: new Date().toISOString(),
           })
           .eq("id", existing.id);
@@ -139,14 +146,30 @@ export const UserDetailSheet = ({
             user_id: userId,
             tier_id: tierId,
             status: "active",
+            source: "admin",
             started_at: new Date().toISOString(),
           });
 
         if (error) throw error;
       }
+
+      // Log the admin action
+      if (adminId) {
+        await supabase.from("admin_action_logs").insert({
+          admin_id: adminId,
+          action_type: "subscription_change",
+          target_user_id: userId,
+          details: {
+            previous_tier: previousTier,
+            new_tier: tierName,
+          },
+          reason: `Changed subscription from ${previousTier} to ${tierName}`,
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-user-subscription", user?.user_id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-action-logs"] });
       toast.success("Subscription updated successfully");
     },
     onError: (error) => {
@@ -218,7 +241,8 @@ export const UserDetailSheet = ({
   };
 
   const handleSubscriptionChange = (tierId: string) => {
-    updateSubscriptionMutation.mutate({ userId: user.user_id, tierId });
+    const tier = tiers.find(t => t.id === tierId);
+    updateSubscriptionMutation.mutate({ userId: user.user_id, tierId, tierName: tier?.name || "Unknown" });
   };
 
   const currentTierSlug = userSubscription?.subscription_tiers?.slug || "free";
@@ -307,6 +331,18 @@ export const UserDetailSheet = ({
                     ))}
                   </SelectContent>
                 </Select>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Source:</span>
+                  <Badge variant="outline" className={`text-xs ${
+                    userSubscription?.source === "stripe" 
+                      ? "border-blue-500 text-blue-600" 
+                      : userSubscription?.source === "admin"
+                      ? "border-amber-500 text-amber-600"
+                      : "border-muted-foreground"
+                  }`}>
+                    {userSubscription?.source || "system"}
+                  </Badge>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Manually assign a subscription tier to this user. This overrides any Stripe subscription.
                 </p>
