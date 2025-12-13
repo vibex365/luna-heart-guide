@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles, HelpCircle, LogIn, Rocket } from "lucide-react";
+import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles, HelpCircle, LogIn, Rocket, Crown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import { useNavigate } from "react-router-dom";
@@ -22,7 +22,32 @@ interface ReelSlide {
   subtitle: string;
   description: string;
   cta?: string;
+  isPricing?: boolean;
 }
+
+const pricingPlans = [
+  {
+    name: "Free",
+    price: "$0",
+    period: "forever",
+    features: ["5 messages per day", "Basic mood tracking", "Breathing exercises"],
+    highlight: false,
+  },
+  {
+    name: "Pro",
+    price: "$12",
+    period: "/month",
+    features: ["Unlimited conversations", "Advanced analytics", "Priority responses"],
+    highlight: true,
+  },
+  {
+    name: "Couples",
+    price: "$19",
+    period: "/month",
+    features: ["Everything in Pro", "2 linked accounts", "Relationship tools"],
+    highlight: false,
+  },
+];
 
 const slides: ReelSlide[] = [
   {
@@ -64,7 +89,16 @@ const slides: ReelSlide[] = [
     title: "Journal",
     subtitle: "Express Yourself",
     description: "Write freely with thoughtful prompts that help you reflect, process, and grow.",
+  },
+  {
+    id: 5,
+    gradient: "from-primary/25 via-background to-background",
+    icon: Crown,
+    title: "Simple Pricing",
+    subtitle: "Choose Your Plan",
+    description: "",
     cta: "Start Your Journey",
+    isPricing: true,
   },
 ];
 
@@ -218,64 +252,113 @@ const Landing = () => {
             </header>
 
             {/* Content */}
-            <main className="flex-1 flex flex-col items-center justify-center px-8 pb-32">
-              <motion.div
-                className="w-20 h-20 rounded-3xl gradient-luna flex items-center justify-center mb-8 shadow-lg"
-                initial={{ scale: 0.8, rotate: -10 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-              >
-                {currentSlide === 0 ? (
-                  <LunaAvatar size="lg" showGlow />
-                ) : (
-                  <Icon className="w-10 h-10 text-accent" />
-                )}
-              </motion.div>
-
-              <motion.p
-                className="text-accent text-sm font-medium mb-2 uppercase tracking-wider"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-              >
-                {slide.subtitle}
-              </motion.p>
-
-              <motion.h1
-                className="font-heading text-3xl font-bold text-foreground mb-4 text-center"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                {slide.title}
-              </motion.h1>
-
-              <motion.p
-                className="text-muted-foreground text-center leading-relaxed max-w-xs"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 }}
-              >
-                {slide.description}
-              </motion.p>
-
-              {slide.cta && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="mt-8"
-                >
-                  <Button
-                    variant="peach"
-                    size="lg"
-                    onClick={() => navigate("/auth")}
-                    className="px-8"
+            <main className="flex-1 flex flex-col items-center justify-center px-6 pb-32">
+              {slide.isPricing ? (
+                <>
+                  <motion.p
+                    className="text-accent text-sm font-medium mb-2 uppercase tracking-wider"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
                   >
-                    {slide.cta}
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </motion.div>
+                    {slide.subtitle}
+                  </motion.p>
+                  <motion.h1
+                    className="font-heading text-2xl font-bold text-foreground mb-6 text-center"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                  >
+                    {slide.title}
+                  </motion.h1>
+                  <motion.div
+                    className="flex gap-3 w-full max-w-sm"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    {pricingPlans.map((plan, idx) => (
+                      <div
+                        key={plan.name}
+                        className={`flex-1 rounded-xl p-3 text-center transition-all ${
+                          plan.highlight
+                            ? "bg-accent text-accent-foreground scale-105 shadow-lg"
+                            : "bg-muted/50 text-foreground"
+                        }`}
+                      >
+                        <p className="text-xs font-medium opacity-80">{plan.name}</p>
+                        <p className="text-lg font-bold">{plan.price}</p>
+                        <p className="text-[10px] opacity-70">{plan.period}</p>
+                        <div className="mt-2 space-y-1">
+                          {plan.features.slice(0, 2).map((feature) => (
+                            <div key={feature} className="flex items-center gap-1 text-[9px]">
+                              <Check className="w-2.5 h-2.5 flex-shrink-0" />
+                              <span className="truncate">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="mt-6"
+                  >
+                    <Button
+                      variant="peach"
+                      size="lg"
+                      onClick={() => navigate("/auth")}
+                      className="px-8"
+                    >
+                      {slide.cta}
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </motion.div>
+                </>
+              ) : (
+                <>
+                  <motion.div
+                    className="w-20 h-20 rounded-3xl gradient-luna flex items-center justify-center mb-8 shadow-lg"
+                    initial={{ scale: 0.8, rotate: -10 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+                  >
+                    {currentSlide === 0 ? (
+                      <LunaAvatar size="lg" showGlow />
+                    ) : (
+                      <Icon className="w-10 h-10 text-accent" />
+                    )}
+                  </motion.div>
+
+                  <motion.p
+                    className="text-accent text-sm font-medium mb-2 uppercase tracking-wider"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                  >
+                    {slide.subtitle}
+                  </motion.p>
+
+                  <motion.h1
+                    className="font-heading text-3xl font-bold text-foreground mb-4 text-center"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    {slide.title}
+                  </motion.h1>
+
+                  <motion.p
+                    className="text-muted-foreground text-center leading-relaxed max-w-xs"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                  >
+                    {slide.description}
+                  </motion.p>
+                </>
               )}
             </main>
 
