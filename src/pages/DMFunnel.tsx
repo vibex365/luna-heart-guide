@@ -1,30 +1,199 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { MessageCircle, Clock, Shield, Heart, Check, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { MessageCircle, Clock, Shield, Heart, Check, Sparkles, ChevronLeft, ChevronRight, Quote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LunaAvatar from "@/components/LunaAvatar";
 
+// UTM tracking hook
+const useUTMTracking = () => {
+  const [searchParams] = useSearchParams();
+  
+  const utmParams = {
+    utm_source: searchParams.get("utm_source") || "direct",
+    utm_medium: searchParams.get("utm_medium") || "none",
+    utm_campaign: searchParams.get("utm_campaign") || "none",
+    utm_content: searchParams.get("utm_content") || "none",
+  };
+
+  useEffect(() => {
+    // Store UTM params in sessionStorage for checkout
+    sessionStorage.setItem("funnel_utm", JSON.stringify(utmParams));
+    
+    // Track page view with UTM
+    console.log("[Funnel Analytics] Page view:", utmParams);
+  }, []);
+
+  return utmParams;
+};
+
+// Testimonials data
+const testimonials = [
+  {
+    quote: "I used to spiral for hours after a text. Now I talk to Luna first and actually feel calm enough to respond.",
+    author: "Sarah, 24",
+    context: "3 weeks with Luna",
+  },
+  {
+    quote: "It feels like having a friend who actually listens without making me feel dramatic.",
+    author: "Anonymous",
+    context: "After a breakup",
+  },
+  {
+    quote: "I deleted the app where I was stalking his profile. Luna helped me see I was hurting myself.",
+    author: "Mia, 28",
+    context: "1 month with Luna",
+  },
+  {
+    quote: "The 3am anxiety doesn't feel so scary anymore. Luna is always there.",
+    author: "Anonymous",
+    context: "Dealing with anxiety",
+  },
+  {
+    quote: "I finally stopped replaying that conversation in my head. Luna helped me let it go.",
+    author: "Jess, 22",
+    context: "2 weeks with Luna",
+  },
+];
+
+// Testimonial Carousel Component
+const TestimonialCarousel = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
+
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 200 : -200,
+      opacity: 0,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 200 : -200,
+      opacity: 0,
+    }),
+  };
+
+  const paginate = (newDirection: number) => {
+    setDirection(newDirection);
+    setCurrentIndex((prev) => {
+      if (newDirection === 1) {
+        return prev === testimonials.length - 1 ? 0 : prev + 1;
+      }
+      return prev === 0 ? testimonials.length - 1 : prev - 1;
+    });
+  };
+
+  // Auto-advance every 5 seconds
+  useEffect(() => {
+    const timer = setInterval(() => paginate(1), 5000);
+    return () => clearInterval(timer);
+  }, [currentIndex]);
+
+  return (
+    <div className="relative">
+      <div className="overflow-hidden px-4">
+        <AnimatePresence initial={false} custom={direction} mode="wait">
+          <motion.div
+            key={currentIndex}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="funnel-card p-6 rounded-2xl"
+          >
+            <Quote className="w-6 h-6 text-funnel-accent/40 mb-3" />
+            <p className="text-white/90 text-base leading-relaxed mb-4 italic">
+              "{testimonials[currentIndex].quote}"
+            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white/70 text-sm font-medium">
+                  {testimonials[currentIndex].author}
+                </p>
+                <p className="text-white/40 text-xs">
+                  {testimonials[currentIndex].context}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex items-center justify-center gap-4 mt-4">
+        <button
+          onClick={() => paginate(-1)}
+          className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4 text-white/70" />
+        </button>
+        
+        <div className="flex gap-1.5">
+          {testimonials.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => {
+                setDirection(idx > currentIndex ? 1 : -1);
+                setCurrentIndex(idx);
+              }}
+              className={`w-2 h-2 rounded-full transition-all ${
+                idx === currentIndex 
+                  ? "bg-funnel-accent w-4" 
+                  : "bg-white/30 hover:bg-white/50"
+              }`}
+            />
+          ))}
+        </div>
+        
+        <button
+          onClick={() => paginate(1)}
+          className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+        >
+          <ChevronRight className="w-4 h-4 text-white/70" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const DMFunnel = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const utmParams = useUTMTracking();
 
   const handleCheckout = async () => {
     setIsLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
+      // Store UTM params before redirect
+      const storedUtm = sessionStorage.getItem("funnel_utm");
+      const utmData = storedUtm ? JSON.parse(storedUtm) : utmParams;
+      
       if (!session) {
-        // Redirect to auth with return URL
-        window.location.href = "/auth?redirect=/dm&checkout=true";
+        // Redirect to auth with return URL and UTM params preserved
+        const redirectUrl = `/dm?${new URLSearchParams(utmData as Record<string, string>).toString()}`;
+        window.location.href = `/auth?redirect=${encodeURIComponent(redirectUrl)}&checkout=true`;
         return;
       }
+
+      // Track checkout initiation
+      console.log("[Funnel Analytics] Checkout initiated:", utmData);
 
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { 
           priceId: "price_1SdhyfAsrgxssNTVTPpZuI3t",
-          returnUrl: "/welcome"
+          returnUrl: "/welcome",
+          metadata: utmData,
         },
       });
 
@@ -120,6 +289,21 @@ const DMFunnel = () => {
           >
             You're not broken. You're overwhelmed.
           </motion.p>
+        </motion.div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="px-6 py-16">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="max-w-sm mx-auto"
+        >
+          <h2 className="text-xl font-bold text-center mb-6 text-white/90">
+            Real stories from real people
+          </h2>
+          <TestimonialCarousel />
         </motion.div>
       </section>
 

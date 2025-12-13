@@ -31,10 +31,10 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    // Get the price ID and optional return URL from request body
-    const { priceId, returnUrl } = await req.json();
+    // Get the price ID, optional return URL, and metadata from request body
+    const { priceId, returnUrl, metadata: clientMetadata } = await req.json();
     if (!priceId) throw new Error("Price ID is required");
-    logStep("Price ID received", { priceId, returnUrl });
+    logStep("Request received", { priceId, returnUrl, clientMetadata });
 
     // Retrieve authenticated user
     const authHeader = req.headers.get("Authorization");
@@ -83,6 +83,7 @@ serve(async (req) => {
       cancel_url: `${origin}/?checkout=canceled`,
       metadata: {
         user_id: user.id,
+        ...(clientMetadata || {}),
       },
     });
 
