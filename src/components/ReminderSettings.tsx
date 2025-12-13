@@ -71,6 +71,12 @@ const ReminderSettings = ({ reminderEnabled, reminderTime, onUpdate }: ReminderS
   };
 
   const handlePushToggle = async () => {
+    // Check if notifications are denied at browser level
+    if (Notification.permission === "denied") {
+      toast.error("Notifications are blocked. Please enable them in your browser's site settings, then refresh the page.");
+      return;
+    }
+
     if (isSubscribed) {
       const success = await unsubscribePush();
       if (success) {
@@ -83,7 +89,11 @@ const ReminderSettings = ({ reminderEnabled, reminderTime, onUpdate }: ReminderS
       if (success) {
         toast.success("Push notifications enabled!");
       } else {
-        toast.error("Failed to enable push notifications");
+        if ('Notification' in window && (Notification.permission as string) === "denied") {
+          toast.error("Notifications are blocked. Please enable them in your browser's site settings, then refresh the page.");
+        } else {
+          toast.error("Failed to enable push notifications. Please try again.");
+        }
       }
     }
   };

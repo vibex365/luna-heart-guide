@@ -18,15 +18,23 @@ export function usePushNotifications() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [vapidPublicKey, setVapidPublicKey] = useState<string | null>(null);
+  const [permissionState, setPermissionState] = useState<NotificationPermission>("default");
 
   useEffect(() => {
-    const supported = 'serviceWorker' in navigator && 'PushManager' in window;
-    setIsSupported(supported);
+    const checkSupport = async () => {
+      const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+      setIsSupported(supported);
 
-    if (supported) {
-      fetchVapidKey();
-      checkSubscription();
-    }
+      if (supported) {
+        // Check current permission state
+        setPermissionState(Notification.permission);
+        
+        await fetchVapidKey();
+        await checkSubscription();
+      }
+    };
+
+    checkSupport();
   }, []);
 
   const fetchVapidKey = async () => {
@@ -50,11 +58,13 @@ export function usePushNotifications() {
 
   const checkSubscription = async () => {
     try {
+      // Wait for service worker to be ready
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       setIsSubscribed(!!subscription);
     } catch (error) {
       console.error('Error checking subscription:', error);
+      setIsSubscribed(false);
     }
   };
 
@@ -74,20 +84,56 @@ export function usePushNotifications() {
   };
 
   const subscribe = useCallback(async (): Promise<boolean> => {
-    if (!isSupported || !vapidPublicKey || !user) {
-      console.warn('Push notifications not available');
+    if (!isSupported || !user) {
+      console.warn('Push notifications not available or user not logged in');
       return false;
     }
 
     setIsLoading(true);
     try {
+      // First, request notification permission if not granted
+      if (Notification.permission === "default") {
+        const result = await Notification.requestPermission();
+        setPermissionState(result);
+        if (result !== "granted") {
+          console.warn('Notification permission denied');
+          return false;
+        }
+      } else if (Notification.permission === "denied") {
+        console.warn('Notifications are blocked by the browser');
+        return false;
+      }
+
+      // Wait for vapid key if not yet loaded
+      let key = vapidPublicKey;
+      if (!key) {
+        await fetchVapidKey();
+        // Re-check after fetching
+        const response = await fetch(PUSH_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'get-vapid-key' }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          key = data.vapidPublicKey;
+          setVapidPublicKey(key);
+        }
+      }
+
+      if (!key) {
+        console.error('No VAPID key available');
+        return false;
+      }
+
       const registration = await navigator.serviceWorker.ready;
       
       // Check if already subscribed
       let subscription = await registration.pushManager.getSubscription();
-      
+
+      // Create new subscription if not exists
       if (!subscription) {
-        const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+        const applicationServerKey = urlBase64ToUint8Array(key);
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: applicationServerKey.buffer as ArrayBuffer,
