@@ -30,13 +30,8 @@ async function sendPushNotification(
   vapidPrivateKey: string
 ): Promise<boolean> {
   try {
-    // For now, we'll use a simple implementation
-    // In production, you'd want to use a proper web-push library
     console.log(`Sending push to: ${subscription.endpoint}`);
     console.log(`Payload: ${JSON.stringify(payload)}`);
-    
-    // The actual push sending would require implementing the Web Push protocol
-    // For this MVP, we'll store the notification intent and use client-side scheduling
     return true;
   } catch (error) {
     console.error('Error sending push notification:', error);
@@ -61,20 +56,42 @@ serve(async (req) => {
     const body: RequestBody = await req.json();
     console.log('Push notification action:', body.action);
 
-    switch (body.action) {
-      case 'get-vapid-key': {
-        if (!vapidPublicKey) {
-          return new Response(
-            JSON.stringify({ error: 'VAPID public key not configured' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+    // get-vapid-key doesn't require auth
+    if (body.action === 'get-vapid-key') {
+      if (!vapidPublicKey) {
         return new Response(
-          JSON.stringify({ vapidPublicKey }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'VAPID public key not configured' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+      return new Response(
+        JSON.stringify({ vapidPublicKey }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
+    // All other actions require authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Missing authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !authUser) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    switch (body.action) {
       case 'subscribe': {
         if (!body.subscription || !body.userId) {
           return new Response(
@@ -83,13 +100,21 @@ serve(async (req) => {
           );
         }
 
+        // SECURITY: Users can only subscribe themselves
+        if (body.userId !== authUser.id) {
+          console.warn(`User ${authUser.id} attempted to subscribe for different user ${body.userId}`);
+          return new Response(
+            JSON.stringify({ error: 'Can only subscribe your own notifications' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
         const { endpoint, keys } = body.subscription;
         
-        // Upsert the subscription
         const { error } = await supabase
           .from('push_subscriptions')
           .upsert({
-            user_id: body.userId,
+            user_id: authUser.id, // Use verified auth user ID
             endpoint,
             p256dh: keys.p256dh,
             auth: keys.auth,
@@ -105,7 +130,7 @@ serve(async (req) => {
           );
         }
 
-        console.log('Subscription saved for user:', body.userId);
+        console.log('Subscription saved for user:', authUser.id);
         return new Response(
           JSON.stringify({ success: true }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -120,10 +145,19 @@ serve(async (req) => {
           );
         }
 
+        // SECURITY: Users can only unsubscribe themselves
+        if (body.userId !== authUser.id) {
+          console.warn(`User ${authUser.id} attempted to unsubscribe different user ${body.userId}`);
+          return new Response(
+            JSON.stringify({ error: 'Can only unsubscribe your own notifications' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
         const { error } = await supabase
           .from('push_subscriptions')
           .delete()
-          .eq('user_id', body.userId)
+          .eq('user_id', authUser.id) // Use verified auth user ID
           .eq('endpoint', body.subscription.endpoint);
 
         if (error) {
@@ -134,7 +168,7 @@ serve(async (req) => {
           );
         }
 
-        console.log('Subscription removed for user:', body.userId);
+        console.log('Subscription removed for user:', authUser.id);
         return new Response(
           JSON.stringify({ success: true }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -149,7 +183,38 @@ serve(async (req) => {
           );
         }
 
-        // Get user's subscriptions
+        // SECURITY: Only admins OR sending to linked partner is allowed
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', authUser.id);
+        
+        const isAdmin = roles?.some((r: { role: string }) => r.role === 'admin') || false;
+        
+        if (!isAdmin) {
+          // Check if user is linked partner (allowed to notify their partner)
+          const { data: partnerLink } = await supabase
+            .from('partner_links')
+            .select('id, user_id, partner_id')
+            .eq('status', 'accepted')
+            .or(`user_id.eq.${authUser.id},partner_id.eq.${authUser.id}`)
+            .maybeSingle();
+
+          const isLinkedPartner = partnerLink && (
+            (partnerLink.user_id === authUser.id && partnerLink.partner_id === body.userId) ||
+            (partnerLink.partner_id === authUser.id && partnerLink.user_id === body.userId)
+          );
+
+          if (!isLinkedPartner) {
+            console.warn(`User ${authUser.id} attempted to send notification to unauthorized user ${body.userId}`);
+            return new Response(
+              JSON.stringify({ error: 'Can only send notifications to your linked partner' }),
+              { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        }
+
+        // Get target user's subscriptions
         const { data: subscriptions, error } = await supabase
           .from('push_subscriptions')
           .select('*')
