@@ -818,6 +818,7 @@ serve(async (req) => {
     let preferencesContext = "";
     let supabase: ReturnType<typeof createClient> | null = null;
 
+    let firstName = "";
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
       supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     }
@@ -857,6 +858,22 @@ serve(async (req) => {
         }
       } catch (prefError) {
         console.error("Error fetching preferences:", prefError);
+      }
+
+      // Fetch user's first name from profile
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("user_id", userId)
+          .maybeSingle() as { data: { display_name: string | null } | null; error: Error | null };
+        
+        if (!profileError && profileData?.display_name) {
+          firstName = profileData.display_name.trim().split(/\s+/)[0];
+          console.log("User first name:", firstName);
+        }
+      } catch (profileFetchError) {
+        console.error("Error fetching profile:", profileFetchError);
       }
 
       // Detect and log module usage + crisis detection
@@ -924,7 +941,19 @@ serve(async (req) => {
       }
     }
 
-    const systemPrompt = LUNA_BRAIN_V1 + preferencesContext + moodContext;
+    // Build personalization context with user's first name
+    let personalizationContext = "";
+    if (firstName) {
+      personalizationContext = `\n\n═══════════════════════════════════════════════════════════════
+                    USER PERSONALIZATION
+═══════════════════════════════════════════════════════════════
+The user's name is: ${firstName}
+Use their name naturally and warmly in conversation — not in every message, but occasionally to create connection and warmth.
+Examples: "I hear you, ${firstName}..." or "That's a lot to carry, ${firstName}." or "How are you feeling about that, ${firstName}?"
+═══════════════════════════════════════════════════════════════\n`;
+    }
+
+    const systemPrompt = LUNA_BRAIN_V1 + personalizationContext + preferencesContext + moodContext;
 
     console.log("Sending request to Lovable AI Gateway with", sanitizedMessages.length, "messages");
     console.log("System prompt length:", systemPrompt.length, "characters");
