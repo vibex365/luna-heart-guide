@@ -6,6 +6,7 @@ export { default as AdminLuna } from "./AdminLuna";
 export { default as AdminContent } from "./AdminContent";
 export { default as AdminSafety } from "./AdminSafety";
 export { default as AdminAnalytics } from "./AdminAnalytics";
+export { default as AdminFunnelAnalytics } from "./AdminFunnelAnalytics";
 export { default as AdminSettings } from "./AdminSettings";
 export { default as AdminFeedback } from "./AdminFeedback";
 export { default as AdminNotifications } from "./AdminNotifications";

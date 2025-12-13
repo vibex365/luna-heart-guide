@@ -1,33 +1,11 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Clock, Shield, Heart, Check, Sparkles, ChevronLeft, ChevronRight, Quote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useFunnelTracking } from "@/hooks/useFunnelTracking";
 import LunaAvatar from "@/components/LunaAvatar";
-
-// UTM tracking hook
-const useUTMTracking = () => {
-  const [searchParams] = useSearchParams();
-  
-  const utmParams = {
-    utm_source: searchParams.get("utm_source") || "direct",
-    utm_medium: searchParams.get("utm_medium") || "none",
-    utm_campaign: searchParams.get("utm_campaign") || "none",
-    utm_content: searchParams.get("utm_content") || "none",
-  };
-
-  useEffect(() => {
-    // Store UTM params in sessionStorage for checkout
-    sessionStorage.setItem("funnel_utm", JSON.stringify(utmParams));
-    
-    // Track page view with UTM
-    console.log("[Funnel Analytics] Page view:", utmParams);
-  }, []);
-
-  return utmParams;
-};
 
 // Testimonials data
 const testimonials = [
@@ -168,26 +146,24 @@ const TestimonialCarousel = () => {
 const DMFunnel = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const utmParams = useUTMTracking();
+  const { trackEvent, getUTMData } = useFunnelTracking('dm');
 
   const handleCheckout = async () => {
     setIsLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      // Track checkout start
+      await trackEvent('checkout_start');
       
-      // Store UTM params before redirect
-      const storedUtm = sessionStorage.getItem("funnel_utm");
-      const utmData = storedUtm ? JSON.parse(storedUtm) : utmParams;
+      const { data: { session } } = await supabase.auth.getSession();
+      const utmData = getUTMData();
       
       if (!session) {
-        // Redirect to auth with return URL and UTM params preserved
-        const redirectUrl = `/dm?${new URLSearchParams(utmData as Record<string, string>).toString()}`;
+        // Redirect to auth with return URL
+        const utmString = `utm_source=${utmData.utm_source}&utm_medium=${utmData.utm_medium}&utm_campaign=${utmData.utm_campaign}&utm_content=${utmData.utm_content}`;
+        const redirectUrl = `/dm?${utmString}`;
         window.location.href = `/auth?redirect=${encodeURIComponent(redirectUrl)}&checkout=true`;
         return;
       }
-
-      // Track checkout initiation
-      console.log("[Funnel Analytics] Checkout initiated:", utmData);
 
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { 
