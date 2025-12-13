@@ -214,6 +214,58 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* DM Funnel Styles */
+  .bg-funnel-gradient {
+    background: linear-gradient(180deg, hsl(280 20% 12%) 0%, hsl(260 15% 8%) 50%, hsl(0 0% 4%) 100%);
+  }
+
+  .funnel-glow {
+    background: radial-gradient(circle, hsl(330 70% 70% / 0.15) 0%, transparent 60%);
+    filter: blur(60px);
+  }
+
+  .funnel-card {
+    background: linear-gradient(180deg, hsl(280 15% 16% / 0.8) 0%, hsl(260 10% 10% / 0.6) 100%);
+    border: 1px solid hsl(330 30% 40% / 0.2);
+    backdrop-filter: blur(10px);
+  }
+
+  .text-funnel-accent {
+    color: hsl(330 70% 75%);
+  }
+
+  .bg-funnel-accent {
+    background-color: hsl(330 70% 75%);
+  }
+
+  .bg-funnel-accent\/10 {
+    background-color: hsl(330 70% 75% / 0.1);
+  }
+
+  .bg-funnel-accent\/20 {
+    background-color: hsl(330 70% 75% / 0.2);
+  }
+
+  .border-funnel-accent\/20 {
+    border-color: hsl(330 70% 75% / 0.2);
+  }
+
+  .border-funnel-accent\/30 {
+    border-color: hsl(330 70% 75% / 0.3);
+  }
+
+  .border-funnel-accent\/40 {
+    border-color: hsl(330 70% 75% / 0.4);
+  }
+
+  .shadow-funnel-accent\/30 {
+    box-shadow: 0 10px 40px -10px hsl(330 70% 75% / 0.3);
+  }
+
+  .hover\:bg-funnel-accent\/90:hover {
+    background-color: hsl(330 70% 75% / 0.9);
+  }
 }
 
 /* Custom scrollbar */

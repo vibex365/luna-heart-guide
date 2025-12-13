@@ -31,10 +31,10 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    // Get the price ID from request body
-    const { priceId } = await req.json();
+    // Get the price ID and optional return URL from request body
+    const { priceId, returnUrl } = await req.json();
     if (!priceId) throw new Error("Price ID is required");
-    logStep("Price ID received", { priceId });
+    logStep("Price ID received", { priceId, returnUrl });
 
     // Retrieve authenticated user
     const authHeader = req.headers.get("Authorization");
@@ -62,6 +62,11 @@ serve(async (req) => {
     }
 
     const origin = req.headers.get("origin") || "https://luna-app.lovable.app";
+    
+    // Determine success URL based on returnUrl parameter
+    const successUrl = returnUrl 
+      ? `${origin}${returnUrl}?checkout=success`
+      : `${origin}/chat?checkout=success`;
 
     // Create a subscription checkout session
     const session = await stripe.checkout.sessions.create({
@@ -74,7 +79,7 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${origin}/chat?checkout=success`,
+      success_url: successUrl,
       cancel_url: `${origin}/?checkout=canceled`,
       metadata: {
         user_id: user.id,

@@ -17,6 +17,8 @@ import Resources from "./pages/Resources";
 import ArticleDetail from "./pages/ArticleDetail";
 import Subscription from "./pages/Subscription";
 import Couples from "./pages/Couples";
+import DMFunnel from "./pages/DMFunnel";
+import Welcome from "./pages/Welcome";
 import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminAnalytics, AdminSettings, AdminFeedback, AdminNotifications } from "./pages/admin";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +32,8 @@ const App = () => (
         <Sonner />
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/dm" element={<DMFunnel />} />
+          <Route path="/welcome" element={<Welcome />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/auth" element={<Auth />} />
