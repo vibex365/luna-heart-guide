@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import UserAvatar from "@/components/UserAvatar";
 import { MessageFeedback } from "@/components/MessageFeedback";
+import { MessageLimitBanner } from "@/components/MessageLimitBanner";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import PullToRefresh from "@/components/PullToRefresh";
 import { ChatSkeleton } from "@/components/skeletons/PageSkeletons";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { isToday, isYesterday, isThisWeek, parseISO } from "date-fns";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
@@ -338,11 +340,20 @@ const Chat = () => {
           variant: "destructive",
         });
       } else if (resp.status === 402) {
-        toast({
-          title: "Service unavailable",
-          description: "Please try again later.",
-          variant: "destructive",
-        });
+        const errorData = await resp.json().catch(() => ({}));
+        if (errorData.limitReached) {
+          toast({
+            title: "Daily limit reached",
+            description: "Upgrade to Pro for unlimited conversations with Luna.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Service unavailable",
+            description: "Please try again later.",
+            variant: "destructive",
+          });
+        }
       } else {
         toast({
           title: "Something went wrong",
@@ -809,6 +820,9 @@ const Chat = () => {
             </div>
           </div>
         </header>
+
+        {/* Message Limit Banner for Free Users */}
+        <MessageLimitBanner />
 
         {/* Messages */}
         <main className="flex-1 overflow-y-auto">
