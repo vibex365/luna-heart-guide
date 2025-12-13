@@ -125,7 +125,7 @@ const DesktopBlocker = () => {
           {/* URL display */}
           <div className="bg-card rounded-xl p-4 border border-border">
             <p className="text-sm font-mono text-accent break-all">
-              {window.location.origin}
+              talkswithluna.com
             </p>
           </div>
 
