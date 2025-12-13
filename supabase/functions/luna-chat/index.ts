@@ -811,7 +811,7 @@ serve(async (req) => {
     
     if (!LOVABLE_API_KEY) {
       console.error("LOVABLE_API_KEY is not configured");
-      throw new Error("LOVABLE_API_KEY is not configured");
+      throw new Error("Service configuration error");
     }
 
     let moodContext = "";
@@ -989,9 +989,11 @@ serve(async (req) => {
       },
     });
   } catch (error) {
-    console.error("Luna chat error:", error);
+    // Log detailed error server-side only
+    console.error("Luna chat error:", error instanceof Error ? error.message : error);
+    // Return generic error message to client
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error occurred" }),
+      JSON.stringify({ error: "Something went wrong. Please try again." }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
