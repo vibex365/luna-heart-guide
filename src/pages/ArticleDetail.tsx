@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, Heart, MessageCircle, Brain, Users, Sparkles, BookOpen, Share2 } from "lucide-react";
+import { ArrowLeft, Clock, Heart, MessageCircle, Brain, Users, Sparkles, BookOpen, Share2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useParams } from "react-router-dom";
 import LunaAvatar from "@/components/LunaAvatar";
-import ThemeToggle from "@/components/ThemeToggle";
+import MobileOnlyLayout from "@/components/MobileOnlyLayout";
+import { toast } from "@/hooks/use-toast";
 
 interface ArticleContent {
   id: string;
@@ -74,8 +75,7 @@ export const articlesData: ArticleContent[] = [
       "First, recognize that anxiety lies. It tells you worst-case scenarios are inevitable. In reality, the worried thoughts are usually just thoughts, not facts. Learning to observe your anxiety without believing every thought is a powerful skill.",
       "Grounding techniques can interrupt anxiety spirals. Try the 5-4-3-2-1 method: notice 5 things you can see, 4 you can touch, 3 you can hear, 2 you can smell, and 1 you can taste. This brings you back to the present moment.",
       "Communicate your anxiety to your partner, but avoid seeking constant reassurance. Instead, share what you need: 'I'm feeling anxious today. A hug would help.' This invites connection without putting pressure on your partner to fix your feelings.",
-      "Build a self-soothing toolkit. This might include deep breathing, journaling, talking to a friend, or engaging in activities that calm your nervous system. The goal is to learn to comfort yourself so you can show up more securely in your relationship.",
-      "Consider whether your anxiety is pointing to something real that needs addressing, or if it's a pattern from your past. Sometimes anxiety is protective, alerting us to genuine concerns. Other times, it's old wounds surfacing. Distinguishing between the two is crucial."
+      "Build a self-soothing toolkit. This might include deep breathing, journaling, talking to a friend, or engaging in activities that calm your nervous system. The goal is to learn to comfort yourself so you can show up more securely in your relationship."
     ],
     keyTakeaways: [
       "Anxious thoughts are not facts — learn to observe them",
@@ -120,8 +120,7 @@ export const articlesData: ArticleContent[] = [
       "Acts of Service: For others, actions speak louder than words. Doing the dishes, running errands, or taking on a task your partner dreads says 'I love you' more powerfully than any words could.",
       "Receiving Gifts: This isn't about materialism. It's about the thought and effort behind a gift. A small, thoughtful present can make someone with this love language feel deeply cherished.",
       "Quality Time: Undivided attention is the key here. Put away distractions and be fully present. For quality time people, distracted presence feels like rejection.",
-      "Physical Touch: Holding hands, hugs, kisses, and physical closeness communicate love for those with this language. Physical presence and accessibility are crucial.",
-      "The key is learning your partner's primary love language and making an effort to speak it, even if it doesn't come naturally to you. Love is a choice we make in how we show up for our partners."
+      "Physical Touch: Holding hands, hugs, kisses, and physical closeness communicate love for those with this language. Physical presence and accessibility are crucial."
     ],
     keyTakeaways: [
       "We each have preferred ways of giving and receiving love",
@@ -143,9 +142,7 @@ export const articlesData: ArticleContent[] = [
       "Allow yourself to feel everything. Sadness, anger, relief, confusion, hope, despair — they may all visit, sometimes within the same hour. Trying to skip the painful parts only prolongs the healing. Let the waves come.",
       "Resist the urge to immediately 'move on.' Our culture pushes us to be productive and positive, but healing takes time. Give yourself permission to be sad, to stay in on Friday nights, to not have it all figured out.",
       "Use this time for self-discovery. Who are you outside of that relationship? What dreams did you put on hold? What do you actually want in a partner? Breakups, painful as they are, offer a chance to rebuild on a stronger foundation.",
-      "Be mindful of the stories you tell yourself. 'I'll never find love again' or 'I wasted those years' are not facts — they're pain talking. Challenge these narratives with compassion and curiosity.",
-      "Reach out for support. Friends, family, a therapist, or support groups can provide perspective and comfort. You don't have to go through this alone. Healing happens in connection.",
-      "Eventually, you'll notice the pain visiting less often. One day you'll think of them without that sharp ache. This doesn't mean you've forgotten or that the relationship didn't matter. It means you're healing, and your heart is making room for what's next."
+      "Reach out for support. Friends, family, a therapist, or support groups can provide perspective and comfort. You don't have to go through this alone. Healing happens in connection."
     ],
     keyTakeaways: [
       "Grief after a breakup is normal — allow yourself to feel",
@@ -167,9 +164,7 @@ export const articlesData: ArticleContent[] = [
       "Attack the problem, not the person. Keep the focus on the specific issue at hand. 'I'm frustrated that the dishes weren't done' is very different from 'You're so lazy and inconsiderate.'",
       "Avoid the Four Horsemen identified by relationship researcher Dr. John Gottman: criticism, contempt, defensiveness, and stonewalling. These patterns predict relationship failure with remarkable accuracy.",
       "Seek to understand before being understood. Truly listen to your partner's perspective, even when you disagree. Repeat back what you hear to ensure you've got it right. Often, feeling heard is more important than 'winning.'",
-      "Look for the need beneath the complaint. When your partner criticizes, they're usually expressing an unmet need. 'You never help around the house' might mean 'I need to feel like we're a team.' Responding to the need, not just the words, can de-escalate quickly.",
-      "Know when to take a break. If either of you is too flooded to think clearly, pause the conversation. Agree on a time to come back to it — this prevents stonewalling while allowing space to calm down.",
-      "End with repair and reconnection. Even after difficult conversations, find a way to come back together. A hug, a word of appreciation, or simply saying 'I love you even when we disagree' can restore your bond."
+      "Know when to take a break. If either of you is too flooded to think clearly, pause the conversation. Agree on a time to come back to it — this prevents stonewalling while allowing space to calm down."
     ],
     keyTakeaways: [
       "Attack problems, not people — stay specific",
@@ -191,8 +186,7 @@ export const articlesData: ArticleContent[] = [
       "Dr. Kristin Neff, a leading researcher on self-compassion, identifies three components: self-kindness (vs. self-judgment), common humanity (vs. isolation), and mindfulness (vs. over-identification with thoughts).",
       "Self-kindness means speaking to yourself gently, especially when you make mistakes. Instead of 'I'm such an idiot,' try 'I made a mistake. That's human. What can I learn from this?'",
       "Common humanity reminds us that suffering and imperfection are part of the shared human experience. You're not uniquely flawed. Everyone struggles. This perspective reduces the isolation that often accompanies self-criticism.",
-      "Mindfulness allows us to observe our pain without being swept away by it. We can acknowledge 'This is really hard right now' without dramatizing or suppressing our feelings.",
-      "Try this self-compassion break: When you're struggling, pause and say to yourself: 'This is a moment of suffering. Suffering is part of life. May I be kind to myself in this moment. May I give myself the compassion I need.'"
+      "Try this self-compassion break: When you're struggling, pause and say to yourself: 'This is a moment of suffering. Suffering is part of life. May I be kind to myself in this moment.'"
     ],
     keyTakeaways: [
       "Self-compassion = treating yourself as you'd treat a friend",
@@ -214,17 +208,16 @@ export const articlesData: ArticleContent[] = [
       "The first step is self-awareness: being able to identify what you're feeling in the moment. Many of us are disconnected from our emotions, describing everything as 'fine' or 'stressed.' Start building a richer emotional vocabulary.",
       "Notice where emotions live in your body. Anxiety might feel like chest tightness. Anger might show up as heat in your face. Sadness might feel like heaviness. This body awareness helps you catch emotions early.",
       "Learn to regulate your emotions rather than being controlled by them. This doesn't mean suppressing feelings — it means having strategies to calm yourself when emotions threaten to overwhelm your rational thinking.",
-      "Develop empathy by truly trying to understand your partner's experience. Ask curious questions. Resist the urge to fix or advise. Sometimes people just need to feel understood.",
-      "Put it all together in your relationship: notice your emotions, express them appropriately, stay curious about your partner's inner world, and respond with compassion. This is EQ in action, and it transforms relationships."
+      "Develop empathy by truly trying to understand your partner's experience. Ask curious questions. Resist the urge to fix or advise. Sometimes people just need to feel understood."
     ],
     keyTakeaways: [
-      "EQ is recognizing, understanding, and managing emotions",
-      "Build self-awareness by expanding your emotional vocabulary",
-      "Notice where emotions appear in your body",
-      "Learn regulation strategies, not suppression",
-      "Practice empathy through curiosity and presence"
+      "EQ often matters more than IQ in relationships",
+      "Self-awareness: identify what you're feeling in the moment",
+      "Notice where emotions live in your body",
+      "Regulate emotions without suppressing them",
+      "Develop empathy through curious, non-judgmental listening"
     ]
-  },
+  }
 ];
 
 const ArticleDetail = () => {
@@ -235,171 +228,164 @@ const ArticleDetail = () => {
 
   if (!article) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="font-heading text-2xl font-bold text-foreground mb-4">Article Not Found</h1>
-          <Button variant="peach" onClick={() => navigate("/resources")}>
-            Back to Resources
-          </Button>
+      <MobileOnlyLayout hideTabBar>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-center px-6">
+            <h1 className="text-xl font-bold text-foreground mb-2">Article not found</h1>
+            <Button variant="outline" onClick={() => navigate("/resources")}>
+              Back to Resources
+            </Button>
+          </div>
         </div>
-      </div>
+      </MobileOnlyLayout>
     );
   }
 
-  const Icon = article.icon;
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: article.title,
+          text: article.excerpt,
+          url: window.location.href,
+        });
+      } catch (err) {
+        // User cancelled or error
+      }
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copied!",
+        description: "Share it with someone who might find it helpful.",
+      });
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="container mx-auto px-6 py-4">
-          <nav className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/resources")}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <LunaAvatar size="sm" showGlow={false} />
-              <span className="font-heading font-bold text-xl text-foreground hidden md:inline">Resources</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <ThemeToggle />
-              <Button variant="ghost" size="icon" className="text-muted-foreground">
-                <Share2 className="w-5 h-5" />
-              </Button>
-              <Button variant="peach" size="sm" onClick={() => navigate("/auth")}>
-                Talk to Luna
-              </Button>
-            </div>
-          </nav>
-        </div>
-      </header>
+    <MobileOnlyLayout hideTabBar>
+      <div className="bg-background safe-area-top">
+        {/* Header */}
+        <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+          <div className="px-4 py-3 flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/resources")}
+              className="rounded-full"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleShare}
+              className="rounded-full"
+            >
+              <Share2 className="w-5 h-5" />
+            </Button>
+          </div>
+        </header>
 
-      {/* Article Hero */}
-      <section className="py-12 md:py-20 gradient-hero">
-        <div className="container mx-auto px-6">
+        {/* Hero */}
+        <section className="gradient-luna py-10 px-6 text-center">
           <motion.div
-            className="max-w-3xl mx-auto text-center"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-14 h-14 rounded-2xl bg-background/20 flex items-center justify-center mx-auto mb-4"
+          >
+            <article.icon className="w-7 h-7 text-accent" />
+          </motion.div>
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <span className="text-xs font-medium text-accent bg-background/20 px-2 py-0.5 rounded-full">
+              {article.category}
+            </span>
+            <span className="text-xs text-foreground/70 flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {article.readTime}
+            </span>
+          </div>
+          <motion.h1
+            className="font-heading text-xl font-bold text-foreground"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
           >
-            <div className="w-16 h-16 rounded-2xl gradient-luna flex items-center justify-center mx-auto mb-6">
-              <Icon className="w-8 h-8 text-accent" />
-            </div>
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <span className="text-sm font-medium text-accent bg-primary px-3 py-1 rounded-full">
-                {article.category}
-              </span>
-              <span className="text-sm text-muted-foreground flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                {article.readTime}
-              </span>
-            </div>
-            <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
-              {article.title}
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              {article.excerpt}
-            </p>
-          </motion.div>
-        </div>
-      </section>
+            {article.title}
+          </motion.h1>
+        </section>
 
-      {/* Article Content */}
-      <section className="py-12 md:py-16">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto">
-            <motion.div
-              className="prose prose-lg"
+        {/* Content */}
+        <article className="px-6 py-8 space-y-5">
+          {article.content.map((paragraph, index) => (
+            <motion.p
+              key={index}
+              className="text-foreground/90 text-sm leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.05 }}
             >
-              {article.content.map((paragraph, index) => (
-                <motion.p
-                  key={index}
-                  className="text-foreground leading-relaxed mb-6"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
-                >
-                  {paragraph}
-                </motion.p>
-              ))}
-            </motion.div>
+              {paragraph}
+            </motion.p>
+          ))}
+        </article>
 
-            {/* Key Takeaways */}
-            <motion.div
-              className="mt-12 bg-card rounded-2xl p-8 border border-border shadow-soft"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-              <h2 className="font-heading text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-accent" />
-                Key Takeaways
-              </h2>
-              <ul className="space-y-3">
-                {article.keyTakeaways.map((takeaway, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-xs font-semibold text-accent">{index + 1}</span>
-                    </span>
-                    <span className="text-foreground">{takeaway}</span>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-6">
+        {/* Key Takeaways */}
+        <section className="px-6 pb-8">
           <motion.div
-            className="max-w-3xl mx-auto gradient-peach rounded-3xl p-10 text-center shadow-luna"
+            className="bg-card rounded-2xl p-5 border border-border"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="font-heading font-bold text-foreground mb-4 text-base">
+              Key Takeaways
+            </h2>
+            <ul className="space-y-2.5">
+              {article.keyTakeaways.map((takeaway, index) => (
+                <li key={index} className="flex items-start gap-2.5">
+                  <div className="w-5 h-5 rounded-full gradient-luna flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-accent" />
+                  </div>
+                  <span className="text-muted-foreground text-sm">{takeaway}</span>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        </section>
+
+        {/* CTA */}
+        <section className="px-6 pb-8">
+          <motion.div
+            className="gradient-peach rounded-2xl p-6 text-center"
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
           >
-            <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-4">
-              Want to Explore This Topic Further?
+            <LunaAvatar size="md" className="mx-auto mb-3" />
+            <h2 className="font-heading text-lg font-bold text-foreground mb-2">
+              Want to Explore This Further?
             </h2>
-            <p className="text-foreground/80 mb-8">
-              Luna can help you apply these insights to your unique situation. Start a conversation today.
+            <p className="text-foreground/80 text-sm mb-4">
+              Talk to Luna about how this applies to your situation.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="accent" size="lg" onClick={() => navigate("/auth")}>
-                Talk to Luna
-              </Button>
-              <Button variant="luna" size="lg" onClick={() => navigate("/resources")}>
-                Read More Articles
-              </Button>
-            </div>
+            <Button variant="accent" className="w-full" onClick={() => navigate("/auth")}>
+              Start a Conversation
+            </Button>
           </motion.div>
-        </div>
-      </section>
+        </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-8 bg-card/50">
-        <div className="container mx-auto px-6 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <LunaAvatar size="sm" showGlow={false} />
-            <span className="font-heading font-semibold text-foreground">LUNA</span>
+        {/* Footer */}
+        <footer className="py-6 px-6 border-t border-border text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <LunaAvatar size="xs" showGlow={false} />
+            <span className="font-heading font-semibold text-foreground text-sm">LUNA</span>
           </div>
-          <p className="text-muted-foreground text-sm">
-            Your private AI relationship therapist. Always here, never judging.
+          <p className="text-muted-foreground text-xs">
+            Your private AI therapist.
           </p>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
+    </MobileOnlyLayout>
   );
 };
 

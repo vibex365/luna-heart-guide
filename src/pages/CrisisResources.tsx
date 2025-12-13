@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Phone, Globe, MessageCircle, Heart, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 
 interface Resource {
   name: string;
@@ -46,13 +47,6 @@ const sections: ResourceSection[] = [
         website: "https://thehotline.org",
         available: "24/7",
       },
-      {
-        name: "SAMHSA National Helpline",
-        description: "Treatment referrals and information",
-        phone: "1-800-662-4357",
-        website: "https://samhsa.gov/find-help/national-helpline",
-        available: "24/7",
-      },
     ],
   },
   {
@@ -63,13 +57,7 @@ const sections: ResourceSection[] = [
         name: "International Association for Suicide Prevention",
         description: "Directory of crisis centers worldwide",
         website: "https://www.iasp.info/resources/Crisis_Centres/",
-        available: "Varies by location",
-      },
-      {
-        name: "Befrienders Worldwide",
-        description: "Emotional support in over 30 countries",
-        website: "https://befrienders.org",
-        available: "Varies by location",
+        available: "Varies",
       },
       {
         name: "UK - Samaritans",
@@ -94,28 +82,16 @@ const sections: ResourceSection[] = [
     resources: [
       {
         name: "NAMI Helpline",
-        description: "Information and support for mental health conditions",
+        description: "Information and support for mental health",
         phone: "1-800-950-6264",
         website: "https://nami.org/help",
-        available: "Mon-Fri, 10am-10pm ET",
-      },
-      {
-        name: "Psychology Today Therapist Finder",
-        description: "Find therapists, psychiatrists, and support groups",
-        website: "https://psychologytoday.com/us/therapists",
-        available: "Online directory",
+        available: "Mon-Fri",
       },
       {
         name: "7 Cups",
         description: "Free online chat with trained listeners",
         website: "https://7cups.com",
         available: "24/7",
-      },
-      {
-        name: "BetterHelp",
-        description: "Online therapy with licensed professionals",
-        website: "https://betterhelp.com",
-        available: "24/7 messaging",
       },
     ],
   },
@@ -139,21 +115,6 @@ const sections: ResourceSection[] = [
         website: "https://veteranscrisisline.net",
         available: "24/7",
       },
-      {
-        name: "Postpartum Support International",
-        description: "Support for perinatal mental health",
-        phone: "1-800-944-4773",
-        text: "Text 988",
-        website: "https://postpartum.net",
-        available: "24/7",
-      },
-      {
-        name: "RAINN",
-        description: "Support for sexual assault survivors",
-        phone: "1-800-656-4673",
-        website: "https://rainn.org",
-        available: "24/7",
-      },
     ],
   },
 ];
@@ -162,138 +123,140 @@ const CrisisResources = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen gradient-hero">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/chat")}
-            className="rounded-full"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-xl font-semibold text-foreground">Crisis Resources</h1>
-            <p className="text-sm text-muted-foreground">Help is always available</p>
+    <MobileOnlyLayout>
+      <div className="gradient-hero safe-area-top">
+        {/* Header */}
+        <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border">
+          <div className="px-4 py-3 flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/chat")}
+              className="rounded-full"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-lg font-semibold text-foreground">Crisis Resources</h1>
+              <p className="text-xs text-muted-foreground">Help is always available</p>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* Important Notice */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Card className="bg-destructive/10 border-destructive/30 shadow-soft">
-            <CardContent className="p-6">
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-destructive/20 flex items-center justify-center">
-                  <Phone className="w-6 h-6 text-destructive" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-foreground mb-1">
-                    If you are in immediate danger
-                  </h2>
-                  <p className="text-muted-foreground mb-3">
-                    Please call emergency services (911 in the US) or go to your nearest emergency room.
-                  </p>
-                  <a
-                    href="tel:911"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-destructive text-destructive-foreground rounded-lg font-medium hover:bg-destructive/90 transition-colors"
-                  >
-                    <Phone className="w-4 h-4" />
-                    Call 911
-                  </a>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Resource Sections */}
-        {sections.map((section, sectionIndex) => (
+        <main className="px-4 py-4 space-y-4">
+          {/* Important Notice */}
           <motion.div
-            key={section.title}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: (sectionIndex + 1) * 0.1 }}
           >
-            <Card className="shadow-soft border-border/50">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <span className="text-accent">{section.icon}</span>
-                  {section.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {section.resources.map((resource, index) => (
-                  <div
-                    key={index}
-                    className="p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold text-foreground">{resource.name}</h3>
-                      <span className="text-xs text-muted-foreground bg-background px-2 py-1 rounded-full">
-                        {resource.available}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {resource.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {resource.phone && (
-                        <a
-                          href={`tel:${resource.phone.replace(/[^0-9]/g, "")}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent text-accent-foreground rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors"
-                        >
-                          <Phone className="w-3.5 h-3.5" />
-                          {resource.phone}
-                        </a>
-                      )}
-                      {resource.text && (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-secondary-foreground rounded-lg text-sm font-medium">
-                          <MessageCircle className="w-3.5 h-3.5" />
-                          {resource.text}
-                        </span>
-                      )}
-                      {resource.website && (
-                        <a
-                          href={resource.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          Website
-                        </a>
-                      )}
-                    </div>
+            <Card className="bg-destructive/10 border-destructive/30">
+              <CardContent className="p-4">
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center">
+                    <Phone className="w-5 h-5 text-destructive" />
                   </div>
-                ))}
+                  <div>
+                    <h2 className="text-base font-semibold text-foreground mb-1">
+                      If you are in immediate danger
+                    </h2>
+                    <p className="text-muted-foreground text-sm mb-3">
+                      Please call emergency services or go to your nearest emergency room.
+                    </p>
+                    <a
+                      href="tel:911"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-destructive text-destructive-foreground rounded-lg font-medium text-sm"
+                    >
+                      <Phone className="w-4 h-4" />
+                      Call 911
+                    </a>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
-        ))}
 
-        {/* Footer Note */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="text-center py-6"
-        >
-          <p className="text-sm text-muted-foreground">
-            💜 Remember: Asking for help is a sign of strength, not weakness.
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            Luna is here to support you, but is not a substitute for professional mental health care.
-          </p>
-        </motion.div>
-      </main>
-    </div>
+          {/* Resource Sections */}
+          {sections.map((section, sectionIndex) => (
+            <motion.div
+              key={section.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: (sectionIndex + 1) * 0.1 }}
+            >
+              <Card className="border-border/50">
+                <CardHeader className="pb-2 px-4 pt-4">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <span className="text-accent">{section.icon}</span>
+                    {section.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4 space-y-3">
+                  {section.resources.map((resource, index) => (
+                    <div
+                      key={index}
+                      className="p-3 rounded-xl bg-muted/50"
+                    >
+                      <div className="flex justify-between items-start mb-1">
+                        <h3 className="font-semibold text-foreground text-sm">{resource.name}</h3>
+                        <span className="text-[10px] text-muted-foreground bg-background px-2 py-0.5 rounded-full">
+                          {resource.available}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        {resource.description}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {resource.phone && (
+                          <a
+                            href={`tel:${resource.phone.replace(/[^0-9]/g, "")}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-accent text-accent-foreground rounded-lg text-xs font-medium"
+                          >
+                            <Phone className="w-3 h-3" />
+                            {resource.phone}
+                          </a>
+                        )}
+                        {resource.text && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-secondary text-secondary-foreground rounded-lg text-xs font-medium">
+                            <MessageCircle className="w-3 h-3" />
+                            {resource.text}
+                          </span>
+                        )}
+                        {resource.website && (
+                          <a
+                            href={resource.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-primary-foreground rounded-lg text-xs font-medium"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Website
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+
+          {/* Footer Note */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-center py-4"
+          >
+            <p className="text-xs text-muted-foreground">
+              💜 Asking for help is a sign of strength.
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Luna is not a substitute for professional care.
+            </p>
+          </motion.div>
+        </main>
+      </div>
+    </MobileOnlyLayout>
   );
 };
 
