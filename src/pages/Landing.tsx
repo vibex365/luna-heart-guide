@@ -32,6 +32,8 @@ const pricingPlans = [
     period: "forever",
     features: ["5 messages per day", "Basic mood tracking", "Breathing exercises"],
     highlight: false,
+    priceId: null,
+    popular: false,
   },
   {
     name: "Pro",
@@ -39,6 +41,8 @@ const pricingPlans = [
     period: "/month",
     features: ["Unlimited conversations", "Advanced analytics", "Priority responses"],
     highlight: true,
+    priceId: "price_pro_monthly", // Replace with actual Stripe price ID
+    popular: true,
   },
   {
     name: "Couples",
@@ -46,6 +50,8 @@ const pricingPlans = [
     period: "/month",
     features: ["Everything in Pro", "2 linked accounts", "Relationship tools"],
     highlight: false,
+    priceId: "price_couples_monthly", // Replace with actual Stripe price ID
+    popular: false,
   },
 ];
 
@@ -277,15 +283,21 @@ const Landing = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    {pricingPlans.map((plan, idx) => (
-                      <div
+                    {pricingPlans.map((plan) => (
+                      <button
                         key={plan.name}
-                        className={`flex-1 rounded-xl p-3 text-center transition-all ${
+                        onClick={() => navigate("/auth")}
+                        className={`flex-1 rounded-xl p-3 text-center transition-all relative ${
                           plan.highlight
                             ? "bg-accent text-accent-foreground scale-105 shadow-lg"
-                            : "bg-muted/50 text-foreground"
+                            : "bg-muted/50 text-foreground hover:bg-muted"
                         }`}
                       >
+                        {plan.popular && (
+                          <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[8px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                            Most Popular
+                          </span>
+                        )}
                         <p className="text-xs font-medium opacity-80">{plan.name}</p>
                         <p className="text-lg font-bold">{plan.price}</p>
                         <p className="text-[10px] opacity-70">{plan.period}</p>
@@ -297,7 +309,7 @@ const Landing = () => {
                             </div>
                           ))}
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </motion.div>
                   <motion.div
