@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import OnboardingCarousel from "@/components/OnboardingCarousel";
+import WelcomeAnimation from "@/components/WelcomeAnimation";
 
 interface OnboardingData {
   reason: string;
@@ -21,6 +22,8 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [showCarousel, setShowCarousel] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [userName, setUserName] = useState<string>("");
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [data, setData] = useState<OnboardingData>({
@@ -29,6 +32,24 @@ const Onboarding = () => {
     outcome: "",
     communication: "",
   });
+
+  // Fetch user display name
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("user_id", user.id)
+          .single();
+        
+        if (profile?.display_name) {
+          setUserName(profile.display_name);
+        }
+      }
+    };
+    fetchUserName();
+  }, [user]);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -115,11 +136,8 @@ const Onboarding = () => {
 
       if (error) throw error;
       
-      toast({
-        title: "Preferences saved! 💜",
-        description: "Luna is now personalized for you.",
-      });
-      navigate("/chat");
+      // Show welcome animation instead of navigating directly
+      setShowWelcome(true);
     } catch (error) {
       console.error("Error saving preferences:", error);
       toast({
@@ -161,6 +179,14 @@ const Onboarding = () => {
     return (
       <MobileOnlyLayout hideTabBar>
         <OnboardingCarousel onComplete={() => setShowCarousel(false)} />
+      </MobileOnlyLayout>
+    );
+  }
+
+  if (showWelcome) {
+    return (
+      <MobileOnlyLayout hideTabBar>
+        <WelcomeAnimation userName={userName} onComplete={() => navigate("/chat")} />
       </MobileOnlyLayout>
     );
   }
