@@ -95,7 +95,8 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in check-subscription", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    // Return generic error message to client, detailed error logged server-side
+    return new Response(JSON.stringify({ error: "Unable to check subscription status. Please try again later." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
