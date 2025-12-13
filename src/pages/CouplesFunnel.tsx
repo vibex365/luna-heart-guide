@@ -66,7 +66,7 @@ const TestimonialCarousel = () => {
             className="text-center"
           >
             <p className="text-4xl mb-3">{testimonials[currentIndex].emoji}</p>
-            <p className="text-foreground/90 text-base italic mb-3">
+            <p className="text-white/90 text-base italic mb-3">
               "{testimonials[currentIndex].quote}"
             </p>
             <p className="text-couples-accent text-sm font-medium">
