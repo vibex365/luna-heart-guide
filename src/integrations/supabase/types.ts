@@ -1143,6 +1143,41 @@ export type Database = {
           },
         ]
       }
+      would_you_rather_answers: {
+        Row: {
+          created_at: string
+          id: string
+          partner_link_id: string
+          question_index: number
+          selected_option: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          partner_link_id: string
+          question_index: number
+          selected_option: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          partner_link_id?: string
+          question_index?: number
+          selected_option?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "would_you_rather_answers_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

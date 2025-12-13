@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shuffle, Heart, Users, ChevronRight, CheckCircle2 } from "lucide-react";
+import { Shuffle, Heart, Users, ChevronRight, CheckCircle2, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCouplesAccount } from "@/hooks/useCouplesAccount";
+import { toast } from "sonner";
 
 interface Question {
   optionA: string;
@@ -43,39 +47,147 @@ const categoryColors = {
   adventure: "text-green-500",
 };
 
-export const WouldYouRather = () => {
+interface WouldYouRatherProps {
+  partnerLinkId?: string;
+}
+
+export const WouldYouRather = ({ partnerLinkId }: WouldYouRatherProps) => {
+  const { user } = useAuth();
+  const { partnerId } = useCouplesAccount();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<"A" | "B" | null>(null);
   const [partnerSelected, setPartnerSelected] = useState<"A" | "B" | null>(null);
-  const [showResult, setShowResult] = useState(false);
+  const [waitingForPartner, setWaitingForPartner] = useState(false);
   const [matchCount, setMatchCount] = useState(0);
   const [totalPlayed, setTotalPlayed] = useState(0);
 
   const currentQuestion = questions[currentIndex];
+  const showResult = selectedOption !== null && partnerSelected !== null;
 
-  const handleSelect = (option: "A" | "B") => {
+  // Subscribe to real-time answers
+  useEffect(() => {
+    if (!partnerLinkId || !partnerId) return;
+
+    const channel = supabase
+      .channel(`wyr-${partnerLinkId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'would_you_rather_answers',
+          filter: `partner_link_id=eq.${partnerLinkId}`,
+        },
+        (payload) => {
+          const answer = payload.new as { user_id: string; question_index: number; selected_option: string };
+          
+          // Only process partner's answers for current question
+          if (answer.user_id === partnerId && answer.question_index === currentIndex) {
+            setPartnerSelected(answer.selected_option as "A" | "B");
+            setWaitingForPartner(false);
+            toast.success("Your partner answered!");
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [partnerLinkId, partnerId, currentIndex]);
+
+  // Check for existing answers when question changes
+  useEffect(() => {
+    if (!partnerLinkId) return;
+
+    const checkExistingAnswers = async () => {
+      const { data } = await supabase
+        .from('would_you_rather_answers')
+        .select('*')
+        .eq('partner_link_id', partnerLinkId)
+        .eq('question_index', currentIndex);
+
+      if (data) {
+        data.forEach((answer) => {
+          if (answer.user_id === user?.id) {
+            setSelectedOption(answer.selected_option as "A" | "B");
+            setWaitingForPartner(true);
+          } else if (answer.user_id === partnerId) {
+            setPartnerSelected(answer.selected_option as "A" | "B");
+          }
+        });
+      }
+    };
+
+    checkExistingAnswers();
+  }, [partnerLinkId, currentIndex, user?.id, partnerId]);
+
+  // Update match count when both have answered
+  useEffect(() => {
+    if (selectedOption && partnerSelected) {
+      setTotalPlayed(prev => prev + 1);
+      if (selectedOption === partnerSelected) {
+        setMatchCount(prev => prev + 1);
+      }
+    }
+  }, [selectedOption, partnerSelected]);
+
+  const handleSelect = async (option: "A" | "B") => {
+    if (!partnerLinkId || !user?.id) {
+      toast.error("You need to be linked with a partner to play");
+      return;
+    }
+
     setSelectedOption(option);
-    // Simulate partner selection for demo (in real app, this would come from real-time sync)
-    const partnerChoice = Math.random() > 0.5 ? "A" : "B";
-    setPartnerSelected(partnerChoice);
-    setShowResult(true);
-    setTotalPlayed(prev => prev + 1);
-    if (option === partnerChoice) {
-      setMatchCount(prev => prev + 1);
+    setWaitingForPartner(true);
+
+    // Save answer to database
+    const { error } = await supabase
+      .from('would_you_rather_answers')
+      .insert({
+        partner_link_id: partnerLinkId,
+        user_id: user.id,
+        question_index: currentIndex,
+        selected_option: option,
+      });
+
+    if (error) {
+      console.error('Error saving answer:', error);
+      toast.error("Failed to save your answer");
+      setSelectedOption(null);
+      setWaitingForPartner(false);
     }
   };
 
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
+    // Clear old answers from database
+    if (partnerLinkId && user?.id) {
+      await supabase
+        .from('would_you_rather_answers')
+        .delete()
+        .eq('partner_link_id', partnerLinkId)
+        .eq('question_index', currentIndex);
+    }
+
     setSelectedOption(null);
     setPartnerSelected(null);
-    setShowResult(false);
+    setWaitingForPartner(false);
     setCurrentIndex((prev) => (prev + 1) % questions.length);
   };
 
-  const shuffleQuestion = () => {
+  const shuffleQuestion = async () => {
+    // Clear current answers
+    if (partnerLinkId && user?.id) {
+      await supabase
+        .from('would_you_rather_answers')
+        .delete()
+        .eq('partner_link_id', partnerLinkId)
+        .eq('question_index', currentIndex);
+    }
+
     setSelectedOption(null);
     setPartnerSelected(null);
-    setShowResult(false);
+    setWaitingForPartner(false);
     const randomIndex = Math.floor(Math.random() * questions.length);
     setCurrentIndex(randomIndex);
   };
@@ -111,7 +223,7 @@ export const WouldYouRather = () => {
                 <span className={`text-xs font-medium capitalize ${categoryColors[currentQuestion.category]}`}>
                   {currentQuestion.category}
                 </span>
-                <Button variant="ghost" size="sm" onClick={shuffleQuestion} className="h-8">
+                <Button variant="ghost" size="sm" onClick={shuffleQuestion} className="h-8" disabled={waitingForPartner}>
                   <Shuffle className="w-4 h-4 mr-1" />
                   Shuffle
                 </Button>
@@ -121,29 +233,53 @@ export const WouldYouRather = () => {
                 Would you rather...
               </p>
 
-              <div className="space-y-2">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleSelect("A")}
-                  className="w-full p-4 text-left text-sm rounded-xl border-2 border-primary/20 bg-background hover:bg-primary/5 hover:border-primary/40 transition-all"
+              {waitingForPartner ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-6 space-y-3"
                 >
-                  <span className="font-medium text-primary mr-2">A:</span>
-                  {currentQuestion.optionA}
-                </motion.button>
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+                  <p className="text-sm text-muted-foreground">
+                    Waiting for your partner to answer...
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    You chose: <span className="font-medium">{selectedOption === "A" ? currentQuestion.optionA : currentQuestion.optionB}</span>
+                  </p>
+                </motion.div>
+              ) : (
+                <div className="space-y-2">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleSelect("A")}
+                    disabled={!partnerLinkId}
+                    className="w-full p-4 text-left text-sm rounded-xl border-2 border-primary/20 bg-background hover:bg-primary/5 hover:border-primary/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="font-medium text-primary mr-2">A:</span>
+                    {currentQuestion.optionA}
+                  </motion.button>
 
-                <div className="text-center text-xs text-muted-foreground font-medium">OR</div>
+                  <div className="text-center text-xs text-muted-foreground font-medium">OR</div>
 
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleSelect("B")}
-                  className="w-full p-4 text-left text-sm rounded-xl border-2 border-pink-500/20 bg-background hover:bg-pink-500/5 hover:border-pink-500/40 transition-all"
-                >
-                  <span className="font-medium text-pink-500 mr-2">B:</span>
-                  {currentQuestion.optionB}
-                </motion.button>
-              </div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleSelect("B")}
+                    disabled={!partnerLinkId}
+                    className="w-full p-4 text-left text-sm rounded-xl border-2 border-pink-500/20 bg-background hover:bg-pink-500/5 hover:border-pink-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="font-medium text-pink-500 mr-2">B:</span>
+                    {currentQuestion.optionB}
+                  </motion.button>
+                </div>
+              )}
+
+              {!partnerLinkId && (
+                <p className="text-xs text-center text-muted-foreground">
+                  Link with a partner to play together!
+                </p>
+              )}
             </motion.div>
           ) : (
             <motion.div

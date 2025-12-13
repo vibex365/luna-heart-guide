@@ -23,7 +23,7 @@ import { usePartnerNotifications } from "@/hooks/usePartnerNotifications";
 const Couples = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isLinked, isLoading } = useCouplesAccount();
+  const { isLinked, isLoading, partnerLink } = useCouplesAccount();
   
   // Enable real-time partner notifications
   usePartnerNotifications();
@@ -192,7 +192,7 @@ const Couples = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <WouldYouRather />
+              <WouldYouRather partnerLinkId={partnerLink?.id} />
             </motion.div>
 
             <motion.div
