@@ -1,18 +1,59 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Phone, ChevronRight, Check, Loader2, RefreshCw } from "lucide-react";
+import { Phone, ChevronRight, Check, Loader2, RefreshCw, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+
+// Common country codes
+const countryCodes = [
+  { code: "+1", country: "US", flag: "🇺🇸", name: "United States" },
+  { code: "+1", country: "CA", flag: "🇨🇦", name: "Canada" },
+  { code: "+44", country: "GB", flag: "🇬🇧", name: "United Kingdom" },
+  { code: "+61", country: "AU", flag: "🇦🇺", name: "Australia" },
+  { code: "+49", country: "DE", flag: "🇩🇪", name: "Germany" },
+  { code: "+33", country: "FR", flag: "🇫🇷", name: "France" },
+  { code: "+34", country: "ES", flag: "🇪🇸", name: "Spain" },
+  { code: "+39", country: "IT", flag: "🇮🇹", name: "Italy" },
+  { code: "+31", country: "NL", flag: "🇳🇱", name: "Netherlands" },
+  { code: "+46", country: "SE", flag: "🇸🇪", name: "Sweden" },
+  { code: "+47", country: "NO", flag: "🇳🇴", name: "Norway" },
+  { code: "+45", country: "DK", flag: "🇩🇰", name: "Denmark" },
+  { code: "+41", country: "CH", flag: "🇨🇭", name: "Switzerland" },
+  { code: "+43", country: "AT", flag: "🇦🇹", name: "Austria" },
+  { code: "+32", country: "BE", flag: "🇧🇪", name: "Belgium" },
+  { code: "+353", country: "IE", flag: "🇮🇪", name: "Ireland" },
+  { code: "+64", country: "NZ", flag: "🇳🇿", name: "New Zealand" },
+  { code: "+81", country: "JP", flag: "🇯🇵", name: "Japan" },
+  { code: "+82", country: "KR", flag: "🇰🇷", name: "South Korea" },
+  { code: "+86", country: "CN", flag: "🇨🇳", name: "China" },
+  { code: "+91", country: "IN", flag: "🇮🇳", name: "India" },
+  { code: "+55", country: "BR", flag: "🇧🇷", name: "Brazil" },
+  { code: "+52", country: "MX", flag: "🇲🇽", name: "Mexico" },
+  { code: "+27", country: "ZA", flag: "🇿🇦", name: "South Africa" },
+  { code: "+971", country: "AE", flag: "🇦🇪", name: "UAE" },
+  { code: "+65", country: "SG", flag: "🇸🇬", name: "Singapore" },
+  { code: "+852", country: "HK", flag: "🇭🇰", name: "Hong Kong" },
+  { code: "+972", country: "IL", flag: "🇮🇱", name: "Israel" },
+  { code: "+48", country: "PL", flag: "🇵🇱", name: "Poland" },
+  { code: "+420", country: "CZ", flag: "🇨🇿", name: "Czech Republic" },
+];
 
 interface PhoneVerificationProps {
   userId: string;
   onVerified: (phoneNumber: string) => void;
   onSkip?: () => void;
   initialPhone?: string;
+  initialCountryCode?: string;
   showSkip?: boolean;
 }
 
@@ -21,32 +62,50 @@ export const PhoneVerification = ({
   onVerified,
   onSkip,
   initialPhone = "",
+  initialCountryCode = "+1",
   showSkip = false,
 }: PhoneVerificationProps) => {
   const [step, setStep] = useState<"phone" | "verify">("phone");
   const [phoneNumber, setPhoneNumber] = useState(initialPhone);
+  const [countryCode, setCountryCode] = useState(
+    countryCodes.find(c => c.code === initialCountryCode) || countryCodes[0]
+  );
   const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
-  // Format phone number for display
+  // Format phone number for display based on length
   const formatPhoneDisplay = (value: string) => {
     const cleaned = value.replace(/\D/g, "");
-    if (cleaned.length <= 3) return cleaned;
-    if (cleaned.length <= 6) return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
+    // US/Canada format
+    if (countryCode.code === "+1") {
+      if (cleaned.length <= 3) return cleaned;
+      if (cleaned.length <= 6) return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
+    }
+    // Generic international format - just add spaces
+    if (cleaned.length <= 4) return cleaned;
+    if (cleaned.length <= 7) return `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
+    return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7, 11)}`;
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+    // Allow different lengths for different countries
+    const maxLength = countryCode.code === "+1" ? 10 : 12;
+    const value = e.target.value.replace(/\D/g, "").slice(0, maxLength);
     setPhoneNumber(value);
   };
 
+  const getMinPhoneLength = () => {
+    // US/Canada requires 10 digits, others are more flexible
+    return countryCode.code === "+1" ? 10 : 7;
+  };
+
   const sendVerificationCode = async () => {
-    if (phoneNumber.length < 10) {
+    if (phoneNumber.length < getMinPhoneLength()) {
       toast({
         title: "Invalid phone number",
-        description: "Please enter a valid 10-digit phone number.",
+        description: "Please enter a valid phone number.",
         variant: "destructive",
       });
       return;
@@ -54,8 +113,7 @@ export const PhoneVerification = ({
 
     setIsLoading(true);
     try {
-      // Format as E.164 (assuming US numbers for now)
-      const formattedPhone = `+1${phoneNumber}`;
+      const formattedPhone = `${countryCode.code}${phoneNumber}`;
 
       const { data, error } = await supabase.functions.invoke("send-sms", {
         body: {
@@ -109,7 +167,7 @@ export const PhoneVerification = ({
 
     setIsLoading(true);
     try {
-      const formattedPhone = `+1${phoneNumber}`;
+      const formattedPhone = `${countryCode.code}${phoneNumber}`;
 
       const { data, error } = await supabase.functions.invoke("send-sms", {
         body: {
@@ -171,22 +229,46 @@ export const PhoneVerification = ({
 
             <div className="space-y-2">
               <Label htmlFor="phone">Phone Number</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  +1
-                </span>
+              <div className="flex gap-2">
+                {/* Country Code Selector */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="h-12 px-3 flex items-center gap-1 min-w-[100px]"
+                    >
+                      <span className="text-lg">{countryCode.flag}</span>
+                      <span className="text-sm">{countryCode.code}</span>
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="max-h-[300px] overflow-y-auto">
+                    {countryCodes.map((cc) => (
+                      <DropdownMenuItem
+                        key={`${cc.country}-${cc.code}`}
+                        onClick={() => setCountryCode(cc)}
+                        className="flex items-center gap-2"
+                      >
+                        <span className="text-lg">{cc.flag}</span>
+                        <span className="flex-1">{cc.name}</span>
+                        <span className="text-muted-foreground">{cc.code}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Phone Number Input */}
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="(555) 123-4567"
+                  placeholder={countryCode.code === "+1" ? "(555) 123-4567" : "1234 567 890"}
                   value={formatPhoneDisplay(phoneNumber)}
                   onChange={handlePhoneChange}
-                  className="h-12 pl-10 text-lg"
-                  maxLength={14}
+                  className="h-12 text-lg flex-1"
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                We'll send you a verification code
+                We'll send you a verification code via SMS
               </p>
             </div>
 
@@ -194,7 +276,7 @@ export const PhoneVerification = ({
               variant="peach"
               size="lg"
               onClick={sendVerificationCode}
-              disabled={phoneNumber.length < 10 || isLoading}
+              disabled={phoneNumber.length < getMinPhoneLength() || isLoading}
               className="w-full"
             >
               {isLoading ? (
@@ -232,7 +314,7 @@ export const PhoneVerification = ({
                 Verify Your Phone
               </h2>
               <p className="text-muted-foreground text-sm">
-                Enter the 6-digit code sent to +1 {formatPhoneDisplay(phoneNumber)}
+                Enter the 6-digit code sent to {countryCode.code} {formatPhoneDisplay(phoneNumber)}
               </p>
             </div>
 

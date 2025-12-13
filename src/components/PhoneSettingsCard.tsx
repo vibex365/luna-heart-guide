@@ -27,12 +27,28 @@ export const PhoneSettingsCard = ({
 
   const formatPhoneDisplay = (phone: string | null) => {
     if (!phone) return "Not set";
-    // Remove +1 prefix for display
-    const cleaned = phone.replace(/^\+1/, "");
-    if (cleaned.length === 10) {
-      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    // Keep the country code and format the rest
+    if (phone.startsWith("+1") && phone.length === 12) {
+      // US/Canada format
+      const local = phone.slice(2);
+      return `+1 (${local.slice(0, 3)}) ${local.slice(3, 6)}-${local.slice(6)}`;
     }
+    // Generic international format
     return phone;
+  };
+
+  const getInitialCountryCode = (phone: string | null) => {
+    if (!phone) return "+1";
+    // Extract country code from phone
+    const match = phone.match(/^\+(\d{1,4})/);
+    return match ? `+${match[1]}` : "+1";
+  };
+
+  const getInitialPhoneNumber = (phone: string | null) => {
+    if (!phone) return "";
+    // Remove country code
+    const match = phone.match(/^\+\d{1,4}(.*)$/);
+    return match ? match[1] : "";
   };
 
   const handleVerified = (phone: string) => {
@@ -85,7 +101,8 @@ export const PhoneSettingsCard = ({
             <PhoneVerification
               userId={userId}
               onVerified={handleVerified}
-              initialPhone={phoneNumber?.replace(/^\+1/, "") || ""}
+              initialPhone={getInitialPhoneNumber(phoneNumber)}
+              initialCountryCode={getInitialCountryCode(phoneNumber)}
             />
           </DialogContent>
         </Dialog>
