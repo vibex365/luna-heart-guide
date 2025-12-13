@@ -375,6 +375,50 @@ export type Database = {
         }
         Relationships: []
       }
+      couples_streaks: {
+        Row: {
+          badges_earned: string[]
+          created_at: string
+          current_streak: number
+          id: string
+          last_activity_date: string | null
+          longest_streak: number
+          partner_link_id: string
+          total_activities_completed: number
+          updated_at: string
+        }
+        Insert: {
+          badges_earned?: string[]
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number
+          partner_link_id: string
+          total_activities_completed?: number
+          updated_at?: string
+        }
+        Update: {
+          badges_earned?: string[]
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number
+          partner_link_id?: string
+          total_activities_completed?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "couples_streaks_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: true
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flagged_conversations: {
         Row: {
           conversation_id: string | null
