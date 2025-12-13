@@ -8,13 +8,19 @@ import LunaAvatar from "./LunaAvatar";
 const PWAInstallInstructions = () => {
   const { isInstallable, isInstalled, isIOS, promptInstall } = usePWAInstall();
   const { trigger } = useHapticFeedback();
+  
+  // Check if running in standalone mode (already installed)
+  const isStandalone = typeof window !== 'undefined' && (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone === true
+  );
 
   const handleInstall = async () => {
     trigger("medium");
     await promptInstall();
   };
 
-  if (isInstalled) {
+  if (isInstalled || isStandalone) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
