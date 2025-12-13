@@ -16,19 +16,18 @@ import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
-// Helper to send push notification to partner
-const notifyPartner = async (partnerId: string) => {
+// Helper to send SMS notification to partner
+const notifyPartnerSms = async (partnerId: string) => {
   try {
-    await supabase.functions.invoke("push-notifications", {
+    await supabase.functions.invoke("send-sms", {
       body: {
-        action: "send",
+        action: "send-notification",
         userId: partnerId,
-        title: "Assessment Complete! 💜",
-        body: "Your partner just completed their relationship assessment. Check it out!",
+        message: "💜 Luna: Your partner just completed their relationship assessment. Check it out to see your updated scores!",
       },
     });
   } catch (error) {
-    console.error("Failed to send partner notification:", error);
+    console.error("Failed to send partner SMS notification:", error);
   }
 };
 
@@ -220,9 +219,9 @@ export const RelationshipAssessment = () => {
       queryClient.invalidateQueries({ queryKey: ["today-assessment"] });
       queryClient.invalidateQueries({ queryKey: ["health-score"] });
       
-      // Send push notification to partner
+      // Send SMS notification to partner
       if (partnerId) {
-        notifyPartner(partnerId);
+        notifyPartnerSms(partnerId);
       }
       
       toast({
