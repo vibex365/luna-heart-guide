@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UsageAnalytics } from "@/components/admin/UsageAnalytics";
 import { 
   BarChart3, 
   Brain, 
@@ -201,10 +203,23 @@ export default function AdminAnalytics() {
           <div>
             <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
             <p className="text-sm text-muted-foreground">
-              Track emotional trends and platform usage
+              Track emotional trends, platform usage, and subscription metrics
             </p>
           </div>
         </div>
+
+        {/* Tabs for different analytics views */}
+        <Tabs defaultValue="usage" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="usage">Usage & Subscriptions</TabsTrigger>
+            <TabsTrigger value="mood">Mood Analytics</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="usage" className="space-y-6">
+            <UsageAnalytics />
+          </TabsContent>
+
+          <TabsContent value="mood" className="space-y-6">
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -497,6 +512,8 @@ export default function AdminAnalytics() {
             </div>
           </CardContent>
         </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </AdminLayout>
   );
