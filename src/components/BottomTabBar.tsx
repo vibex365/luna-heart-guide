@@ -2,6 +2,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { MessageCircle, SmilePlus, BookOpen, Wind, User } from "lucide-react";
 import { motion } from "framer-motion";
 import LunaAvatar from "./LunaAvatar";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 
 const tabs = [
   { to: "/chat", icon: MessageCircle, label: "Chat", isLuna: true },
@@ -13,6 +14,11 @@ const tabs = [
 
 export const BottomTabBar = () => {
   const location = useLocation();
+  const { trigger } = useHapticFeedback();
+
+  const handleTabPress = () => {
+    trigger("selection");
+  };
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border safe-area-bottom">
@@ -25,6 +31,7 @@ export const BottomTabBar = () => {
             <NavLink
               key={tab.to}
               to={tab.to}
+              onClick={handleTabPress}
               className="flex flex-col items-center justify-center flex-1 h-full relative"
             >
               {({ isActive: routeActive }) => (
