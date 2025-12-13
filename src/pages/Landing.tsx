@@ -1,374 +1,297 @@
-import { motion } from "framer-motion";
-import { Heart, MessageCircle, Shield, Sparkles, Brain, TrendingUp, Wind, BookOpen, ChevronDown, Check } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence, PanInfo } from "framer-motion";
+import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
+import { useAuth } from "@/contexts/AuthContext";
 
-const FAQItem = ({ question, answer, index }: { question: string; answer: string; index: number }) => {
-  const [isOpen, setIsOpen] = useState(false);
+interface ReelSlide {
+  id: number;
+  gradient: string;
+  icon: React.ElementType;
+  title: string;
+  subtitle: string;
+  description: string;
+  cta?: string;
+}
 
-  return (
-    <motion.div
-      className="bg-card rounded-2xl border border-border overflow-hidden"
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-    >
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-primary/20 transition-colors"
-      >
-        <span className="font-semibold text-foreground pr-4 text-sm">{question}</span>
-        <ChevronDown
-          className={`w-5 h-5 text-accent flex-shrink-0 transition-transform duration-300 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-      <motion.div
-        initial={false}
-        animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-        className="overflow-hidden"
-      >
-        <p className="px-5 pb-4 text-muted-foreground leading-relaxed text-sm">{answer}</p>
-      </motion.div>
-    </motion.div>
-  );
-};
+const slides: ReelSlide[] = [
+  {
+    id: 0,
+    gradient: "from-primary/30 via-background to-background",
+    icon: Heart,
+    title: "Meet Luna",
+    subtitle: "Your AI Companion",
+    description: "A safe space to talk through feelings, relationships, and life's challenges — 24/7, judgment-free.",
+  },
+  {
+    id: 1,
+    gradient: "from-accent/20 via-background to-background",
+    icon: MessageCircle,
+    title: "Talk It Out",
+    subtitle: "AI-Powered Conversations",
+    description: "Get personalized guidance and communication scripts to navigate difficult conversations with loved ones.",
+  },
+  {
+    id: 2,
+    gradient: "from-secondary/40 via-background to-background",
+    icon: Sparkles,
+    title: "Track Your Mood",
+    subtitle: "Understand Patterns",
+    description: "Log your emotions daily and discover insights about your emotional journey over time.",
+  },
+  {
+    id: 3,
+    gradient: "from-primary/20 via-background to-background",
+    icon: Wind,
+    title: "Breathe & Relax",
+    subtitle: "Guided Exercises",
+    description: "Access calming breathing techniques whenever you need to center yourself and find peace.",
+  },
+  {
+    id: 4,
+    gradient: "from-accent/30 via-background to-background",
+    icon: BookOpen,
+    title: "Journal",
+    subtitle: "Express Yourself",
+    description: "Write freely with thoughtful prompts that help you reflect, process, and grow.",
+    cta: "Start Your Journey",
+  },
+];
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [direction, setDirection] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const faqs = [
-    {
-      question: "Is Luna a replacement for a real therapist?",
-      answer: "Luna is designed to be a supportive companion for emotional wellness, not a replacement for licensed mental health professionals. For serious mental health concerns, we always recommend consulting with a qualified therapist.",
-    },
-    {
-      question: "How does Luna protect my privacy?",
-      answer: "Your conversations with Luna are encrypted and stored securely. We never share your personal data with third parties, and you can delete your conversation history at any time.",
-    },
-    {
-      question: "Can Luna help with relationship conflicts?",
-      answer: "Yes! Luna specializes in helping you navigate relationship challenges. She can help you understand your feelings, identify communication patterns, and provide gentle scripts for difficult conversations.",
-    },
-    {
-      question: "Is Luna available 24/7?",
-      answer: "Absolutely. Luna is always here whenever you need support — whether it's 3pm or 3am. There's no scheduling, no waiting rooms, and no judgment.",
-    },
-  ];
+  // Redirect logged in users
+  useEffect(() => {
+    if (user) {
+      navigate("/chat");
+    }
+  }, [user, navigate]);
 
-  const features = [
-    {
-      icon: Heart,
-      title: "Emotional Support",
-      description: "Feel heard and validated with compassionate conversations.",
-    },
-    {
-      icon: MessageCircle,
-      title: "Communication Scripts",
-      description: "Get gentle scripts to express your feelings clearly.",
-    },
-    {
-      icon: Shield,
-      title: "Safe Space",
-      description: "Your conversations are private. Heal at your own pace.",
-    },
-    {
-      icon: Sparkles,
-      title: "Pattern Recognition",
-      description: "Understand your relationship dynamics.",
-    },
-    {
-      icon: Brain,
-      title: "AI-Powered Insights",
-      description: "Advanced AI that provides personalized guidance.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Track Progress",
-      description: "Monitor your emotional journey with analytics.",
-    },
-  ];
+  const goToSlide = useCallback((index: number) => {
+    if (index >= 0 && index < slides.length) {
+      setDirection(index > currentSlide ? 1 : -1);
+      setCurrentSlide(index);
+    }
+  }, [currentSlide]);
 
-  const tools = [
-    { icon: MessageCircle, title: "AI Chat", description: "24/7 support" },
-    { icon: Heart, title: "Mood Tracker", description: "Log emotions" },
-    { icon: BookOpen, title: "Journal", description: "Reflect & grow" },
-    { icon: Wind, title: "Breathe", description: "Find calm" },
-  ];
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    const threshold = 50;
+    const velocity = 0.5;
 
-  const pricingPlans = [
-    {
-      name: "Free",
-      price: "$0",
-      period: "forever",
-      features: ["5 messages/day", "Mood tracking", "Breathing exercises", "Journal"],
-      popular: false,
+    if (info.offset.y < -threshold || info.velocity.y < -velocity) {
+      // Swiped up - next slide
+      if (currentSlide < slides.length - 1) {
+        goToSlide(currentSlide + 1);
+      }
+    } else if (info.offset.y > threshold || info.velocity.y > velocity) {
+      // Swiped down - previous slide
+      if (currentSlide > 0) {
+        goToSlide(currentSlide - 1);
+      }
+    }
+  };
+
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY > 30 && currentSlide < slides.length - 1) {
+      goToSlide(currentSlide + 1);
+    } else if (e.deltaY < -30 && currentSlide > 0) {
+      goToSlide(currentSlide - 1);
+    }
+  }, [currentSlide, goToSlide]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener("wheel", handleWheel, { passive: false });
+      return () => container.removeEventListener("wheel", handleWheel);
+    }
+  }, [handleWheel]);
+
+  const slide = slides[currentSlide];
+  const Icon = slide.icon;
+
+  const variants = {
+    enter: (dir: number) => ({
+      y: dir > 0 ? "100%" : "-100%",
+      opacity: 0,
+    }),
+    center: {
+      y: 0,
+      opacity: 1,
     },
-    {
-      name: "Pro",
-      price: "$12",
-      period: "/month",
-      features: ["Unlimited chats", "Advanced analytics", "Priority AI", "Personalized insights", "Export data"],
-      popular: true,
-    },
-  ];
+    exit: (dir: number) => ({
+      y: dir > 0 ? "-100%" : "100%",
+      opacity: 0,
+    }),
+  };
 
   return (
     <MobileOnlyLayout hideTabBar>
-      <div className="bg-background">
-        {/* Hero Section */}
-        <section className="pt-12 pb-10 px-6 gradient-hero safe-area-top">
-          <div className="flex flex-col items-center text-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              className="mb-6"
-            >
-              <LunaAvatar size="xl" />
-            </motion.div>
+      <div 
+        ref={containerRef}
+        className="h-screen w-full overflow-hidden bg-background relative"
+      >
+        {/* Background gradient */}
+        <div className={`absolute inset-0 bg-gradient-to-b ${slide.gradient} transition-all duration-500`} />
 
-            <motion.h1
-              className="font-heading text-3xl font-bold text-foreground mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              Your AI Relationship Therapist
-            </motion.h1>
-
-            <motion.p
-              className="text-base text-muted-foreground mb-8 max-w-sm"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              Luna listens. Luna understands. Start healing your heart with compassionate, judgment-free guidance.
-            </motion.p>
-
-            <motion.div
-              className="w-full space-y-3"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <Button variant="peach" size="lg" className="w-full" onClick={() => navigate("/auth")}>
-                Talk to Luna — It's Free
-              </Button>
-              <Button variant="luna" size="lg" className="w-full" onClick={() => navigate("/auth")}>
+        {/* Main content */}
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={currentSlide}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
+            className="absolute inset-0 flex flex-col"
+          >
+            {/* Header */}
+            <header className="pt-12 px-6 flex items-center justify-between safe-area-top">
+              <div className="flex items-center gap-2">
+                <LunaAvatar size="sm" showGlow={false} />
+                <span className="font-heading font-bold text-lg text-foreground">LUNA</span>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
+                <User className="w-4 h-4 mr-1" />
                 Sign In
               </Button>
-            </motion.div>
+            </header>
 
-            <motion.p
-              className="text-xs text-muted-foreground mt-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-              No credit card • 100% private • 24/7
-            </motion.p>
-          </div>
-        </section>
-
-        {/* Stats Banner */}
-        <section className="bg-card/50 py-6 border-y border-border">
-          <motion.div
-            className="grid grid-cols-4 gap-2 px-4 text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <div>
-              <p className="font-heading text-xl font-bold text-accent">50K+</p>
-              <p className="text-muted-foreground text-[10px]">Chats</p>
-            </div>
-            <div>
-              <p className="font-heading text-xl font-bold text-accent">4.9</p>
-              <p className="text-muted-foreground text-[10px]">Rating</p>
-            </div>
-            <div>
-              <p className="font-heading text-xl font-bold text-accent">24/7</p>
-              <p className="text-muted-foreground text-[10px]">Available</p>
-            </div>
-            <div>
-              <p className="font-heading text-xl font-bold text-accent">100%</p>
-              <p className="text-muted-foreground text-[10px]">Private</p>
-            </div>
-          </motion.div>
-        </section>
-
-        {/* Tools Grid */}
-        <section className="py-10 px-6">
-          <motion.h2
-            className="font-heading text-xl font-bold text-foreground mb-6 text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            Your Wellness Toolkit
-          </motion.h2>
-
-          <div className="grid grid-cols-2 gap-3">
-            {tools.map((tool, index) => (
+            {/* Content */}
+            <main className="flex-1 flex flex-col items-center justify-center px-8 pb-32">
               <motion.div
-                key={tool.title}
-                className="bg-card rounded-2xl p-4 border border-border"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
+                className="w-20 h-20 rounded-3xl gradient-luna flex items-center justify-center mb-8 shadow-lg"
+                initial={{ scale: 0.8, rotate: -10 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
               >
-                <div className="w-10 h-10 rounded-xl gradient-luna flex items-center justify-center mb-3">
-                  <tool.icon className="w-5 h-5 text-accent" />
-                </div>
-                <h3 className="font-semibold text-foreground text-sm">{tool.title}</h3>
-                <p className="text-muted-foreground text-xs">{tool.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Features */}
-        <section className="py-10 px-6 bg-muted/30">
-          <motion.h2
-            className="font-heading text-xl font-bold text-foreground mb-6 text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            How Luna Helps You Heal
-          </motion.h2>
-
-          <div className="space-y-3">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                className="bg-card rounded-xl p-4 border border-border flex items-start gap-4"
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <div className="w-10 h-10 rounded-lg gradient-luna flex items-center justify-center flex-shrink-0">
-                  <feature.icon className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground text-sm">{feature.title}</h3>
-                  <p className="text-muted-foreground text-xs">{feature.description}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Pricing */}
-        <section className="py-10 px-6">
-          <motion.h2
-            className="font-heading text-xl font-bold text-foreground mb-6 text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            Simple Pricing
-          </motion.h2>
-
-          <div className="space-y-4">
-            {pricingPlans.map((plan, index) => (
-              <motion.div
-                key={plan.name}
-                className={`rounded-2xl p-5 border ${
-                  plan.popular ? "bg-card border-accent shadow-luna" : "bg-card border-border"
-                }`}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-              >
-                {plan.popular && (
-                  <span className="text-xs font-medium text-accent bg-primary px-2 py-1 rounded-full">
-                    Most Popular
-                  </span>
+                {currentSlide === 0 ? (
+                  <LunaAvatar size="lg" showGlow />
+                ) : (
+                  <Icon className="w-10 h-10 text-accent" />
                 )}
-                <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-3xl font-bold text-foreground">{plan.price}</span>
-                  <span className="text-muted-foreground text-sm">{plan.period}</span>
-                </div>
-                <ul className="mt-4 space-y-2">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Check className="w-4 h-4 text-accent" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  variant={plan.popular ? "peach" : "outline"}
-                  className="w-full mt-4"
-                  onClick={() => navigate("/auth")}
-                >
-                  {plan.popular ? "Start Free Trial" : "Get Started"}
-                </Button>
               </motion.div>
-            ))}
-          </div>
-        </section>
 
-        {/* FAQ */}
-        <section className="py-10 px-6 bg-muted/30">
-          <motion.h2
-            className="font-heading text-xl font-bold text-foreground mb-6 text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            Questions & Answers
-          </motion.h2>
+              <motion.p
+                className="text-accent text-sm font-medium mb-2 uppercase tracking-wider"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                {slide.subtitle}
+              </motion.p>
 
-          <div className="space-y-3">
-            {faqs.map((faq, index) => (
-              <FAQItem key={index} question={faq.question} answer={faq.answer} index={index} />
-            ))}
-          </div>
-        </section>
+              <motion.h1
+                className="font-heading text-3xl font-bold text-foreground mb-4 text-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                {slide.title}
+              </motion.h1>
 
-        {/* Final CTA */}
-        <section className="py-12 px-6">
-          <motion.div
-            className="gradient-peach rounded-3xl p-8 text-center"
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-          >
-            <LunaAvatar size="lg" className="mx-auto mb-4" />
-            <h2 className="font-heading text-xl font-bold text-foreground mb-3">
-              Ready to Start Healing?
-            </h2>
-            <p className="text-foreground/80 text-sm mb-6">
-              Luna is here, 24/7, ready to listen.
-            </p>
-            <Button variant="accent" size="lg" className="w-full" onClick={() => navigate("/auth")}>
-              Talk to Luna Now
-            </Button>
+              <motion.p
+                className="text-muted-foreground text-center leading-relaxed max-w-xs"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+              >
+                {slide.description}
+              </motion.p>
+
+              {slide.cta && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-8"
+                >
+                  <Button
+                    variant="peach"
+                    size="lg"
+                    onClick={() => navigate("/auth")}
+                    className="px-8"
+                  >
+                    {slide.cta}
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </motion.div>
+              )}
+            </main>
+
+            {/* Swipe indicator */}
+            {currentSlide < slides.length - 1 && (
+              <motion.div
+                className="absolute bottom-24 left-0 right-0 flex flex-col items-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <motion.div
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ChevronUp className="w-6 h-6 text-muted-foreground" />
+                </motion.div>
+                <span className="text-xs text-muted-foreground mt-1">Swipe up</span>
+              </motion.div>
+            )}
           </motion.div>
-        </section>
+        </AnimatePresence>
 
-        {/* Footer */}
-        <footer className="py-8 px-6 border-t border-border text-center">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <LunaAvatar size="xs" showGlow={false} />
-            <span className="font-heading font-semibold text-foreground">LUNA</span>
+        {/* Side indicators */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-10">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === currentSlide
+                  ? "bg-accent h-6"
+                  : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Bottom CTA bar */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background via-background/80 to-transparent safe-area-bottom">
+          <div className="flex gap-3">
+            <Button
+              variant="luna"
+              size="lg"
+              className="flex-1"
+              onClick={() => navigate("/auth")}
+            >
+              Sign In
+            </Button>
+            <Button
+              variant="peach"
+              size="lg"
+              className="flex-1"
+              onClick={() => navigate("/auth")}
+            >
+              Get Started
+            </Button>
           </div>
-          <p className="text-muted-foreground text-xs">
-            Your private AI therapist. Always here, never judging.
+          <p className="text-xs text-muted-foreground text-center mt-3">
+            Free forever • 100% private • No credit card
           </p>
-        </footer>
+        </div>
       </div>
     </MobileOnlyLayout>
   );

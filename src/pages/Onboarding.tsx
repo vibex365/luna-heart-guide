@@ -10,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import OnboardingCarousel from "@/components/OnboardingCarousel";
 import WelcomeAnimation from "@/components/WelcomeAnimation";
+import NameInputStep from "@/components/NameInputStep";
 
 interface OnboardingData {
   reason: string;
@@ -22,8 +23,10 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [showCarousel, setShowCarousel] = useState(true);
+  const [showNameInput, setShowNameInput] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [userName, setUserName] = useState<string>("");
+  const [hasExistingName, setHasExistingName] = useState(false);
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [data, setData] = useState<OnboardingData>({
@@ -45,11 +48,35 @@ const Onboarding = () => {
         
         if (profile?.display_name) {
           setUserName(profile.display_name);
+          setHasExistingName(true);
         }
       }
     };
     fetchUserName();
   }, [user]);
+
+  const handleCarouselComplete = () => {
+    setShowCarousel(false);
+    // Show name input if user doesn't have a display name
+    if (!hasExistingName) {
+      setShowNameInput(true);
+    }
+  };
+
+  const handleNameComplete = async (name: string) => {
+    if (user) {
+      // Save the display name to profile
+      await supabase
+        .from("profiles")
+        .upsert({ user_id: user.id, display_name: name }, { onConflict: "user_id" });
+      setUserName(name);
+    }
+    setShowNameInput(false);
+  };
+
+  const handleNameSkip = () => {
+    setShowNameInput(false);
+  };
 
   // Redirect if not logged in
   useEffect(() => {
@@ -178,7 +205,15 @@ const Onboarding = () => {
   if (showCarousel) {
     return (
       <MobileOnlyLayout hideTabBar>
-        <OnboardingCarousel onComplete={() => setShowCarousel(false)} />
+        <OnboardingCarousel onComplete={handleCarouselComplete} />
+      </MobileOnlyLayout>
+    );
+  }
+
+  if (showNameInput) {
+    return (
+      <MobileOnlyLayout hideTabBar>
+        <NameInputStep onComplete={handleNameComplete} onSkip={handleNameSkip} />
       </MobileOnlyLayout>
     );
   }
