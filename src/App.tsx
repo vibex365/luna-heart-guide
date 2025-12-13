@@ -15,6 +15,7 @@ import Breathe from "./pages/Breathe";
 import CrisisResources from "./pages/CrisisResources";
 import Resources from "./pages/Resources";
 import ArticleDetail from "./pages/ArticleDetail";
+import Subscription from "./pages/Subscription";
 import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminAnalytics, AdminSettings, AdminFeedback } from "./pages/admin";
 import NotFound from "./pages/NotFound";
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/crisis" element={<CrisisResources />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/resources/:articleId" element={<ArticleDetail />} />
+            <Route path="/subscription" element={<Subscription />} />
             <Route
               path="/admin"
               element={

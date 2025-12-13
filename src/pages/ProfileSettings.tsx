@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Camera, User, Save, Heart, Users, Sparkles, MessageCircle, LogOut } from "lucide-react";
+import { Camera, User, Save, Heart, Users, Sparkles, MessageCircle, LogOut, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -474,6 +474,24 @@ const ProfileSettings = () => {
           {/* Analytics Section */}
           <div className="bg-card rounded-3xl p-8 shadow-luna border border-border">
             <ConversationAnalytics />
+          </div>
+
+          {/* Subscription Section */}
+          <div className="bg-card rounded-3xl p-6 shadow-luna border border-border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-primary/10">
+                  <Crown className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Subscription</h3>
+                  <p className="text-sm text-muted-foreground">Manage your plan</p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => navigate("/subscription")}>
+                View Plans
+              </Button>
+            </div>
           </div>
 
           <Button
