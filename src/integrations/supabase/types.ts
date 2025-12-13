@@ -923,6 +923,8 @@ export type Database = {
           phone_verified: boolean | null
           reminder_enabled: boolean | null
           reminder_time: string | null
+          sms_notification_preferences: Json | null
+          sms_notifications_enabled: boolean | null
           suspended: boolean | null
           suspended_at: string | null
           suspended_reason: string | null
@@ -939,6 +941,8 @@ export type Database = {
           phone_verified?: boolean | null
           reminder_enabled?: boolean | null
           reminder_time?: string | null
+          sms_notification_preferences?: Json | null
+          sms_notifications_enabled?: boolean | null
           suspended?: boolean | null
           suspended_at?: string | null
           suspended_reason?: string | null
@@ -955,6 +959,8 @@ export type Database = {
           phone_verified?: boolean | null
           reminder_enabled?: boolean | null
           reminder_time?: string | null
+          sms_notification_preferences?: Json | null
+          sms_notifications_enabled?: boolean | null
           suspended?: boolean | null
           suspended_at?: string | null
           suspended_reason?: string | null

@@ -14,6 +14,7 @@ import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { notifyPartner } from "@/utils/smsNotifications";
 
 interface CoupleGoal {
   id: string;
@@ -107,8 +108,12 @@ export const CoupleGoals = () => {
     },
   });
 
+  const partnerId = partnerLink?.user_id === user?.id 
+    ? partnerLink?.partner_id 
+    : partnerLink?.user_id;
+
   const updateProgressMutation = useMutation({
-    mutationFn: async ({ goalId, progress }: { goalId: string; progress: number }) => {
+    mutationFn: async ({ goalId, progress, goalTitle }: { goalId: string; progress: number; goalTitle: string }) => {
       const updates: Record<string, unknown> = { progress };
       
       if (progress === 100) {
@@ -125,11 +130,16 @@ export const CoupleGoals = () => {
         .eq("id", goalId);
 
       if (error) throw error;
+      return { progress, goalTitle };
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["couple-goals"] });
-      if (variables.progress === 100) {
+      if (result.progress === 100) {
         toast({ title: "🎉 Goal completed!", description: "Congratulations to you both!" });
+        // Notify partner via SMS
+        if (partnerId) {
+          notifyPartner.goalCompleted(partnerId, result.goalTitle);
+        }
       }
     },
   });
@@ -316,6 +326,7 @@ export const CoupleGoals = () => {
                               updateProgressMutation.mutate({
                                 goalId: goal.id,
                                 progress: value[0],
+                                goalTitle: goal.title,
                               });
                             }}
                             max={100}
@@ -332,6 +343,7 @@ export const CoupleGoals = () => {
                               updateProgressMutation.mutate({
                                 goalId: goal.id,
                                 progress: 100,
+                                goalTitle: goal.title,
                               })
                             }
                           >

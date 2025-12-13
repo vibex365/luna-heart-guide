@@ -1,14 +1,60 @@
 import { supabase } from "@/integrations/supabase/client";
 
+type NotificationType =
+  | "assessmentComplete"
+  | "moodLogged"
+  | "challengeCompleted"
+  | "activityCompleted"
+  | "goalCompleted"
+  | "milestoneReminder"
+  | "partnerLinked";
+
+/**
+ * Check if a user has a specific notification type enabled
+ */
+const isNotificationEnabled = async (
+  userId: string,
+  notificationType: NotificationType
+): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("sms_notifications_enabled, sms_notification_preferences, phone_verified")
+      .eq("user_id", userId)
+      .single();
+
+    if (error || !data) return false;
+    if (!data.phone_verified) return false;
+    if (!data.sms_notifications_enabled) return false;
+
+    const preferences = data.sms_notification_preferences as Record<string, boolean> | null;
+    if (!preferences) return true; // Default to enabled if no preferences set
+    
+    return preferences[notificationType] !== false;
+  } catch {
+    return false;
+  }
+};
+
 /**
  * Send an SMS notification to a user
- * Will only send if the user has a verified phone number
+ * Will only send if the user has a verified phone number and notification enabled
  */
 export const sendSmsNotification = async (
   userId: string,
-  message: string
+  message: string,
+  notificationType?: NotificationType
 ): Promise<boolean> => {
   try {
+    // Check if notification type is enabled (if specified)
+    if (notificationType) {
+      const enabled = await isNotificationEnabled(userId, notificationType);
+      if (!enabled) {
+        console.log(`SMS notification skipped: ${notificationType} disabled for user`);
+        return false;
+      }
+    }
+
     const { data, error } = await supabase.functions.invoke("send-sms", {
       body: {
         action: "send-notification",
@@ -23,7 +69,6 @@ export const sendSmsNotification = async (
     }
 
     if (data?.error) {
-      // User might not have a verified phone - this is expected
       console.log("SMS notification skipped:", data.error);
       return false;
     }
@@ -66,20 +111,20 @@ export const smsTemplates = {
  */
 export const notifyPartner = {
   assessmentComplete: (partnerId: string) =>
-    sendSmsNotification(partnerId, smsTemplates.assessmentComplete()),
+    sendSmsNotification(partnerId, smsTemplates.assessmentComplete(), "assessmentComplete"),
 
   moodLogged: (partnerId: string, mood: string) =>
-    sendSmsNotification(partnerId, smsTemplates.moodLogged(mood)),
+    sendSmsNotification(partnerId, smsTemplates.moodLogged(mood), "moodLogged"),
 
   challengeCompleted: (partnerId: string, challengeTitle: string) =>
-    sendSmsNotification(partnerId, smsTemplates.challengeCompleted(challengeTitle)),
+    sendSmsNotification(partnerId, smsTemplates.challengeCompleted(challengeTitle), "challengeCompleted"),
 
   activityCompleted: (partnerId: string, activityTitle: string) =>
-    sendSmsNotification(partnerId, smsTemplates.activityCompleted(activityTitle)),
+    sendSmsNotification(partnerId, smsTemplates.activityCompleted(activityTitle), "activityCompleted"),
 
   goalCompleted: (partnerId: string, goalTitle: string) =>
-    sendSmsNotification(partnerId, smsTemplates.goalCompleted(goalTitle)),
+    sendSmsNotification(partnerId, smsTemplates.goalCompleted(goalTitle), "goalCompleted"),
 
   linked: (partnerId: string, userName: string) =>
-    sendSmsNotification(partnerId, smsTemplates.partnerLinked(userName)),
+    sendSmsNotification(partnerId, smsTemplates.partnerLinked(userName), "partnerLinked"),
 };

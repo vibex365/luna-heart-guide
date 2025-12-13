@@ -14,6 +14,7 @@ import ReminderSettings from "@/components/ReminderSettings";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import { ProfileSkeleton } from "@/components/skeletons/PageSkeletons";
 import { PhoneSettingsCard } from "@/components/PhoneSettingsCard";
+import { SmsNotificationPreferences } from "@/components/SmsNotificationPreferences";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -710,6 +711,14 @@ const ProfileSettings = () => {
                 setPhoneNumber(phone);
                 setPhoneVerified(true);
               }}
+            />
+          )}
+
+          {/* SMS Notification Preferences */}
+          {user && (
+            <SmsNotificationPreferences
+              userId={user.id}
+              phoneVerified={phoneVerified}
             />
           )}
 
