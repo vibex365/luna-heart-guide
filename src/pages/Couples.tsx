@@ -13,6 +13,8 @@ import { SharedActivities } from "@/components/couples/SharedActivities";
 import { ConflictResolutionTools } from "@/components/couples/ConflictResolutionTools";
 import { CoupleGoals } from "@/components/couples/CoupleGoals";
 import { LoveLanguageQuiz } from "@/components/couples/LoveLanguageQuiz";
+import { WouldYouRather } from "@/components/couples/WouldYouRather";
+import { DailyChallenges } from "@/components/couples/DailyChallenges";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -189,6 +191,22 @@ const Couples = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
+            >
+              <WouldYouRather />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 }}
+            >
+              <DailyChallenges />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
             >
               <ConflictResolutionTools />
             </motion.div>

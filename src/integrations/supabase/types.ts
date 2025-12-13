@@ -143,6 +143,51 @@ export type Database = {
           },
         ]
       }
+      completed_challenges: {
+        Row: {
+          challenge_id: string
+          completed_at: string
+          completed_by: string
+          id: string
+          notes: string | null
+          partner_link_id: string
+          rating: number | null
+        }
+        Insert: {
+          challenge_id: string
+          completed_at?: string
+          completed_by: string
+          id?: string
+          notes?: string | null
+          partner_link_id: string
+          rating?: number | null
+        }
+        Update: {
+          challenge_id?: string
+          completed_at?: string
+          completed_by?: string
+          id?: string
+          notes?: string | null
+          partner_link_id?: string
+          rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "completed_challenges_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "couples_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "completed_challenges_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conflict_resolution_templates: {
         Row: {
           category: string
@@ -294,6 +339,42 @@ export type Database = {
           },
         ]
       }
+      couples_challenges: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          difficulty: string | null
+          duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          sort_order: number | null
+          title: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          title?: string
+        }
+        Relationships: []
+      }
       flagged_conversations: {
         Row: {
           conversation_id: string | null
@@ -426,6 +507,47 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      love_language_results: {
+        Row: {
+          completed_at: string
+          created_at: string
+          id: string
+          partner_link_id: string
+          primary_language: string
+          scores: Json
+          secondary_language: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          id?: string
+          partner_link_id: string
+          primary_language: string
+          scores?: Json
+          secondary_language: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          id?: string
+          partner_link_id?: string
+          primary_language?: string
+          scores?: Json
+          secondary_language?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "love_language_results_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       luna_config: {
         Row: {
