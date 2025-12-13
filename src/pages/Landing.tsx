@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles, HelpCircle } from "lucide-react";
+import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles, HelpCircle, LogIn, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import { useNavigate } from "react-router-dom";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import { useAuth } from "@/contexts/AuthContext";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import {
   Tooltip,
   TooltipContent,
@@ -73,6 +74,7 @@ const Landing = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { trigger: triggerHaptic } = useHapticFeedback();
 
   // Redirect logged in users
   useEffect(() => {
@@ -81,12 +83,15 @@ const Landing = () => {
     }
   }, [user, navigate]);
 
-  const goToSlide = useCallback((index: number) => {
-    if (index >= 0 && index < slides.length) {
+  const goToSlide = useCallback((index: number, withHaptic = true) => {
+    if (index >= 0 && index < slides.length && index !== currentSlide) {
       setDirection(index > currentSlide ? 1 : -1);
       setCurrentSlide(index);
+      if (withHaptic) {
+        triggerHaptic("light");
+      }
     }
-  }, [currentSlide]);
+  }, [currentSlide, triggerHaptic]);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     const threshold = 50;
@@ -114,6 +119,21 @@ const Landing = () => {
     }
   }, [currentSlide, goToSlide]);
 
+  // Keyboard navigation for desktop users
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+      e.preventDefault();
+      if (currentSlide < slides.length - 1) {
+        goToSlide(currentSlide + 1);
+      }
+    } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      if (currentSlide > 0) {
+        goToSlide(currentSlide - 1);
+      }
+    }
+  }, [currentSlide, goToSlide]);
+
   useEffect(() => {
     const container = containerRef.current;
     if (container) {
@@ -121,6 +141,12 @@ const Landing = () => {
       return () => container.removeEventListener("wheel", handleWheel);
     }
   }, [handleWheel]);
+
+  // Add keyboard event listener
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   const slide = slides[currentSlide];
   const Icon = slide.icon;
@@ -297,6 +323,7 @@ const Landing = () => {
               className="flex-1"
               onClick={() => navigate("/auth")}
             >
+              <LogIn className="w-4 h-4 mr-2" />
               Sign In
             </Button>
             <Button
@@ -305,6 +332,7 @@ const Landing = () => {
               className="flex-1"
               onClick={() => navigate("/auth")}
             >
+              <Rocket className="w-4 h-4 mr-2" />
               Get Started
             </Button>
           </div>
