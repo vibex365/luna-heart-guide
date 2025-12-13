@@ -18,6 +18,7 @@ import { DailyChallenges } from "@/components/couples/DailyChallenges";
 import { CouplesStreakTracker } from "@/components/couples/CouplesStreakTracker";
 import { DateNightGenerator } from "@/components/couples/DateNightGenerator";
 import { MilestoneTracker } from "@/components/couples/MilestoneTracker";
+import { AppreciationPrompts } from "@/components/couples/AppreciationPrompts";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -153,7 +154,15 @@ const Couples = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
+              transition={{ delay: 0.14 }}
+            >
+              <AppreciationPrompts partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.16 }}
             >
               <RelationshipAssessment />
             </motion.div>
