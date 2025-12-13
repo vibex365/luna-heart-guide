@@ -38,8 +38,8 @@ const Couples = () => {
         .eq("status", "active")
         .maybeSingle();
 
-      // Allow if couples tier or for demo purposes
-      return subscription?.subscription_tiers?.slug === "couples" || true; // TODO: Remove || true for production
+      // Allow if couples tier
+      return subscription?.subscription_tiers?.slug === "couples";
     },
     enabled: !!user,
   });

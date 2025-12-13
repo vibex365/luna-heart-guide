@@ -12,10 +12,17 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Map price IDs to plan names
+// Map price IDs to plan slugs
 const PRICE_TO_PLAN: Record<string, string> = {
   "price_1SdhyfAsrgxssNTVTPpZuI3t": "pro",
   "price_1SdhytAsrgxssNTVvlvnqvZr": "couples",
+};
+
+// Map plan slugs to tier IDs in database
+const PLAN_TO_TIER_ID: Record<string, string> = {
+  "free": "e3c40c7d-003d-4c8c-b32b-b65c0e0f215a",
+  "pro": "7a5e0dd1-ff59-4785-913e-e679f825b69c",
+  "couples": "d66e16b8-f1cb-4aa6-9d84-90a19f8720b3",
 };
 
 serve(async (req) => {
@@ -30,9 +37,10 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
+    // Use service role key to sync subscriptions
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
     const authHeader = req.headers.get("Authorization");
@@ -50,7 +58,17 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No customer found, returning free plan");
+      logStep("No customer found, syncing free plan");
+      
+      // Sync free plan to database
+      await syncSubscriptionToDatabase(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+        user.id,
+        "free",
+        null
+      );
+      
       return new Response(JSON.stringify({ 
         subscribed: false,
         plan: "free",
@@ -84,6 +102,15 @@ serve(async (req) => {
       logStep("No active subscription found");
     }
 
+    // Sync subscription to database
+    await syncSubscriptionToDatabase(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      user.id,
+      plan,
+      subscriptionEnd
+    );
+
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
       plan,
@@ -95,10 +122,94 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in check-subscription", { message: errorMessage });
-    // Return generic error message to client, detailed error logged server-side
     return new Response(JSON.stringify({ error: "Unable to check subscription status. Please try again later." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
   }
 });
+
+async function syncSubscriptionToDatabase(
+  supabaseUrl: string,
+  supabaseKey: string,
+  userId: string,
+  plan: string,
+  expiresAt: string | null
+) {
+  try {
+    const tierId = PLAN_TO_TIER_ID[plan] || PLAN_TO_TIER_ID["free"];
+    
+    logStep("Syncing subscription to database", { userId, plan, tierId });
+
+    // Check if user already has a subscription record
+    const checkResponse = await fetch(
+      `${supabaseUrl}/rest/v1/user_subscriptions?user_id=eq.${userId}&select=id,tier_id`,
+      {
+        headers: {
+          "apikey": supabaseKey,
+          "Authorization": `Bearer ${supabaseKey}`,
+        },
+      }
+    );
+    
+    const existingData = await checkResponse.json();
+    const existing = existingData?.[0];
+
+    if (existing) {
+      // Update existing subscription
+      const updateResponse = await fetch(
+        `${supabaseUrl}/rest/v1/user_subscriptions?id=eq.${existing.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`,
+            "Prefer": "return=minimal",
+          },
+          body: JSON.stringify({
+            tier_id: tierId,
+            status: plan === "free" ? "inactive" : "active",
+            expires_at: expiresAt,
+            updated_at: new Date().toISOString(),
+          }),
+        }
+      );
+
+      if (!updateResponse.ok) {
+        logStep("Error updating subscription", { status: updateResponse.status });
+      } else {
+        logStep("Subscription updated successfully");
+      }
+    } else {
+      // Create new subscription record
+      const insertResponse = await fetch(
+        `${supabaseUrl}/rest/v1/user_subscriptions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`,
+            "Prefer": "return=minimal",
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            tier_id: tierId,
+            status: plan === "free" ? "inactive" : "active",
+            expires_at: expiresAt,
+            started_at: new Date().toISOString(),
+          }),
+        }
+      );
+
+      if (!insertResponse.ok) {
+        logStep("Error creating subscription", { status: insertResponse.status });
+      } else {
+        logStep("Subscription created successfully");
+      }
+    }
+  } catch (syncError) {
+    logStep("Error syncing subscription", { error: syncError instanceof Error ? syncError.message : String(syncError) });
+  }
+}
