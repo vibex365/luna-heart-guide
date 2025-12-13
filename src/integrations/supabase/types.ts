@@ -68,6 +68,90 @@ export type Database = {
         }
         Relationships: []
       }
+      completed_activities: {
+        Row: {
+          activity_id: string
+          completed_at: string | null
+          completed_by: string
+          id: string
+          notes: string | null
+          partner_link_id: string
+          partner_rating: number | null
+        }
+        Insert: {
+          activity_id: string
+          completed_at?: string | null
+          completed_by: string
+          id?: string
+          notes?: string | null
+          partner_link_id: string
+          partner_rating?: number | null
+        }
+        Update: {
+          activity_id?: string
+          completed_at?: string | null
+          completed_by?: string
+          id?: string
+          notes?: string | null
+          partner_link_id?: string
+          partner_rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "completed_activities_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "shared_activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "completed_activities_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conflict_resolution_templates: {
+        Row: {
+          category: string
+          created_at: string | null
+          follow_up_questions: string[] | null
+          id: string
+          is_active: boolean | null
+          script_template: string
+          sort_order: number | null
+          title: string
+          trigger_phrases: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          follow_up_questions?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          script_template: string
+          sort_order?: number | null
+          title: string
+          trigger_phrases?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          follow_up_questions?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          script_template?: string
+          sort_order?: number | null
+          title?: string
+          trigger_phrases?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       conversation_analytics: {
         Row: {
           conversation_id: string | null
@@ -417,6 +501,42 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_links: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          id: string
+          invite_code: string
+          invite_email: string | null
+          partner_id: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          id?: string
+          invite_code: string
+          invite_email?: string | null
+          partner_id?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          id?: string
+          invite_code?: string
+          invite_email?: string | null
+          partner_id?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -491,6 +611,133 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      relationship_health_scores: {
+        Row: {
+          communication_score: number | null
+          conflict_resolution_score: number | null
+          created_at: string | null
+          id: string
+          intimacy_score: number | null
+          last_assessment_at: string | null
+          overall_score: number | null
+          partner_link_id: string
+          trust_score: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          communication_score?: number | null
+          conflict_resolution_score?: number | null
+          created_at?: string | null
+          id?: string
+          intimacy_score?: number | null
+          last_assessment_at?: string | null
+          overall_score?: number | null
+          partner_link_id: string
+          trust_score?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          communication_score?: number | null
+          conflict_resolution_score?: number | null
+          created_at?: string | null
+          id?: string
+          intimacy_score?: number | null
+          last_assessment_at?: string | null
+          overall_score?: number | null
+          partner_link_id?: string
+          trust_score?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relationship_health_scores_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shared_activities: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          difficulty: string | null
+          duration_minutes: number | null
+          id: string
+          instructions: Json | null
+          is_active: boolean | null
+          sort_order: number | null
+          title: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          duration_minutes?: number | null
+          id?: string
+          instructions?: Json | null
+          is_active?: boolean | null
+          sort_order?: number | null
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          difficulty?: string | null
+          duration_minutes?: number | null
+          id?: string
+          instructions?: Json | null
+          is_active?: boolean | null
+          sort_order?: number | null
+          title?: string
+        }
+        Relationships: []
+      }
+      shared_mood_entries: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_visible_to_partner: boolean | null
+          mood_label: string
+          mood_level: number
+          notes: string | null
+          partner_link_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_visible_to_partner?: boolean | null
+          mood_label: string
+          mood_level: number
+          notes?: string | null
+          partner_link_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_visible_to_partner?: boolean | null
+          mood_label?: string
+          mood_level?: number
+          notes?: string | null
+          partner_link_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_mood_entries_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_tiers: {
         Row: {
@@ -634,6 +881,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_invite_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -16,6 +16,7 @@ import CrisisResources from "./pages/CrisisResources";
 import Resources from "./pages/Resources";
 import ArticleDetail from "./pages/ArticleDetail";
 import Subscription from "./pages/Subscription";
+import Couples from "./pages/Couples";
 import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminAnalytics, AdminSettings, AdminFeedback } from "./pages/admin";
 import NotFound from "./pages/NotFound";
 
@@ -40,6 +41,7 @@ const App = () => (
           <Route path="/resources" element={<Resources />} />
           <Route path="/resources/:articleId" element={<ArticleDetail />} />
           <Route path="/subscription" element={<Subscription />} />
+          <Route path="/couples" element={<Couples />} />
           <Route
             path="/admin"
             element={
