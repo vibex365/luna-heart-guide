@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile } from "@/pages/admin/AdminUsers";
@@ -17,6 +17,13 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -33,8 +40,16 @@ import {
   Ban, 
   CheckCircle,
   Calendar,
-  Clock
+  Clock,
+  Crown
 } from "lucide-react";
+import { toast } from "sonner";
+
+interface SubscriptionTier {
+  id: string;
+  name: string;
+  slug: string;
+}
 
 interface UserDetailSheetProps {
   user: UserProfile | null;
@@ -53,6 +68,92 @@ export const UserDetailSheet = ({
 }: UserDetailSheetProps) => {
   const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
   const [suspendReason, setSuspendReason] = useState("");
+  const queryClient = useQueryClient();
+
+  // Fetch subscription tiers
+  const { data: tiers = [] } = useQuery({
+    queryKey: ["subscription-tiers"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subscription_tiers")
+        .select("id, name, slug")
+        .eq("is_active", true)
+        .order("sort_order");
+      
+      if (error) throw error;
+      return (data as SubscriptionTier[]) || [];
+    },
+  });
+
+  // Fetch user's current subscription
+  const { data: userSubscription, isLoading: subLoading } = useQuery({
+    queryKey: ["admin-user-subscription", user?.user_id],
+    queryFn: async () => {
+      if (!user?.user_id) return null;
+
+      const { data, error } = await supabase
+        .from("user_subscriptions")
+        .select(`
+          id,
+          tier_id,
+          status,
+          expires_at,
+          subscription_tiers(name, slug)
+        `)
+        .eq("user_id", user.user_id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.user_id && open,
+  });
+
+  // Update subscription mutation
+  const updateSubscriptionMutation = useMutation({
+    mutationFn: async ({ userId, tierId }: { userId: string; tierId: string }) => {
+      // Check if user has an existing subscription
+      const { data: existing } = await supabase
+        .from("user_subscriptions")
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (existing) {
+        // Update existing subscription
+        const { error } = await supabase
+          .from("user_subscriptions")
+          .update({
+            tier_id: tierId,
+            status: "active",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id);
+
+        if (error) throw error;
+      } else {
+        // Create new subscription
+        const { error } = await supabase
+          .from("user_subscriptions")
+          .insert({
+            user_id: userId,
+            tier_id: tierId,
+            status: "active",
+            started_at: new Date().toISOString(),
+          });
+
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-user-subscription", user?.user_id] });
+      toast.success("Subscription updated successfully");
+    },
+    onError: (error) => {
+      console.error("Error updating subscription:", error);
+      toast.error("Failed to update subscription");
+    },
+  });
 
   // Fetch user stats
   const { data: stats } = useQuery({
@@ -116,6 +217,13 @@ export const UserDetailSheet = ({
     setSuspendReason("");
   };
 
+  const handleSubscriptionChange = (tierId: string) => {
+    updateSubscriptionMutation.mutate({ userId: user.user_id, tierId });
+  };
+
+  const currentTierSlug = userSubscription?.subscription_tiers?.slug || "free";
+  const currentTierId = userSubscription?.tier_id || tiers.find(t => t.slug === "free")?.id;
+
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
@@ -151,10 +259,67 @@ export const UserDetailSheet = ({
                   Active
                 </Badge>
               )}
+              <Badge 
+                variant="outline" 
+                className={`gap-1 ${
+                  currentTierSlug === "couples" 
+                    ? "border-pink-500 text-pink-600" 
+                    : currentTierSlug === "pro" 
+                    ? "border-primary text-primary" 
+                    : "border-muted-foreground text-muted-foreground"
+                }`}
+              >
+                <Crown className="h-3 w-3" />
+                {userSubscription?.subscription_tiers?.name || "Free"}
+              </Badge>
             </div>
           </SheetHeader>
 
           <div className="mt-6 space-y-6">
+            {/* Subscription Management */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                <Crown className="h-4 w-4 text-primary" />
+                Subscription Tier
+              </h3>
+              <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                <Select
+                  value={currentTierId || ""}
+                  onValueChange={handleSubscriptionChange}
+                  disabled={updateSubscriptionMutation.isPending || subLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select tier..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tiers.map((tier) => (
+                      <SelectItem key={tier.id} value={tier.id}>
+                        <span className="flex items-center gap-2">
+                          {tier.name}
+                          {tier.slug === "couples" && (
+                            <span className="text-xs text-pink-500">(Partner features)</span>
+                          )}
+                          {tier.slug === "pro" && (
+                            <span className="text-xs text-primary">(Unlimited)</span>
+                          )}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Manually assign a subscription tier to this user. This overrides any Stripe subscription.
+                </p>
+                {userSubscription?.expires_at && (
+                  <p className="text-xs text-muted-foreground">
+                    Expires: {format(new Date(userSubscription.expires_at), "MMM d, yyyy")}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
             {/* Account Info */}
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-foreground">Account Info</h3>
