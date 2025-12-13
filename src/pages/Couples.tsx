@@ -7,6 +7,7 @@ import { PartnerInviteCard } from "@/components/couples/PartnerInviteCard";
 import { CouplesLinkedStatus } from "@/components/couples/CouplesLinkedStatus";
 import { RelationshipHealthCard } from "@/components/couples/RelationshipHealthCard";
 import { RelationshipAssessment } from "@/components/couples/RelationshipAssessment";
+import { RelationshipTrendsChart } from "@/components/couples/RelationshipTrendsChart";
 import { SharedMoodTracker } from "@/components/couples/SharedMoodTracker";
 import { SharedActivities } from "@/components/couples/SharedActivities";
 import { ConflictResolutionTools } from "@/components/couples/ConflictResolutionTools";
@@ -136,6 +137,14 @@ const Couples = () => {
               transition={{ delay: 0.15 }}
             >
               <RelationshipHealthCard />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.18 }}
+            >
+              <RelationshipTrendsChart />
             </motion.div>
 
             <motion.div
