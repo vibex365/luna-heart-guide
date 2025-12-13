@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
@@ -15,6 +15,22 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+
+// Helper to send push notification to partner
+const notifyPartner = async (partnerId: string) => {
+  try {
+    await supabase.functions.invoke("push-notifications", {
+      body: {
+        action: "send",
+        userId: partnerId,
+        title: "Assessment Complete! 💜",
+        body: "Your partner just completed their relationship assessment. Check it out!",
+      },
+    });
+  } catch (error) {
+    console.error("Failed to send partner notification:", error);
+  }
+};
 
 interface Question {
   id: string;
@@ -97,13 +113,15 @@ export const RelationshipAssessment = () => {
     enabled: !!user && !!partnerLink,
   });
 
+  // Get partner ID
+  const partnerId = partnerLink?.user_id === user?.id ? partnerLink?.partner_id : partnerLink?.user_id;
+
   // Check if partner completed today
   const { data: partnerAssessment } = useQuery({
     queryKey: ["partner-assessment", partnerLink?.id, user?.id],
     queryFn: async () => {
-      if (!user || !partnerLink) return null;
+      if (!user || !partnerLink || !partnerId) return null;
       
-      const partnerId = partnerLink.user_id === user.id ? partnerLink.partner_id : partnerLink.user_id;
       const today = format(new Date(), "yyyy-MM-dd");
       
       const { data, error } = await supabase
@@ -117,8 +135,41 @@ export const RelationshipAssessment = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!user && !!partnerLink,
+    enabled: !!user && !!partnerLink && !!partnerId,
   });
+
+  // Real-time subscription for partner's assessment
+  useEffect(() => {
+    if (!partnerLink?.id || !partnerId) return;
+
+    const channel = supabase
+      .channel(`assessment-${partnerLink.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "relationship_assessments",
+          filter: `partner_link_id=eq.${partnerLink.id}`,
+        },
+        (payload) => {
+          // Only react to partner's assessment, not our own
+          if (payload.new && payload.new.user_id === partnerId) {
+            queryClient.invalidateQueries({ queryKey: ["partner-assessment"] });
+            queryClient.invalidateQueries({ queryKey: ["health-score"] });
+            toast({
+              title: "Partner Completed Assessment! 💜",
+              description: "Your relationship health scores have been updated.",
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [partnerLink?.id, partnerId, queryClient, toast]);
 
   const submitMutation = useMutation({
     mutationFn: async () => {
@@ -168,6 +219,12 @@ export const RelationshipAssessment = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["today-assessment"] });
       queryClient.invalidateQueries({ queryKey: ["health-score"] });
+      
+      // Send push notification to partner
+      if (partnerId) {
+        notifyPartner(partnerId);
+      }
+      
       toast({
         title: "Assessment Complete! 💜",
         description: partnerAssessment 
