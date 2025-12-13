@@ -11,6 +11,7 @@ import { RelationshipTrendsChart } from "@/components/couples/RelationshipTrends
 import { SharedMoodTracker } from "@/components/couples/SharedMoodTracker";
 import { SharedActivities } from "@/components/couples/SharedActivities";
 import { ConflictResolutionTools } from "@/components/couples/ConflictResolutionTools";
+import { CoupleGoals } from "@/components/couples/CoupleGoals";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -153,6 +154,14 @@ const Couples = () => {
               transition={{ delay: 0.2 }}
             >
               <SharedMoodTracker />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              <CoupleGoals />
             </motion.div>
 
             <motion.div
