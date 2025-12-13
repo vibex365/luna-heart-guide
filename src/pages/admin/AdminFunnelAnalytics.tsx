@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { TrendingUp, Users, CreditCard, Eye, ArrowRight, Target } from 'lucide-react';
+import { TrendingUp, Users, CreditCard, Eye, ArrowRight, Target, Link2, Copy, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { format, subDays, startOfDay } from 'date-fns';
 
 interface FunnelEvent {
@@ -42,6 +44,35 @@ const COLORS = ['hsl(330, 70%, 65%)', 'hsl(350, 60%, 70%)', 'hsl(280, 60%, 65%)'
 const AdminFunnelAnalytics = () => {
   const [dateRange, setDateRange] = useState('7');
   const [selectedFunnel, setSelectedFunnel] = useState<'all' | 'dm' | 'couples'>('all');
+  const { toast } = useToast();
+
+  // Get the base URL for funnel links
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  
+  const funnelUrls = [
+    {
+      name: 'DM Funnel',
+      path: '/dm',
+      fullUrl: `${baseUrl}/dm`,
+      instagramUrl: `${baseUrl}/dm?utm_source=instagram&utm_medium=dm&utm_campaign=main`,
+      tiktokUrl: `${baseUrl}/dm?utm_source=tiktok&utm_medium=dm&utm_campaign=main`,
+    },
+    {
+      name: 'Couples Funnel',
+      path: '/couples-funnel',
+      fullUrl: `${baseUrl}/couples-funnel`,
+      instagramUrl: `${baseUrl}/couples-funnel?utm_source=instagram&utm_medium=dm&utm_campaign=couples`,
+      tiktokUrl: `${baseUrl}/couples-funnel?utm_source=tiktok&utm_medium=dm&utm_campaign=couples`,
+    }
+  ];
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied!",
+      description: `${label} URL copied to clipboard`,
+    });
+  };
 
   const { data: events, isLoading } = useQuery({
     queryKey: ['funnel-events', dateRange, selectedFunnel],
@@ -140,6 +171,82 @@ const AdminFunnelAnalytics = () => {
         <h1 className="text-2xl font-bold">Funnel Analytics</h1>
         <p className="text-muted-foreground">Track conversion rates and performance across funnels</p>
       </div>
+
+      {/* Funnel URLs Section */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Link2 className="h-5 w-5" />
+            Funnel URLs
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {funnelUrls.map((funnel) => (
+              <div key={funnel.path} className="p-4 rounded-lg bg-muted/50 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">{funnel.name}</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => window.open(funnel.fullUrl, '_blank')}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-1" />
+                    Preview
+                  </Button>
+                </div>
+                
+                <div className="grid gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground w-20">Base URL:</span>
+                    <code className="flex-1 text-xs bg-background px-2 py-1 rounded border truncate">
+                      {funnel.fullUrl}
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => copyToClipboard(funnel.fullUrl, funnel.name)}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground w-20">Instagram:</span>
+                    <code className="flex-1 text-xs bg-background px-2 py-1 rounded border truncate">
+                      {funnel.instagramUrl}
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => copyToClipboard(funnel.instagramUrl, `${funnel.name} (Instagram)`)}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground w-20">TikTok:</span>
+                    <code className="flex-1 text-xs bg-background px-2 py-1 rounded border truncate">
+                      {funnel.tiktokUrl}
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => copyToClipboard(funnel.tiktokUrl, `${funnel.name} (TikTok)`)}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       <div className="flex gap-4 mb-6">
