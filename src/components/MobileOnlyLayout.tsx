@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { BottomTabBar } from "./BottomTabBar";
 import DesktopBlocker from "./DesktopBlocker";
+import SwipeableTabView from "./SwipeableTabView";
 
 interface MobileOnlyLayoutProps {
   children: ReactNode;
@@ -22,10 +23,20 @@ const MobileOnlyLayout = ({ children, hideTabBar = false }: MobileOnlyLayoutProp
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <main className={`flex-1 ${!hideTabBar ? 'pb-20' : ''}`}>
-        {children}
-      </main>
-      {!hideTabBar && <BottomTabBar />}
+      {!hideTabBar ? (
+        <>
+          <SwipeableTabView>
+            <main className="flex-1 pb-20">
+              {children}
+            </main>
+          </SwipeableTabView>
+          <BottomTabBar />
+        </>
+      ) : (
+        <main className="flex-1">
+          {children}
+        </main>
+      )}
     </div>
   );
 };
