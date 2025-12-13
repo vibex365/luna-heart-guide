@@ -41,7 +41,7 @@ const pricingPlans = [
     period: "/month",
     features: ["Unlimited conversations", "Advanced analytics", "Priority responses"],
     highlight: true,
-    priceId: "price_pro_monthly", // Replace with actual Stripe price ID
+    priceId: "price_1SdhyfAsrgxssNTVTPpZuI3t",
     popular: true,
   },
   {
@@ -50,7 +50,7 @@ const pricingPlans = [
     period: "/month",
     features: ["Everything in Pro", "2 linked accounts", "Relationship tools"],
     highlight: false,
-    priceId: "price_couples_monthly", // Replace with actual Stripe price ID
+    priceId: "price_1SdhytAsrgxssNTVvlvnqvZr",
     popular: false,
   },
 ];
