@@ -720,6 +720,90 @@ function detectCrisis(message: string): CrisisDetection {
   };
 }
 
+// Conflict resolution templates context generator
+interface ConflictTemplate {
+  title: string;
+  category: string;
+  trigger_phrases: string[];
+  script_template: string;
+  follow_up_questions: string[];
+}
+
+function generateConflictTemplatesContext(
+  templates: ConflictTemplate[], 
+  messages: { role: string; content: string }[]
+): string {
+  // Get all user messages to check for relationship keywords
+  const userMessages = messages
+    .filter(m => m.role === "user")
+    .map(m => m.content.toLowerCase())
+    .join(" ");
+
+  // Relationship conflict keywords that trigger template suggestions
+  const conflictKeywords = [
+    "argument", "fight", "fighting", "conflict", "disagreement", "heated",
+    "angry", "mad", "upset", "frustrated", "not listening", "ignores me",
+    "doesn't hear", "communication", "talk to each other", "can't communicate",
+    "taken for granted", "unappreciated", "thankless", "neglected",
+    "needs not met", "feeling neglected", "want more", "doesn't understand",
+    "partner", "relationship", "boyfriend", "girlfriend", "husband", "wife",
+    "spouse", "we keep fighting", "same fight", "always fighting",
+    "couples", "together", "our relationship"
+  ];
+
+  // Check if any conflict keywords are present
+  const hasConflictContext = conflictKeywords.some(keyword => 
+    userMessages.includes(keyword)
+  );
+
+  if (!hasConflictContext) {
+    return "";
+  }
+
+  // Find relevant templates based on trigger phrases
+  const relevantTemplates = templates.filter(template => {
+    return template.trigger_phrases.some(phrase => 
+      userMessages.includes(phrase.toLowerCase())
+    );
+  });
+
+  // If no specific matches, use all templates as general guidance
+  const templatesToUse = relevantTemplates.length > 0 ? relevantTemplates : templates;
+
+  let context = `\n\n═══════════════════════════════════════════════════════════════
+                    COUPLES CONFLICT RESOLUTION TOOLS
+═══════════════════════════════════════════════════════════════
+The user appears to be discussing relationship challenges. You have access to these guided exercises and scripts that you can suggest when appropriate:
+
+`;
+
+  templatesToUse.forEach((template, index) => {
+    context += `───────────────────────────────────────────────────────────────
+EXERCISE ${index + 1}: ${template.title.toUpperCase()} (${template.category})
+───────────────────────────────────────────────────────────────
+When to suggest: ${template.trigger_phrases.join(", ")}
+
+Your script:
+"${template.script_template}"
+
+Follow-up questions to ask:
+${template.follow_up_questions.map(q => `- ${q}`).join("\n")}
+
+`;
+  });
+
+  context += `═══════════════════════════════════════════════════════════════
+IMPORTANT: When suggesting these exercises:
+1. First validate their feelings and understand their situation
+2. Suggest the exercise naturally as part of your guidance
+3. Adapt the script to their specific situation
+4. Use the follow-up questions to deepen the conversation
+5. If they mention they have a partner on Luna (Couples plan), remind them they can do these activities together in the Couples section
+═══════════════════════════════════════════════════════════════\n`;
+
+  return context;
+}
+
 // Input validation constants
 const MAX_MESSAGE_LENGTH = 2000;
 const MAX_MESSAGES_COUNT = 50;
@@ -816,6 +900,7 @@ serve(async (req) => {
 
     let moodContext = "";
     let preferencesContext = "";
+    let conflictTemplatesContext = "";
     let supabase: ReturnType<typeof createClient> | null = null;
 
     let firstName = "";
@@ -874,6 +959,24 @@ serve(async (req) => {
         }
       } catch (profileFetchError) {
         console.error("Error fetching profile:", profileFetchError);
+      }
+
+      // Fetch conflict resolution templates for couples features
+      try {
+        const { data: templates, error: templatesError } = await supabase
+          .from("conflict_resolution_templates")
+          .select("title, category, trigger_phrases, script_template, follow_up_questions")
+          .eq("is_active", true)
+          .order("sort_order");
+
+        if (!templatesError && templates && templates.length > 0) {
+          conflictTemplatesContext = generateConflictTemplatesContext(templates, sanitizedMessages);
+          if (conflictTemplatesContext) {
+            console.log("Added conflict resolution templates context");
+          }
+        }
+      } catch (templatesError) {
+        console.error("Error fetching conflict templates:", templatesError);
       }
 
       // Detect and log module usage + crisis detection
@@ -953,7 +1056,7 @@ Examples: "I hear you, ${firstName}..." or "That's a lot to carry, ${firstName}.
 ═══════════════════════════════════════════════════════════════\n`;
     }
 
-    const systemPrompt = LUNA_BRAIN_V1 + personalizationContext + preferencesContext + moodContext;
+    const systemPrompt = LUNA_BRAIN_V1 + personalizationContext + preferencesContext + moodContext + conflictTemplatesContext;
 
     console.log("Sending request to Lovable AI Gateway with", sanitizedMessages.length, "messages");
     console.log("System prompt length:", systemPrompt.length, "characters");
