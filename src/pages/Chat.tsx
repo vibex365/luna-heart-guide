@@ -53,18 +53,20 @@ const quickPrompts = [
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/luna-chat`;
 
-const WELCOME_MESSAGE: Message = {
+const getWelcomeMessage = (firstName: string | null): Message => ({
   id: "welcome",
   role: "assistant",
-  content: "Hi, I'm Luna. 💜 I'm here to listen and support you through whatever you're going through. There's no judgment here — just a safe space to explore your feelings.\n\nWhat's on your heart today?",
+  content: firstName 
+    ? `Hi ${firstName}, I'm Luna. 💜 I'm here to listen and support you through whatever you're going through. There's no judgment here — just a safe space to explore your feelings.\n\nWhat's on your heart today?`
+    : "Hi, I'm Luna. 💜 I'm here to listen and support you through whatever you're going through. There's no judgment here — just a safe space to explore your feelings.\n\nWhat's on your heart today?",
   timestamp: new Date(),
-};
+});
 
 const Chat = () => {
   const navigate = useNavigate();
   const { user, signOut, loading: authLoading } = useAuth();
   const { isOnline } = useOnlineStatus();
-  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
+  const [messages, setMessages] = useState<Message[]>([getWelcomeMessage(null)]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -122,6 +124,14 @@ const Chat = () => {
 
     if (!error && data) {
       setProfile(data);
+      // Extract first name and update welcome message if it's the only message
+      const firstName = data.display_name?.trim().split(/\s+/)[0] || null;
+      setMessages((prev) => {
+        if (prev.length === 1 && prev[0].id === "welcome") {
+          return [getWelcomeMessage(firstName)];
+        }
+        return prev;
+      });
     }
   };
 
@@ -185,7 +195,8 @@ const Chat = () => {
       timestamp: new Date(m.created_at),
     }));
 
-    setMessages([WELCOME_MESSAGE, ...loadedMessages]);
+    const firstName = profile?.display_name?.trim().split(/\s+/)[0] || null;
+    setMessages([getWelcomeMessage(firstName), ...loadedMessages]);
     setCurrentConversationId(conversationId);
     setShowSidebar(false);
   };
@@ -297,7 +308,8 @@ const Chat = () => {
   };
 
   const startNewChat = () => {
-    setMessages([WELCOME_MESSAGE]);
+    const firstName = profile?.display_name?.trim().split(/\s+/)[0] || null;
+    setMessages([getWelcomeMessage(firstName)]);
     setCurrentConversationId(null);
     setShowSidebar(false);
   };
