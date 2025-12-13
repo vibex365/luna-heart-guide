@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
+import OnboardingCarousel from "@/components/OnboardingCarousel";
 
 interface OnboardingData {
   reason: string;
@@ -19,6 +20,7 @@ interface OnboardingData {
 const Onboarding = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const [showCarousel, setShowCarousel] = useState(true);
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [data, setData] = useState<OnboardingData>({
@@ -151,6 +153,14 @@ const Onboarding = () => {
         <div className="h-screen flex items-center justify-center bg-background">
           <LunaAvatar size="lg" />
         </div>
+      </MobileOnlyLayout>
+    );
+  }
+
+  if (showCarousel) {
+    return (
+      <MobileOnlyLayout hideTabBar>
+        <OnboardingCarousel onComplete={() => setShowCarousel(false)} />
       </MobileOnlyLayout>
     );
   }
