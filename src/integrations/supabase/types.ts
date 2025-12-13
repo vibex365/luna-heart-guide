@@ -919,6 +919,8 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          phone_number: string | null
+          phone_verified: boolean | null
           reminder_enabled: boolean | null
           reminder_time: string | null
           suspended: boolean | null
@@ -933,6 +935,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          phone_number?: string | null
+          phone_verified?: boolean | null
           reminder_enabled?: boolean | null
           reminder_time?: string | null
           suspended?: boolean | null
@@ -947,6 +951,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          phone_number?: string | null
+          phone_verified?: boolean | null
           reminder_enabled?: boolean | null
           reminder_time?: string | null
           suspended?: boolean | null
@@ -1220,6 +1226,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sms_verification_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          phone_number: string
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone_number: string
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone_number?: string
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
       }
       subscription_tiers: {
         Row: {

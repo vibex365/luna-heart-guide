@@ -11,6 +11,7 @@ import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import OnboardingCarousel from "@/components/OnboardingCarousel";
 import WelcomeAnimation from "@/components/WelcomeAnimation";
 import NameInputStep from "@/components/NameInputStep";
+import { PhoneVerification } from "@/components/PhoneVerification";
 
 interface OnboardingData {
   reason: string;
@@ -24,9 +25,11 @@ const Onboarding = () => {
   const { user, loading: authLoading } = useAuth();
   const [showCarousel, setShowCarousel] = useState(true);
   const [showNameInput, setShowNameInput] = useState(false);
+  const [showPhoneInput, setShowPhoneInput] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [userName, setUserName] = useState<string>("");
   const [hasExistingName, setHasExistingName] = useState(false);
+  const [hasVerifiedPhone, setHasVerifiedPhone] = useState(false);
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [data, setData] = useState<OnboardingData>({
@@ -36,13 +39,13 @@ const Onboarding = () => {
     communication: "",
   });
 
-  // Fetch user display name
+  // Fetch user profile
   useEffect(() => {
-    const fetchUserName = async () => {
+    const fetchUserProfile = async () => {
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("display_name")
+          .select("display_name, phone_verified")
           .eq("user_id", user.id)
           .single();
         
@@ -50,9 +53,12 @@ const Onboarding = () => {
           setUserName(profile.display_name);
           setHasExistingName(true);
         }
+        if (profile?.phone_verified) {
+          setHasVerifiedPhone(true);
+        }
       }
     };
-    fetchUserName();
+    fetchUserProfile();
   }, [user]);
 
   const handleCarouselComplete = () => {
@@ -60,6 +66,9 @@ const Onboarding = () => {
     // Show name input if user doesn't have a display name
     if (!hasExistingName) {
       setShowNameInput(true);
+    } else if (!hasVerifiedPhone) {
+      // If name exists but no verified phone, show phone input
+      setShowPhoneInput(true);
     }
   };
 
@@ -72,10 +81,23 @@ const Onboarding = () => {
       setUserName(name);
     }
     setShowNameInput(false);
+    // After name, show phone verification
+    if (!hasVerifiedPhone) {
+      setShowPhoneInput(true);
+    }
   };
 
   const handleNameSkip = () => {
     setShowNameInput(false);
+    // Still require phone verification
+    if (!hasVerifiedPhone) {
+      setShowPhoneInput(true);
+    }
+  };
+
+  const handlePhoneVerified = () => {
+    setHasVerifiedPhone(true);
+    setShowPhoneInput(false);
   };
 
   // Redirect if not logged in
@@ -206,6 +228,27 @@ const Onboarding = () => {
     return (
       <MobileOnlyLayout hideTabBar>
         <OnboardingCarousel onComplete={handleCarouselComplete} />
+      </MobileOnlyLayout>
+    );
+  }
+
+  if (showPhoneInput && user) {
+    return (
+      <MobileOnlyLayout hideTabBar>
+        <div className="min-h-screen gradient-hero flex flex-col safe-area-top">
+          <header className="px-6 py-4">
+            <div className="flex items-center gap-3">
+              <LunaAvatar size="sm" showGlow={false} />
+              <span className="font-heading font-bold text-xl text-foreground">LUNA</span>
+            </div>
+          </header>
+          <main className="flex-1 px-6 flex flex-col items-center justify-center pb-10">
+            <PhoneVerification
+              userId={user.id}
+              onVerified={handlePhoneVerified}
+            />
+          </main>
+        </div>
       </MobileOnlyLayout>
     );
   }

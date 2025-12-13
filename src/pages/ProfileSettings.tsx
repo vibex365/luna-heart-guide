@@ -13,6 +13,7 @@ import StreakDisplay from "@/components/StreakDisplay";
 import ReminderSettings from "@/components/ReminderSettings";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import { ProfileSkeleton } from "@/components/skeletons/PageSkeletons";
+import { PhoneSettingsCard } from "@/components/PhoneSettingsCard";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -30,6 +31,8 @@ interface Profile {
   display_name: string | null;
   avatar_url: string | null;
   weekly_insights_enabled: boolean | null;
+  phone_number: string | null;
+  phone_verified: boolean | null;
 }
 
 interface UserPreferences {
@@ -300,6 +303,8 @@ const ProfileSettings = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
+  const [phoneVerified, setPhoneVerified] = useState(false);
   const [weeklyInsightsEnabled, setWeeklyInsightsEnabled] = useState(true);
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState("09:00");
@@ -351,6 +356,8 @@ const ProfileSettings = () => {
       setProfile(data);
       setDisplayName(data.display_name || "");
       setAvatarUrl(data.avatar_url);
+      setPhoneNumber(data.phone_number);
+      setPhoneVerified(data.phone_verified ?? false);
       setWeeklyInsightsEnabled(data.weekly_insights_enabled ?? true);
       setReminderEnabled(data.reminder_enabled ?? false);
       setReminderTime(data.reminder_time ?? "09:00");
@@ -692,6 +699,19 @@ const ProfileSettings = () => {
               </div>
             </div>
           </div>
+
+          {/* Phone Number Section */}
+          {user && (
+            <PhoneSettingsCard
+              userId={user.id}
+              phoneNumber={phoneNumber}
+              phoneVerified={phoneVerified}
+              onPhoneUpdated={(phone) => {
+                setPhoneNumber(phone);
+                setPhoneVerified(true);
+              }}
+            />
+          )}
 
           {/* Preferences Section */}
           <div className="bg-card rounded-3xl p-8 shadow-luna border border-border">
