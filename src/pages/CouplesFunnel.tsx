@@ -167,7 +167,7 @@ const CouplesFunnel = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-couples-gradient text-foreground overflow-x-hidden">
+    <div className="min-h-screen bg-couples-gradient text-white overflow-x-hidden">
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-16">
         <div className="couples-glow absolute inset-0 pointer-events-none" />
@@ -188,11 +188,11 @@ const CouplesFunnel = () => {
             </div>
           </motion.div>
 
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight text-white">
             Reconnect Before<br />It's Too Late.
           </h1>
           
-          <p className="text-xl text-foreground/80 mb-3">
+          <p className="text-xl text-white/90 mb-3">
             Communication tools that actually work. Together.
           </p>
           
@@ -209,7 +209,7 @@ const CouplesFunnel = () => {
             {isLoading ? "Loading..." : "Start Reconnecting – $19/mo"}
           </Button>
           
-          <p className="text-xs text-foreground/50 mt-3">
+          <p className="text-xs text-white/50 mt-3">
             Both partners included. Cancel anytime.
           </p>
         </motion.div>
@@ -220,7 +220,7 @@ const CouplesFunnel = () => {
           transition={{ delay: 1, duration: 0.5 }}
           className="absolute bottom-8"
         >
-          <ChevronLeft className="w-6 h-6 text-foreground/30 rotate-[-90deg] animate-bounce" />
+          <ChevronLeft className="w-6 h-6 text-white/30 rotate-[-90deg] animate-bounce" />
         </motion.div>
       </section>
 
@@ -244,7 +244,7 @@ const CouplesFunnel = () => {
                 transition={{ delay: index * 0.1 }}
                 className="couples-card p-4 rounded-xl text-left"
               >
-                <p className="text-foreground/80">{point}</p>
+                <p className="text-white/80">{point}</p>
               </motion.div>
             ))}
           </div>
@@ -269,7 +269,7 @@ const CouplesFunnel = () => {
               <Heart className="w-5 h-5 text-couples-accent" />
             </div>
             <h2 className="text-2xl font-bold mb-2">Meet Luna for Couples</h2>
-            <p className="text-foreground/60">Everything you need to reconnect</p>
+            <p className="text-white/60">Everything you need to reconnect</p>
           </div>
           
           <div className="space-y-3">
@@ -285,7 +285,7 @@ const CouplesFunnel = () => {
                 <div className="w-10 h-10 rounded-full bg-couples-accent/20 flex items-center justify-center flex-shrink-0">
                   <feature.icon className="w-5 h-5 text-couples-accent" />
                 </div>
-                <p className="text-foreground/80 text-sm">{feature.text}</p>
+                <p className="text-white/80 text-sm">{feature.text}</p>
               </motion.div>
             ))}
           </div>
@@ -301,7 +301,7 @@ const CouplesFunnel = () => {
           className="text-center mb-8"
         >
           <h2 className="text-2xl font-bold mb-2">Real Couples, Real Results</h2>
-          <p className="text-foreground/60">See what others are saying</p>
+          <p className="text-white/60">See what others are saying</p>
         </motion.div>
         
         <TestimonialCarousel />
@@ -332,7 +332,7 @@ const CouplesFunnel = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">{step.title}</h3>
-                  <p className="text-foreground/60 text-sm">{step.description}</p>
+                  <p className="text-white/60 text-sm">{step.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -351,25 +351,25 @@ const CouplesFunnel = () => {
           <h2 className="text-2xl font-bold text-center mb-8">The Smart Choice</h2>
           
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-foreground/5 border border-foreground/10 opacity-60">
-              <p className="text-xs text-foreground/50 uppercase tracking-wide mb-2">Couples Therapy</p>
-              <p className="text-2xl font-bold text-foreground/50">$200</p>
-              <p className="text-xs text-foreground/40">per session</p>
-              <p className="text-lg font-semibold text-foreground/50 mt-2">~$800/mo</p>
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10 opacity-60">
+              <p className="text-xs text-white/50 uppercase tracking-wide mb-2">Couples Therapy</p>
+              <p className="text-2xl font-bold text-white/50">$200</p>
+              <p className="text-xs text-white/40">per session</p>
+              <p className="text-lg font-semibold text-white/50 mt-2">~$800/mo</p>
             </div>
             
             <div className="p-4 rounded-xl bg-couples-accent/10 border-2 border-couples-accent relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-couples-accent text-background text-xs px-2 py-0.5 rounded-bl">
+              <div className="absolute top-0 right-0 bg-couples-accent text-white text-xs px-2 py-0.5 rounded-bl font-medium">
                 Best Value
               </div>
               <p className="text-xs text-couples-accent uppercase tracking-wide mb-2">Luna Couples</p>
               <p className="text-2xl font-bold text-couples-accent">$19</p>
-              <p className="text-xs text-foreground/60">per month</p>
-              <p className="text-xs text-foreground/50 mt-2">Both partners included</p>
+              <p className="text-xs text-white/60">per month</p>
+              <p className="text-xs text-white/50 mt-2">Both partners included</p>
             </div>
           </div>
           
-          <p className="text-center text-foreground/50 text-sm mt-4">
+          <p className="text-center text-white/50 text-sm mt-4">
             No scheduling. No awkward silences.
           </p>
         </motion.div>
@@ -385,7 +385,7 @@ const CouplesFunnel = () => {
         >
           <Users className="w-12 h-12 text-couples-accent mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">Ready to Reconnect?</h2>
-          <p className="text-foreground/60 mb-6">
+          <p className="text-white/60 mb-6">
             Start your journey back to each other today.
           </p>
           
@@ -398,14 +398,14 @@ const CouplesFunnel = () => {
             {isLoading ? "Loading..." : "Start Reconnecting Today – $19"}
           </Button>
           
-          <p className="text-xs text-foreground/50 mt-3">
+          <p className="text-xs text-white/50 mt-3">
             Both partners. Cancel anytime.
           </p>
         </motion.div>
       </section>
 
       {/* Trust Section */}
-      <section className="px-6 py-12 border-t border-foreground/10">
+      <section className="px-6 py-12 border-t border-white/10">
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -415,23 +415,23 @@ const CouplesFunnel = () => {
           <div className="grid grid-cols-2 gap-4 text-center">
             <div className="flex flex-col items-center gap-2">
               <Shield className="w-5 h-5 text-couples-accent" />
-              <p className="text-xs text-foreground/50">Private & Secure</p>
+              <p className="text-xs text-white/50">Private & Secure</p>
             </div>
             <div className="flex flex-col items-center gap-2">
               <Heart className="w-5 h-5 text-couples-accent" />
-              <p className="text-xs text-foreground/50">No Judgment</p>
+              <p className="text-xs text-white/50">No Judgment</p>
             </div>
             <div className="flex flex-col items-center gap-2">
               <Users className="w-5 h-5 text-couples-accent" />
-              <p className="text-xs text-foreground/50">Built for Real Couples</p>
+              <p className="text-xs text-white/50">Built for Real Couples</p>
             </div>
             <div className="flex flex-col items-center gap-2">
               <Sparkles className="w-5 h-5 text-couples-accent" />
-              <p className="text-xs text-foreground/50">AI-Powered Insights</p>
+              <p className="text-xs text-white/50">AI-Powered Insights</p>
             </div>
           </div>
           
-          <p className="text-center text-xs text-foreground/40 mt-6">
+          <p className="text-center text-xs text-white/40 mt-6">
             Trusted by couples who wanted to try before giving up.
           </p>
         </motion.div>
