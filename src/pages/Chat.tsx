@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Plus, MessageCircle, LogOut, Trash2, Heart, BookOpen, Wind, LifeBuoy, History, Search, X, Pencil, Check, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,11 +6,13 @@ import LunaAvatar from "@/components/LunaAvatar";
 import UserAvatar from "@/components/UserAvatar";
 import { MessageFeedback } from "@/components/MessageFeedback";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
+import PullToRefresh from "@/components/PullToRefresh";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { isToday, isYesterday, isThisWeek, parseISO } from "date-fns";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,6 +62,7 @@ const WELCOME_MESSAGE: Message = {
 const Chat = () => {
   const navigate = useNavigate();
   const { user, signOut, loading: authLoading } = useAuth();
+  const { isOnline } = useOnlineStatus();
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -71,6 +74,7 @@ const Chat = () => {
   const [editingTitle, setEditingTitle] = useState("");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
@@ -120,7 +124,9 @@ const Chat = () => {
     }
   };
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
+    if (!isOnline) return;
+    
     const { data, error } = await supabase
       .from("conversations")
       .select("*")
@@ -128,11 +134,36 @@ const Chat = () => {
 
     if (error) {
       console.error("Error loading conversations:", error);
+      // Try to load from cache
+      const cached = localStorage.getItem("cached_conversations");
+      if (cached) {
+        setConversations(JSON.parse(cached));
+      }
       return;
     }
 
     setConversations(data || []);
-  };
+    localStorage.setItem("cached_conversations", JSON.stringify(data || []));
+  }, [isOnline]);
+
+  const handleRefresh = useCallback(async () => {
+    if (!isOnline) {
+      toast({
+        title: "You're offline",
+        description: "Can't refresh right now.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsRefreshing(true);
+    await loadConversations();
+    await loadProfile();
+    setIsRefreshing(false);
+    toast({
+      title: "Refreshed",
+      description: "Conversations updated.",
+    });
+  }, [isOnline, loadConversations]);
 
   const loadConversation = async (conversationId: string) => {
     const { data, error } = await supabase
@@ -490,7 +521,8 @@ const Chat = () => {
 
   return (
     <MobileOnlyLayout>
-      <div className="h-full flex flex-col bg-background">
+      <PullToRefresh onRefresh={handleRefresh} disabled={isRefreshing || isTyping}>
+        <div className="h-full flex flex-col bg-background">
       {/* Sidebar */}
       <AnimatePresence>
         {showSidebar && (
@@ -931,6 +963,7 @@ const Chat = () => {
         </AlertDialogContent>
       </AlertDialog>
       </div>
+      </PullToRefresh>
     </MobileOnlyLayout>
   );
 };
