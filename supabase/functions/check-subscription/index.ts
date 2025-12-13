@@ -54,13 +54,36 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // First, check if user already has an active admin-assigned subscription in the database
+    const { data: existingSubscription } = await supabaseClient
+      .from("user_subscriptions")
+      .select("tier_id, status, subscription_tiers(slug)")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .maybeSingle();
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No customer found, syncing free plan");
+      logStep("No Stripe customer found");
       
-      // Sync free plan to database
+      // If user already has an active admin-assigned subscription, don't overwrite it
+      if (existingSubscription) {
+        const existingPlan = (existingSubscription.subscription_tiers as any)?.slug || "free";
+        logStep("User has existing admin subscription, keeping it", { plan: existingPlan });
+        return new Response(JSON.stringify({ 
+          subscribed: existingPlan !== "free",
+          plan: existingPlan,
+          subscription_end: null
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+      
+      // No existing subscription, sync free plan
+      logStep("No existing subscription, syncing free plan");
       await syncSubscriptionToDatabase(
         Deno.env.get("SUPABASE_URL") ?? "",
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -98,18 +121,32 @@ serve(async (req) => {
       const priceId = subscription.items.data[0].price.id;
       plan = PRICE_TO_PLAN[priceId] || "pro";
       logStep("Active subscription found", { subscriptionId: subscription.id, plan, endDate: subscriptionEnd });
+      
+      // Only sync to database if there's an active Stripe subscription
+      await syncSubscriptionToDatabase(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+        user.id,
+        plan,
+        subscriptionEnd
+      );
     } else {
-      logStep("No active subscription found");
+      logStep("No active Stripe subscription");
+      
+      // If user has an admin-assigned subscription, return that instead
+      if (existingSubscription) {
+        const existingPlan = (existingSubscription.subscription_tiers as any)?.slug || "free";
+        logStep("Using existing admin subscription", { plan: existingPlan });
+        return new Response(JSON.stringify({
+          subscribed: existingPlan !== "free",
+          plan: existingPlan,
+          subscription_end: null
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
     }
-
-    // Sync subscription to database
-    await syncSubscriptionToDatabase(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      user.id,
-      plan,
-      subscriptionEnd
-    );
 
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
