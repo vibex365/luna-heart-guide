@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Bell, BellOff, Clock, Smartphone } from "lucide-react";
+import { Bell, BellOff, Clock, Smartphone, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { useNotifications } from "@/hooks/useNotifications";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
 interface ReminderSettingsProps {
   reminderEnabled: boolean;
   reminderTime: string;
@@ -135,18 +135,49 @@ const ReminderSettings = ({ reminderEnabled, reminderTime, onUpdate }: ReminderS
     );
   }
 
+  const getPermissionBadge = () => {
+    const browserPermission = 'Notification' in window ? Notification.permission : 'default';
+    
+    switch (browserPermission) {
+      case 'granted':
+        return (
+          <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30 gap-1">
+            <CheckCircle2 className="w-3 h-3" />
+            Allowed
+          </Badge>
+        );
+      case 'denied':
+        return (
+          <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30 gap-1">
+            <XCircle className="w-3 h-3" />
+            Blocked
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/30 gap-1">
+            <AlertCircle className="w-3 h-3" />
+            Not Set
+          </Badge>
+        );
+    }
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <Card className="shadow-soft border-border/50">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            {enabled ? (
-              <Bell className="w-5 h-5 text-accent" />
-            ) : (
-              <BellOff className="w-5 h-5 text-muted-foreground" />
-            )}
-            Daily Mood Reminders
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              {enabled ? (
+                <Bell className="w-5 h-5 text-accent" />
+              ) : (
+                <BellOff className="w-5 h-5 text-muted-foreground" />
+              )}
+              Daily Mood Reminders
+            </CardTitle>
+            {getPermissionBadge()}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
