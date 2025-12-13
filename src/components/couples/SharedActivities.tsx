@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-
+import { notifyPartner } from "@/utils/smsNotifications";
 interface SharedActivity {
   id: string;
   title: string;
@@ -77,27 +77,37 @@ export const SharedActivities = () => {
     enabled: !!partnerLink,
   });
 
+  const partnerId = partnerLink?.user_id === user?.id 
+    ? partnerLink?.partner_id 
+    : partnerLink?.user_id;
+
   const completeMutation = useMutation({
-    mutationFn: async (activityId: string) => {
+    mutationFn: async (activity: SharedActivity) => {
       if (!user || !partnerLink) throw new Error("Not connected");
 
       const { error } = await supabase
         .from("completed_activities")
         .insert({
           partner_link_id: partnerLink.id,
-          activity_id: activityId,
+          activity_id: activity.id,
           completed_by: user.id,
         });
 
       if (error) throw error;
+      return activity;
     },
-    onSuccess: () => {
+    onSuccess: (activity) => {
       queryClient.invalidateQueries({ queryKey: ["completed-activities"] });
       toast({
         title: "Activity Completed! 🎉",
         description: "Great job connecting with your partner!",
       });
       setSelectedActivity(null);
+      
+      // Notify partner via SMS
+      if (partnerId) {
+        notifyPartner.activityCompleted(partnerId, activity.title);
+      }
     },
     onError: () => {
       toast({
@@ -232,7 +242,7 @@ export const SharedActivities = () => {
 
             {partnerLink && (
               <Button
-                onClick={() => selectedActivity && completeMutation.mutate(selectedActivity.id)}
+                onClick={() => selectedActivity && completeMutation.mutate(selectedActivity)}
                 disabled={completeMutation.isPending || completedIds.includes(selectedActivity?.id || "")}
                 className="w-full"
               >
