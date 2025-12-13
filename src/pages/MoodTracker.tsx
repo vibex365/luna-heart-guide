@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, TrendingUp, Calendar, Smile } from "lucide-react";
@@ -17,6 +17,7 @@ import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import PullToRefresh from "@/components/PullToRefresh";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { MoodSkeleton } from "@/components/skeletons/PageSkeletons";
+import { useConfetti } from "@/hooks/useConfetti";
 
 interface MoodEntry {
   id: string;
@@ -30,6 +31,7 @@ const MoodTracker = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { isOnline } = useOnlineStatus();
+  const { fireConfetti, fireStars } = useConfetti();
   const [entries, setEntries] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showLogger, setShowLogger] = useState(false);
@@ -39,6 +41,8 @@ const MoodTracker = () => {
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState("09:00");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isFirstMoodEntry, setIsFirstMoodEntry] = useState(false);
+  const hasCheckedFirstEntry = useRef(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -84,6 +88,13 @@ const MoodTracker = () => {
 
       if (error) throw error;
       setEntries(data || []);
+      
+      // Check if this is user's first mood entry (for confetti)
+      if (!hasCheckedFirstEntry.current && data) {
+        hasCheckedFirstEntry.current = true;
+        setIsFirstMoodEntry(data.length === 0);
+      }
+      
       // Cache data for offline use
       localStorage.setItem("cached_mood_entries", JSON.stringify(data || []));
     } catch (error) {
@@ -135,7 +146,18 @@ const MoodTracker = () => {
       setShowLogger(false);
       setSelectedMood(null);
       setNotes("");
-      toast.success("Mood logged successfully!");
+      
+      // Fire confetti for first mood check-in
+      if (isFirstMoodEntry) {
+        setIsFirstMoodEntry(false);
+        setTimeout(() => {
+          fireConfetti();
+          fireStars();
+        }, 300);
+        toast.success("🎉 First mood logged! Keep it up!");
+      } else {
+        toast.success("Mood logged successfully!");
+      }
     } catch (error) {
       console.error("Error saving mood:", error);
       toast.error("Failed to save mood entry");
