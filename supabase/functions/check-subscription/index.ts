@@ -171,7 +171,8 @@ async function syncSubscriptionToDatabase(
   supabaseKey: string,
   userId: string,
   plan: string,
-  expiresAt: string | null
+  expiresAt: string | null,
+  source: 'stripe' | 'admin' | 'system' = 'stripe'
 ) {
   try {
     const tierId = PLAN_TO_TIER_ID[plan] || PLAN_TO_TIER_ID["free"];
@@ -209,6 +210,7 @@ async function syncSubscriptionToDatabase(
             status: plan === "free" ? "inactive" : "active",
             expires_at: expiresAt,
             updated_at: new Date().toISOString(),
+            source: source,
           }),
         }
       );
@@ -236,6 +238,7 @@ async function syncSubscriptionToDatabase(
             status: plan === "free" ? "inactive" : "active",
             expires_at: expiresAt,
             started_at: new Date().toISOString(),
+            source: source,
           }),
         }
       );

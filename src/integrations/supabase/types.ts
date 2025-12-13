@@ -952,6 +952,7 @@ export type Database = {
           created_at: string | null
           expires_at: string | null
           id: string
+          source: string
           started_at: string | null
           status: string
           tier_id: string
@@ -962,6 +963,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           id?: string
+          source?: string
           started_at?: string | null
           status?: string
           tier_id: string
@@ -972,6 +974,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           id?: string
+          source?: string
           started_at?: string | null
           status?: string
           tier_id?: string
