@@ -8,6 +8,7 @@ import LunaAvatar from "@/components/LunaAvatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
+import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -111,111 +112,113 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-hero flex flex-col">
-      {/* Header */}
-      <header className="container mx-auto px-6 py-6">
-        <motion.div
-          className="flex items-center gap-3 cursor-pointer"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          onClick={() => navigate("/")}
-        >
-          <LunaAvatar size="sm" showGlow={false} />
-          <span className="font-heading font-bold text-xl text-foreground">LUNA</span>
-        </motion.div>
-      </header>
+    <MobileOnlyLayout hideTabBar>
+      <div className="min-h-screen gradient-hero flex flex-col safe-area-top">
+        {/* Header */}
+        <header className="px-6 py-4">
+          <motion.div
+            className="flex items-center gap-3 cursor-pointer"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            onClick={() => navigate("/")}
+          >
+            <LunaAvatar size="sm" showGlow={false} />
+            <span className="font-heading font-bold text-xl text-foreground">LUNA</span>
+          </motion.div>
+        </header>
 
-      {/* Auth Form */}
-      <main className="flex-1 flex items-center justify-center px-6 pb-20">
-        <motion.div
-          className="w-full max-w-md"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="bg-card rounded-3xl p-8 shadow-luna border border-border">
-            <div className="text-center mb-8">
-              <LunaAvatar size="lg" className="mx-auto mb-4" />
-              <h1 className="font-heading text-2xl font-bold text-foreground mb-2">
-                {isLogin ? "Welcome Back" : "Create Your Safe Space"}
-              </h1>
-              <p className="text-muted-foreground">
-                {isLogin
-                  ? "Luna remembers your journey. Let's continue."
-                  : "Start your healing journey with Luna."}
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-foreground">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-12 rounded-xl border-border bg-background"
-                  disabled={loading}
-                />
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email}</p>
-                )}
+        {/* Auth Form */}
+        <main className="flex-1 flex items-center justify-center px-6 pb-10">
+          <motion.div
+            className="w-full max-w-md"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="bg-card rounded-3xl p-6 shadow-luna border border-border">
+              <div className="text-center mb-6">
+                <LunaAvatar size="lg" className="mx-auto mb-4" />
+                <h1 className="font-heading text-xl font-bold text-foreground mb-2">
+                  {isLogin ? "Welcome Back" : "Create Your Safe Space"}
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  {isLogin
+                    ? "Luna remembers your journey. Let's continue."
+                    : "Start your healing journey with Luna."}
+                </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-foreground">
-                  Password
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-12 rounded-xl border-border bg-background"
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-foreground text-sm">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-12 rounded-xl border-border bg-background"
+                    disabled={loading}
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-destructive">{errors.email}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-foreground text-sm">
+                    Password
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-12 rounded-xl border-border bg-background"
+                    disabled={loading}
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-destructive">{errors.password}</p>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  variant="peach"
+                  size="lg"
+                  className="w-full"
                   disabled={loading}
-                />
-                {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password}</p>
-                )}
+                >
+                  {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
+                </Button>
+              </form>
+
+              <div className="mt-5 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setErrors({});
+                  }}
+                  className="text-muted-foreground hover:text-accent transition-colors text-sm"
+                >
+                  {isLogin
+                    ? "Don't have an account? Sign up"
+                    : "Already have an account? Sign in"}
+                </button>
               </div>
-
-              <Button
-                type="submit"
-                variant="peach"
-                size="lg"
-                className="w-full"
-                disabled={loading}
-              >
-                {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setErrors({});
-                }}
-                className="text-muted-foreground hover:text-accent transition-colors text-sm"
-              >
-                {isLogin
-                  ? "Don't have an account? Sign up"
-                  : "Already have an account? Sign in"}
-              </button>
             </div>
-          </div>
 
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            Your conversations are private and encrypted. 💜
-          </p>
-        </motion.div>
-      </main>
-    </div>
+            <p className="text-center text-xs text-muted-foreground mt-4">
+              Your conversations are private and encrypted. 💜
+            </p>
+          </motion.div>
+        </main>
+      </div>
+    </MobileOnlyLayout>
   );
 };
 
