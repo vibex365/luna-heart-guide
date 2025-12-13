@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.weekly-insights]
 verify_jwt = false
+
+[functions.push-notifications]
+verify_jwt = false
