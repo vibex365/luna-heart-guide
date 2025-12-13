@@ -15,21 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-
-// Helper to send SMS notification to partner
-const notifyPartnerSms = async (partnerId: string) => {
-  try {
-    await supabase.functions.invoke("send-sms", {
-      body: {
-        action: "send-notification",
-        userId: partnerId,
-        message: "💜 Luna: Your partner just completed their relationship assessment. Check it out to see your updated scores!",
-      },
-    });
-  } catch (error) {
-    console.error("Failed to send partner SMS notification:", error);
-  }
-};
+import { notifyPartner } from "@/utils/smsNotifications";
 
 interface Question {
   id: string;
@@ -221,7 +207,7 @@ export const RelationshipAssessment = () => {
       
       // Send SMS notification to partner
       if (partnerId) {
-        notifyPartnerSms(partnerId);
+        notifyPartner.assessmentComplete(partnerId);
       }
       
       toast({

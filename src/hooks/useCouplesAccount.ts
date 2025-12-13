@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { notifyPartner } from "@/utils/smsNotifications";
 
 export interface PartnerLink {
   id: string;
@@ -236,6 +237,11 @@ export const useCouplesAccount = () => {
     },
   });
 
+  // Calculate partnerId early so it can be used in mutations
+  const partnerId = partnerLink 
+    ? (partnerLink.user_id === user?.id ? partnerLink.partner_id : partnerLink.user_id)
+    : null;
+
   // Add shared mood mutation
   const addSharedMoodMutation = useMutation({
     mutationFn: async (mood: { mood_level: number; mood_label: string; notes?: string; is_visible_to_partner?: boolean }) => {
@@ -257,15 +263,17 @@ export const useCouplesAccount = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["shared-moods"] });
+      
+      // Send SMS notification to partner if mood is visible
+      if (data?.is_visible_to_partner && partnerId) {
+        notifyPartner.moodLogged(partnerId, data.mood_label);
+      }
     },
   });
 
   const isLinked = !!partnerLink && partnerLink.status === "accepted";
-  const partnerId = partnerLink 
-    ? (partnerLink.user_id === user?.id ? partnerLink.partner_id : partnerLink.user_id)
-    : null;
 
   return {
     partnerLink,

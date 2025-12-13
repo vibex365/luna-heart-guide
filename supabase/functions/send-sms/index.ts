@@ -72,16 +72,16 @@ serve(async (req) => {
         );
       }
 
-      // Validate phone number format (basic E.164 check)
-      const cleanPhone = phoneNumber.replace(/\D/g, "");
-      if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+      // Validate phone number format - must start with + and have 8-15 digits
+      const cleaned = phoneNumber.replace(/[^\d+]/g, "");
+      if (!cleaned.startsWith("+") || cleaned.length < 9 || cleaned.length > 16) {
         return new Response(
-          JSON.stringify({ error: "Invalid phone number format" }),
+          JSON.stringify({ error: "Invalid phone number format. Use international format: +[country code][number]" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const formattedPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${cleanPhone}`;
+      const formattedPhone = cleaned;
 
       // Rate limiting: Check if user sent a code in the last 60 seconds
       const { data: recentCode } = await supabase
@@ -129,8 +129,16 @@ serve(async (req) => {
         );
       }
 
-      const cleanPhone = phoneNumber.replace(/\D/g, "");
-      const formattedPhone = phoneNumber.startsWith("+") ? phoneNumber : `+${cleanPhone}`;
+      // Validate phone format
+      const cleaned = phoneNumber.replace(/[^\d+]/g, "");
+      if (!cleaned.startsWith("+")) {
+        return new Response(
+          JSON.stringify({ error: "Invalid phone format" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const formattedPhone = cleaned;
 
       // Find valid verification code
       const { data: verification, error: verifyError } = await supabase

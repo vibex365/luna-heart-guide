@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Target, CheckCircle2, Clock, Star, RefreshCw, Sparkles } from "lucide-react";
+import { Target, CheckCircle2, Clock, Star, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { startOfDay, isToday } from "date-fns";
+import { startOfDay } from "date-fns";
+import { notifyPartner } from "@/utils/smsNotifications";
 
 interface Challenge {
   id: string;
@@ -38,7 +39,7 @@ const categoryIcons: Record<string, string> = {
 
 export const DailyChallenges = () => {
   const { user } = useAuth();
-  const { partnerLink, isLinked } = useCouplesAccount();
+  const { partnerLink, isLinked, partnerId } = useCouplesAccount();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
@@ -93,8 +94,15 @@ export const DailyChallenges = () => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, challengeId) => {
       queryClient.invalidateQueries({ queryKey: ["completed-challenges-today"] });
+      
+      // Find the challenge to get its title for notification
+      const challenge = challenges.find(c => c.id === challengeId);
+      if (partnerId && challenge) {
+        notifyPartner.challengeCompleted(partnerId, challenge.title);
+      }
+      
       toast({
         title: "Challenge Completed! 🎉",
         description: "Great job! Keep the connection strong.",
