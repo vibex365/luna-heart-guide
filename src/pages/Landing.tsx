@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles, HelpCircle, LogIn, Rocket, Crown, Check } from "lucide-react";
+import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles, HelpCircle, LogIn, Rocket, Crown, Check, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import { useNavigate } from "react-router-dom";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
+import PWAInstallInstructions from "@/components/PWAInstallInstructions";
 import {
   Tooltip,
   TooltipContent,
@@ -23,6 +24,7 @@ interface ReelSlide {
   description: string;
   cta?: string;
   isPricing?: boolean;
+  isInstall?: boolean;
 }
 
 const pricingPlans = [
@@ -98,6 +100,15 @@ const slides: ReelSlide[] = [
   },
   {
     id: 5,
+    gradient: "from-accent/15 via-background to-background",
+    icon: Download,
+    title: "Install Luna",
+    subtitle: "Always Available",
+    description: "",
+    isInstall: true,
+  },
+  {
+    id: 6,
     gradient: "from-primary/25 via-background to-background",
     icon: Crown,
     title: "Simple Pricing",
@@ -259,7 +270,33 @@ const Landing = () => {
 
             {/* Content */}
             <main className="flex-1 flex flex-col items-center justify-center px-6 pb-32">
-              {slide.isPricing ? (
+              {slide.isInstall ? (
+                <>
+                  <motion.p
+                    className="text-accent text-sm font-medium mb-2 uppercase tracking-wider"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    {slide.subtitle}
+                  </motion.p>
+                  <motion.h1
+                    className="font-heading text-2xl font-bold text-foreground mb-6 text-center"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                  >
+                    {slide.title}
+                  </motion.h1>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <PWAInstallInstructions />
+                  </motion.div>
+                </>
+              ) : slide.isPricing ? (
                 <>
                   <motion.p
                     className="text-accent text-sm font-medium mb-2 uppercase tracking-wider"
