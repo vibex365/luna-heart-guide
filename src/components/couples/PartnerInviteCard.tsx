@@ -58,18 +58,34 @@ export const PartnerInviteCard = () => {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2"
+              className="space-y-2"
             >
-              <div className="flex-1 bg-muted rounded-lg px-4 py-3 font-mono text-lg tracking-widest text-center">
-                {latestInvite.invite_code}
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-muted rounded-lg px-4 py-3 font-mono text-lg tracking-widest text-center">
+                  {latestInvite.invite_code}
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleCopyCode}
+                  className="shrink-0"
+                >
+                  {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                </Button>
               </div>
               <Button
-                variant="outline"
-                size="icon"
-                onClick={handleCopyCode}
-                className="shrink-0"
+                onClick={() => createInvite(undefined)}
+                disabled={isCreatingInvite}
+                variant="ghost"
+                size="sm"
+                className="w-full text-muted-foreground"
               >
-                {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                {isCreatingInvite ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <UserPlus className="w-4 h-4 mr-2" />
+                )}
+                Generate New Code
               </Button>
             </motion.div>
           ) : (
