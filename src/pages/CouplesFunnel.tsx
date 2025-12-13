@@ -206,11 +206,11 @@ const CouplesFunnel = () => {
             size="lg"
             className="bg-couples-accent hover:bg-couples-accent/90 text-background font-semibold px-8 py-6 text-lg rounded-full shadow-lg"
           >
-            {isLoading ? "Loading..." : "Start Reconnecting – $19/mo"}
+            {isLoading ? "Loading..." : "Start Together – $19/mo for Both"}
           </Button>
           
-          <p className="text-xs text-white/50 mt-3">
-            Both partners included. Cancel anytime.
+          <p className="text-xs text-white/70 mt-3 font-medium">
+            ✨ One subscription, two accounts. Cancel anytime.
           </p>
         </motion.div>
 
@@ -364,8 +364,8 @@ const CouplesFunnel = () => {
               </div>
               <p className="text-xs text-couples-accent uppercase tracking-wide mb-2">Luna Couples</p>
               <p className="text-2xl font-bold text-couples-accent">$19</p>
-              <p className="text-xs text-white/60">per month</p>
-              <p className="text-xs text-white/50 mt-2">Both partners included</p>
+              <p className="text-xs text-white/60">per month, total</p>
+              <p className="text-xs text-white/80 mt-2 font-medium">2 accounts included ✨</p>
             </div>
           </div>
           
@@ -395,11 +395,11 @@ const CouplesFunnel = () => {
             size="lg"
             className="bg-couples-accent hover:bg-couples-accent/90 text-background font-semibold px-8 py-6 text-lg rounded-full shadow-lg w-full"
           >
-            {isLoading ? "Loading..." : "Start Reconnecting Today – $19"}
+            {isLoading ? "Loading..." : "Start Together – $19/mo for Both"}
           </Button>
           
-          <p className="text-xs text-white/50 mt-3">
-            Both partners. Cancel anytime.
+          <p className="text-xs text-white/70 mt-3 font-medium">
+            ✨ One subscription covers both partners. Cancel anytime.
           </p>
         </motion.div>
       </section>
