@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Camera, User, Save, Heart, Users, Sparkles, MessageCircle, LogOut, Crown } from "lucide-react";
+import { Camera, User, Save, Heart, Users, Sparkles, MessageCircle, LogOut, Crown, Link2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 interface Profile {
   id: string;
@@ -62,6 +63,143 @@ const communicationOptions = [
   { value: "validation", label: "I need validation first" },
   { value: "actionable", label: "Give me actionable steps" },
 ];
+
+// Couples Section Component
+const CouplesSection = ({ userId, navigate }: { userId?: string; navigate: (path: string) => void }) => {
+  // Check subscription
+  const { data: subscription } = useQuery({
+    queryKey: ["couples-subscription", userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      
+      const { data } = await supabase
+        .from("user_subscriptions")
+        .select(`
+          tier_id,
+          subscription_tiers!inner(slug, name)
+        `)
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .maybeSingle();
+
+      return data;
+    },
+    enabled: !!userId,
+  });
+
+  // Check partner link status
+  const { data: partnerLink } = useQuery({
+    queryKey: ["partner-link-status", userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      
+      const { data } = await supabase
+        .from("partner_links")
+        .select("*, profiles!partner_links_partner_id_fkey(display_name)")
+        .or(`user_id.eq.${userId},partner_id.eq.${userId}`)
+        .eq("status", "accepted")
+        .maybeSingle();
+
+      return data;
+    },
+    enabled: !!userId,
+  });
+
+  // Fetch partner's display name
+  const { data: partnerProfile } = useQuery({
+    queryKey: ["partner-profile-name", partnerLink],
+    queryFn: async () => {
+      if (!partnerLink || !userId) return null;
+      
+      const partnerId = partnerLink.user_id === userId ? partnerLink.partner_id : partnerLink.user_id;
+      if (!partnerId) return null;
+
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", partnerId)
+        .maybeSingle();
+
+      return data;
+    },
+    enabled: !!partnerLink && !!userId,
+  });
+
+  const hasCouplesSubscription = subscription?.subscription_tiers?.slug === "couples";
+  const isLinked = !!partnerLink;
+
+  return (
+    <div className="bg-gradient-to-br from-pink-500/5 to-purple-500/5 rounded-3xl p-6 shadow-luna border border-pink-500/20">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 rounded-xl bg-pink-500/10">
+          <Heart className="w-5 h-5 text-pink-500" />
+        </div>
+        <div className="flex-1">
+          <h3 className="font-semibold text-foreground">Couples</h3>
+          <p className="text-sm text-muted-foreground">
+            {hasCouplesSubscription 
+              ? isLinked 
+                ? `Connected with ${partnerProfile?.display_name || "your partner"}`
+                : "Link your partner's account"
+              : "Share your journey together"
+            }
+          </p>
+        </div>
+      </div>
+
+      {hasCouplesSubscription ? (
+        <div className="space-y-3">
+          {isLinked ? (
+            <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+              <Link2 className="w-4 h-4 text-green-500" />
+              <span className="text-sm text-green-600 dark:text-green-400">
+                Partner linked successfully
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 p-3 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
+              <UserPlus className="w-4 h-4 text-yellow-600" />
+              <span className="text-sm text-yellow-600 dark:text-yellow-400">
+                No partner linked yet
+              </span>
+            </div>
+          )}
+          <Button 
+            variant="outline" 
+            className="w-full border-pink-500/30 hover:bg-pink-500/10"
+            onClick={() => navigate("/couples")}
+          >
+            <Heart className="w-4 h-4 mr-2 text-pink-500" />
+            {isLinked ? "View Couples Dashboard" : "Link Partner"}
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Upgrade to Couples plan to unlock shared mood tracking, relationship health scores, and couples activities.
+          </p>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="flex-1"
+              onClick={() => navigate("/couples")}
+            >
+              Learn More
+            </Button>
+            <Button 
+              size="sm"
+              className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:opacity-90"
+              onClick={() => navigate("/subscription")}
+            >
+              Upgrade
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ProfileSettings = () => {
   const navigate = useNavigate();
@@ -475,6 +613,9 @@ const ProfileSettings = () => {
           <div className="bg-card rounded-3xl p-8 shadow-luna border border-border">
             <ConversationAnalytics />
           </div>
+
+          {/* Couples Section */}
+          <CouplesSection userId={user?.id} navigate={navigate} />
 
           {/* Subscription Section */}
           <div className="bg-card rounded-3xl p-6 shadow-luna border border-border">
