@@ -1,42 +1,139 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircleHeart, Target, Sparkles, Shield, ChevronLeft, ChevronRight, Users, TrendingUp, Gift, Calendar } from 'lucide-react';
+import { Heart, MessageCircleHeart, Target, Sparkles, Shield, ChevronLeft, ChevronRight, Users, TrendingUp, Gift, Calendar, MessageSquare, Home, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useFunnelTracking } from '@/hooks/useFunnelTracking';
 
+// Segment-specific content configuration
+const segmentContent = {
+  'couples-communication': {
+    headline: "Stop Having the Same Argument on Repeat.",
+    subheadline: "Luna helps you break the cycle — together.",
+    heroIcon: MessageSquare,
+    painPoints: [
+      "Having the same argument again... and again",
+      "Feeling like you're speaking different languages",
+      "One of you shuts down while the other explodes",
+      "Walking on eggshells just to keep the peace"
+    ],
+    testimonials: [
+      {
+        quote: "We used to argue about the same things every week. Luna gave us scripts that actually work.",
+        author: "Together 4 years",
+        emoji: "🔄"
+      },
+      {
+        quote: "The conflict resolution tools helped us stop yelling and start listening.",
+        author: "Married 3 years",
+        emoji: "🗣️"
+      },
+      {
+        quote: "We finally learned HOW to communicate, not just what to say.",
+        author: "Dating 2 years",
+        emoji: "💬"
+      }
+    ],
+    ctaText: "Break the Cycle Together",
+    relatabilityTagline: "You're not incompatible. You're stuck in a pattern."
+  },
+  'couples-disconnected': {
+    headline: "Feel Like Roommates Instead of Partners?",
+    subheadline: "Reignite your connection with daily rituals that bring you closer.",
+    heroIcon: Home,
+    painPoints: [
+      "Living together but feeling miles apart",
+      "Missing the spark you used to have",
+      "Conversations that never go deeper than logistics",
+      "Wondering where 'us' went"
+    ],
+    testimonials: [
+      {
+        quote: "The daily appreciation prompts reminded us why we fell in love.",
+        author: "Together 6 years",
+        emoji: "💕"
+      },
+      {
+        quote: "We went from roommates to actually dating each other again.",
+        author: "Married 5 years",
+        emoji: "🏠"
+      },
+      {
+        quote: "Luna's activities gave us something to share beyond Netflix and chores.",
+        author: "Living together 2 years",
+        emoji: "✨"
+      }
+    ],
+    ctaText: "Reconnect as Partners",
+    relatabilityTagline: "You're not falling out of love. You've just stopped nurturing it."
+  },
+  'couples-trust': {
+    headline: "Rebuild Trust Without the Constant Suspicion.",
+    subheadline: "Tools for transparency, healing, and moving forward together.",
+    heroIcon: ShieldAlert,
+    painPoints: [
+      "Trust was broken and you're still picking up pieces",
+      "Jealousy that spirals into arguments",
+      "Constantly checking or being checked on",
+      "Wanting to heal but not knowing how"
+    ],
+    testimonials: [
+      {
+        quote: "Luna helped us have the hard conversations we kept avoiding.",
+        author: "Rebuilding 1 year",
+        emoji: "🛡️"
+      },
+      {
+        quote: "The shared mood tracking showed me when my partner was struggling, not hiding.",
+        author: "Together 3 years",
+        emoji: "💔"
+      },
+      {
+        quote: "We learned to be transparent without it feeling like surveillance.",
+        author: "Married 4 years",
+        emoji: "🤝"
+      }
+    ],
+    ctaText: "Start Rebuilding Together",
+    relatabilityTagline: "Healing is possible. But it takes both of you."
+  },
+  default: {
+    headline: "Reconnect Before It's Too Late.",
+    subheadline: "Communication tools that actually work. Together.",
+    heroIcon: Heart,
+    painPoints: [
+      "Having the same argument again",
+      "Feeling unheard even when they're listening",
+      "Missing the connection you used to have",
+      "Wondering if you're growing apart"
+    ],
+    testimonials: [
+      {
+        quote: "We stopped fighting about the same things every week. Luna helped us break the cycle.",
+        author: "Together 4 years",
+        emoji: "💕"
+      },
+      {
+        quote: "The appreciation prompts reminded us why we fell in love in the first place.",
+        author: "Married 2 years",
+        emoji: "🥰"
+      },
+      {
+        quote: "Our relationship score helped us see what we were missing. Now we're stronger than ever.",
+        author: "Dating 18 months",
+        emoji: "📈"
+      }
+    ],
+    ctaText: "Start Together – $19/mo for Both",
+    relatabilityTagline: "You're not failing. You're struggling to communicate."
+  }
+};
+
 // Testimonial Carousel Component
-const TestimonialCarousel = () => {
+const TestimonialCarousel = ({ testimonials }: { testimonials: typeof segmentContent.default.testimonials }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  
-  const testimonials = [
-    {
-      quote: "We stopped fighting about the same things every week. Luna helped us break the cycle.",
-      author: "Together 4 years",
-      emoji: "💕"
-    },
-    {
-      quote: "The appreciation prompts reminded us why we fell in love in the first place.",
-      author: "Married 2 years",
-      emoji: "🥰"
-    },
-    {
-      quote: "Our relationship score helped us see what we were missing. Now we're stronger than ever.",
-      author: "Dating 18 months",
-      emoji: "📈"
-    },
-    {
-      quote: "We finally understand each other's love language. It changed everything.",
-      author: "Engaged couple",
-      emoji: "💝"
-    },
-    {
-      quote: "Luna gave us a safe space to be honest without judgment.",
-      author: "Together 6 years",
-      emoji: "🤝"
-    }
-  ];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -108,14 +205,20 @@ const TestimonialCarousel = () => {
 };
 
 const CouplesFunnel = () => {
+  const [searchParams] = useSearchParams();
+  const segment = searchParams.get('segment') || 'default';
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { trackEvent, getUTMData } = useFunnelTracking('couples');
 
+  // Get segment-specific content
+  const content = segmentContent[segment as keyof typeof segmentContent] || segmentContent.default;
+  const HeroIcon = content.heroIcon;
+
   const handleCheckout = async () => {
     setIsLoading(true);
     try {
-      // Track checkout start
+      // Track checkout start with segment
       await trackEvent('checkout_start');
       
       const utmData = getUTMData();
@@ -124,7 +227,7 @@ const CouplesFunnel = () => {
         body: {
           priceId: 'price_1SdhytAsrgxssNTVvlvnqvZr',
           returnUrl: '/couples-welcome',
-          metadata: utmData
+          metadata: { ...utmData, segment }
         }
       });
 
@@ -153,13 +256,6 @@ const CouplesFunnel = () => {
     { icon: Calendar, text: "Weekly insights on your partnership" }
   ];
 
-  const painPoints = [
-    "Having the same argument again",
-    "Feeling unheard even when they're listening",
-    "Missing the connection you used to have",
-    "Wondering if you're growing apart"
-  ];
-
   const steps = [
     { number: "1", title: "Both partners join Luna", description: "Create your shared space" },
     { number: "2", title: "Complete activities together", description: "Quizzes, prompts & check-ins" },
@@ -184,16 +280,16 @@ const CouplesFunnel = () => {
             className="mb-6"
           >
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-couples-accent/20 border border-couples-accent/30">
-              <Heart className="w-10 h-10 text-couples-accent" fill="currentColor" />
+              <HeroIcon className="w-10 h-10 text-couples-accent" fill="currentColor" />
             </div>
           </motion.div>
 
           <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight text-white">
-            Reconnect Before<br />It's Too Late.
+            {content.headline}
           </h1>
           
           <p className="text-xl text-white/90 mb-3">
-            Communication tools that actually work. Together.
+            {content.subheadline}
           </p>
           
           <p className="text-sm text-couples-accent mb-8">
@@ -206,7 +302,7 @@ const CouplesFunnel = () => {
             size="lg"
             className="bg-couples-accent hover:bg-couples-accent/90 text-background font-semibold px-8 py-6 text-lg rounded-full shadow-lg"
           >
-            {isLoading ? "Loading..." : "Start Together – $19/mo for Both"}
+            {isLoading ? "Loading..." : content.ctaText}
           </Button>
           
           <p className="text-xs text-white/70 mt-3 font-medium">
@@ -235,7 +331,7 @@ const CouplesFunnel = () => {
           <h2 className="text-2xl font-bold mb-8">Sound familiar?</h2>
           
           <div className="space-y-4 mb-8">
-            {painPoints.map((point, index) => (
+            {content.painPoints.map((point, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
@@ -250,7 +346,7 @@ const CouplesFunnel = () => {
           </div>
           
           <p className="text-couples-accent font-medium">
-            You're not failing. You're struggling to communicate.
+            {content.relatabilityTagline}
           </p>
         </motion.div>
       </section>
@@ -304,7 +400,7 @@ const CouplesFunnel = () => {
           <p className="text-white/60">See what others are saying</p>
         </motion.div>
         
-        <TestimonialCarousel />
+        <TestimonialCarousel testimonials={content.testimonials} />
       </section>
 
       {/* How It Works Section */}
@@ -395,7 +491,7 @@ const CouplesFunnel = () => {
             size="lg"
             className="bg-couples-accent hover:bg-couples-accent/90 text-background font-semibold px-8 py-6 text-lg rounded-full shadow-lg w-full"
           >
-            {isLoading ? "Loading..." : "Start Together – $19/mo for Both"}
+            {isLoading ? "Loading..." : content.ctaText}
           </Button>
           
           <p className="text-xs text-white/70 mt-3 font-medium">
