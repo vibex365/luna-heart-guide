@@ -10,8 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Copy, ExternalLink, MessageCircle, Eye, TrendingUp } from "lucide-react";
+import { Save, Copy, ExternalLink, MessageCircle, Eye, TrendingUp, Users, Download, RefreshCw } from "lucide-react";
+import { format } from "date-fns";
 
 interface Segment {
   id: string;
@@ -24,10 +27,29 @@ interface Segment {
   is_active: boolean;
 }
 
+interface Lead {
+  id: string;
+  subscriber_id: string;
+  first_name: string | null;
+  email: string | null;
+  phone: string | null;
+  segment: string;
+  source: string;
+  status: string;
+  interaction_count: number;
+  created_at: string;
+  last_interaction_at: string;
+  converted_at: string | null;
+}
+
 const AdminMarketing = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [editingSegment, setEditingSegment] = useState<Segment | null>(null);
+  const [leadFilter, setLeadFilter] = useState<{ segment: string; status: string }>({
+    segment: "all",
+    status: "all",
+  });
 
   const baseUrl = window.location.origin;
 
@@ -44,6 +66,53 @@ const AdminMarketing = () => {
     },
   });
 
+  const { data: leads, isLoading: leadsLoading, refetch: refetchLeads } = useQuery({
+    queryKey: ['leads', leadFilter],
+    queryFn: async () => {
+      let query = supabase
+        .from('leads')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      
+      if (leadFilter.segment !== "all") {
+        query = query.eq('segment', leadFilter.segment);
+      }
+      if (leadFilter.status !== "all") {
+        query = query.eq('status', leadFilter.status);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as Lead[];
+    },
+  });
+
+  const { data: leadStats } = useQuery({
+    queryKey: ['lead-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('leads')
+        .select('segment, status');
+      
+      if (error) throw error;
+      
+      const stats = {
+        total: data?.length || 0,
+        new: data?.filter(l => l.status === 'new').length || 0,
+        followedUp: data?.filter(l => l.status === 'followed_up').length || 0,
+        converted: data?.filter(l => l.status === 'converted').length || 0,
+        bySegment: {} as Record<string, number>,
+      };
+      
+      data?.forEach(lead => {
+        stats.bySegment[lead.segment] = (stats.bySegment[lead.segment] || 0) + 1;
+      });
+      
+      return stats;
+    },
+  });
+
   const { data: segmentStats } = useQuery({
     queryKey: ['segment-stats'],
     queryFn: async () => {
@@ -55,7 +124,6 @@ const AdminMarketing = () => {
       
       if (error) throw error;
       
-      // Calculate stats per segment
       const stats: Record<string, { views: number; checkouts: number; conversions: number }> = {};
       data?.forEach(event => {
         const seg = event.segment || 'none';
@@ -96,9 +164,59 @@ const AdminMarketing = () => {
     },
   });
 
+  const updateLeadStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const updateData: Record<string, unknown> = { status };
+      if (status === 'converted') {
+        updateData.converted_at = new Date().toISOString();
+      }
+      
+      const { error } = await supabase
+        .from('leads')
+        .update(updateData)
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['lead-stats'] });
+      toast({ title: "Lead status updated" });
+    },
+  });
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copied to clipboard" });
+  };
+
+  const exportLeads = () => {
+    if (!leads?.length) return;
+    
+    const csv = [
+      ['ID', 'First Name', 'Email', 'Phone', 'Segment', 'Status', 'Source', 'Created', 'Interactions'].join(','),
+      ...leads.map(lead => [
+        lead.subscriber_id,
+        lead.first_name || '',
+        lead.email || '',
+        lead.phone || '',
+        lead.segment,
+        lead.status,
+        lead.source,
+        format(new Date(lead.created_at), 'yyyy-MM-dd HH:mm'),
+        lead.interaction_count,
+      ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `leads-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    toast({ title: "Leads exported" });
   };
 
   const dmTemplates = [
@@ -149,20 +267,185 @@ Want to feel more at peace?
     },
   ];
 
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'new': return 'default';
+      case 'followed_up': return 'secondary';
+      case 'converted': return 'outline';
+      default: return 'secondary';
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="p-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold">Marketing & Segments</h1>
-          <p className="text-muted-foreground">Manage DM funnel segments and copy</p>
+          <p className="text-muted-foreground">Manage DM funnel segments, leads, and copy</p>
         </div>
 
-        <Tabs defaultValue="segments" className="space-y-6">
+        <Tabs defaultValue="leads" className="space-y-6">
           <TabsList>
+            <TabsTrigger value="leads">Leads</TabsTrigger>
             <TabsTrigger value="segments">Segment Content</TabsTrigger>
             <TabsTrigger value="dm-templates">DM Templates</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
           </TabsList>
+
+          {/* Leads Tab */}
+          <TabsContent value="leads" className="space-y-4">
+            {/* Lead Stats */}
+            <div className="grid gap-4 md:grid-cols-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Total Leads</CardDescription>
+                  <CardTitle className="text-3xl">{leadStats?.total || 0}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>New</CardDescription>
+                  <CardTitle className="text-3xl text-blue-500">{leadStats?.new || 0}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Followed Up</CardDescription>
+                  <CardTitle className="text-3xl text-yellow-500">{leadStats?.followedUp || 0}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Converted</CardDescription>
+                  <CardTitle className="text-3xl text-green-500">{leadStats?.converted || 0}</CardTitle>
+                </CardHeader>
+              </Card>
+            </div>
+
+            {/* Filters and Actions */}
+            <div className="flex flex-wrap gap-4 items-center justify-between">
+              <div className="flex gap-4">
+                <Select
+                  value={leadFilter.segment}
+                  onValueChange={(value) => setLeadFilter(prev => ({ ...prev, segment: value }))}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by segment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Segments</SelectItem>
+                    <SelectItem value="overthinking">Overthinking</SelectItem>
+                    <SelectItem value="breakup">Breakup</SelectItem>
+                    <SelectItem value="anxiety">Anxiety</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select
+                  value={leadFilter.status}
+                  onValueChange={(value) => setLeadFilter(prev => ({ ...prev, status: value }))}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="followed_up">Followed Up</SelectItem>
+                    <SelectItem value="converted">Converted</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => refetchLeads()}>
+                  <RefreshCw className="w-4 h-4 mr-1" />
+                  Refresh
+                </Button>
+                <Button variant="outline" size="sm" onClick={exportLeads} disabled={!leads?.length}>
+                  <Download className="w-4 h-4 mr-1" />
+                  Export CSV
+                </Button>
+              </div>
+            </div>
+
+            {/* Leads Table */}
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Segment</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Interactions</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {leadsLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8">
+                          Loading leads...
+                        </TableCell>
+                      </TableRow>
+                    ) : !leads?.length ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          No leads found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      leads.map((lead) => (
+                        <TableRow key={lead.id}>
+                          <TableCell className="font-medium">
+                            {lead.first_name || 'Unknown'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              {lead.email && <div>{lead.email}</div>}
+                              {lead.phone && <div className="text-muted-foreground">{lead.phone}</div>}
+                              {!lead.email && !lead.phone && <span className="text-muted-foreground">—</span>}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="capitalize">
+                              {lead.segment}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusBadgeVariant(lead.status)}>
+                              {lead.status.replace('_', ' ')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{lead.interaction_count}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {format(new Date(lead.created_at), 'MMM d, HH:mm')}
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={lead.status}
+                              onValueChange={(value) => updateLeadStatus.mutate({ id: lead.id, status: value })}
+                            >
+                              <SelectTrigger className="w-[130px] h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="new">New</SelectItem>
+                                <SelectItem value="followed_up">Followed Up</SelectItem>
+                                <SelectItem value="converted">Converted</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Segment Content Tab */}
           <TabsContent value="segments" className="space-y-4">
