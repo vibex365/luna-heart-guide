@@ -724,6 +724,69 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          converted_at: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string
+          interaction_count: number | null
+          last_interaction_at: string | null
+          notes: string | null
+          phone: string | null
+          segment: string
+          source: string
+          status: string
+          subscriber_id: string
+          updated_at: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          converted_at?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_interaction_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          segment: string
+          source?: string
+          status?: string
+          subscriber_id: string
+          updated_at?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          converted_at?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_interaction_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          segment?: string
+          source?: string
+          status?: string
+          subscriber_id?: string
+          updated_at?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
       love_language_results: {
         Row: {
           completed_at: string

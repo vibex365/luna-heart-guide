@@ -10,7 +10,7 @@ interface ManyChatPayload {
   subscriber_id: string;
   first_name?: string;
   email?: string;
-  keyword: string; // overthinking, breakup, anxiety
+  keyword: string;
   phone?: string;
 }
 
@@ -23,13 +23,7 @@ interface SegmentData {
   cta_text: string;
 }
 
-// Personalized DM responses based on segment
-const getPersonalizedResponse = (segment: SegmentData, firstName: string): { message: string; buttonText: string; buttonUrl: string } => {
-  const baseUrl = Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", "") || "";
-  const projectRef = baseUrl.split("//")[1]?.split(".")[0] || "";
-  
-  // Use production URL or fallback
-  const appUrl = "https://luna.app"; // Replace with actual production URL
+const getPersonalizedResponse = (segment: SegmentData, firstName: string, appUrl: string): { message: string; buttonText: string; buttonUrl: string } => {
   const segmentUrl = `${appUrl}/dm?segment=${segment.slug}&utm_source=instagram&utm_medium=dm&utm_campaign=manychat`;
 
   const responses: Record<string, { message: string; buttonText: string }> = {
@@ -81,7 +75,6 @@ Want to feel more at peace?`,
 };
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -115,29 +108,66 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch segment data from database
-    const { data: segmentData, error: segmentError } = await supabase
-      .from("dm_segments")
-      .select("*")
-      .eq("slug", segmentSlug)
-      .eq("is_active", true)
-      .single();
+    // Upsert lead data - update if exists, insert if new
+    const { data: existingLead, error: findError } = await supabase
+      .from("leads")
+      .select("id, interaction_count")
+      .eq("subscriber_id", subscriber_id)
+      .eq("source", "manychat")
+      .maybeSingle();
 
-    if (segmentError || !segmentData) {
-      console.error("[ManyChat Webhook] Segment not found:", segmentError);
-      // Use default segment
+    if (findError) {
+      console.error("[ManyChat Webhook] Error finding lead:", findError);
     }
 
-    const segment: SegmentData = segmentData || {
-      slug: segmentSlug,
-      name: segmentSlug.charAt(0).toUpperCase() + segmentSlug.slice(1),
-      headline: "Stop Overthinking in 30 Days.",
-      subheadline: "Your AI relationship companion.",
-      pain_points: [],
-      cta_text: "Talk to Luna Now",
-    };
+    if (existingLead) {
+      // Update existing lead
+      const { error: updateError } = await supabase
+        .from("leads")
+        .update({
+          first_name: first_name || undefined,
+          email: email || undefined,
+          phone: phone || undefined,
+          segment: segmentSlug,
+          utm_content: keyword,
+          last_interaction_at: new Date().toISOString(),
+          interaction_count: (existingLead.interaction_count || 1) + 1,
+        })
+        .eq("id", existingLead.id);
 
-    // Track the webhook event
+      if (updateError) {
+        console.error("[ManyChat Webhook] Error updating lead:", updateError);
+      } else {
+        console.log("[ManyChat Webhook] Updated existing lead:", existingLead.id);
+      }
+    } else {
+      // Insert new lead
+      const { data: newLead, error: insertError } = await supabase
+        .from("leads")
+        .insert({
+          subscriber_id,
+          first_name,
+          email,
+          phone,
+          segment: segmentSlug,
+          source: "manychat",
+          utm_source: "instagram",
+          utm_medium: "dm",
+          utm_campaign: "manychat",
+          utm_content: keyword,
+          status: "new",
+        })
+        .select("id")
+        .single();
+
+      if (insertError) {
+        console.error("[ManyChat Webhook] Error inserting lead:", insertError);
+      } else {
+        console.log("[ManyChat Webhook] Created new lead:", newLead?.id);
+      }
+    }
+
+    // Track the funnel event
     const { error: trackError } = await supabase.from("funnel_events").insert({
       event_type: "manychat_trigger",
       funnel_type: "dm",
@@ -153,14 +183,35 @@ serve(async (req) => {
       console.error("[ManyChat Webhook] Error tracking event:", trackError);
     }
 
+    // Fetch segment data from database
+    const { data: segmentData, error: segmentError } = await supabase
+      .from("dm_segments")
+      .select("*")
+      .eq("slug", segmentSlug)
+      .eq("is_active", true)
+      .single();
+
+    if (segmentError) {
+      console.error("[ManyChat Webhook] Segment not found:", segmentError);
+    }
+
+    const segment: SegmentData = segmentData || {
+      slug: segmentSlug,
+      name: segmentSlug.charAt(0).toUpperCase() + segmentSlug.slice(1),
+      headline: "Stop Overthinking in 30 Days.",
+      subheadline: "Your AI relationship companion.",
+      pain_points: [],
+      cta_text: "Talk to Luna Now",
+    };
+
     // Generate personalized response
     const name = first_name || "friend";
-    const response = getPersonalizedResponse(segment, name);
+    const appUrl = "https://luna.app"; // Replace with actual production URL
+    const response = getPersonalizedResponse(segment, name, appUrl);
 
     console.log("[ManyChat Webhook] Sending response for segment:", segmentSlug);
 
     // Return ManyChat-compatible response format
-    // ManyChat expects specific format for dynamic content
     return new Response(
       JSON.stringify({
         version: "v2",
