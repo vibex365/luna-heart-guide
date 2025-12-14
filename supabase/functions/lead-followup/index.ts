@@ -18,11 +18,18 @@ interface Lead {
 
 type FollowUpType = "24h" | "72h";
 
+// Check if segment is for couples
+const isCouplesSegment = (segment: string): boolean => {
+  return segment.startsWith('couples-');
+};
+
 const getFollowUpMessage = (segment: string, firstName: string, followUpType: FollowUpType): { message: string; buttonText: string } => {
   const name = firstName || "Hey";
+  const isCouples = isCouplesSegment(segment);
   
   if (followUpType === "24h") {
-    const messages: Record<string, { message: string; buttonText: string }> = {
+    // Singles 24h messages
+    const singlesMessages: Record<string, { message: string; buttonText: string }> = {
       overthinking: {
         message: `${name}, just checking in 💭
 
@@ -54,10 +61,51 @@ Want to give it a try?`,
         buttonText: "Find Calm",
       },
     };
-    return messages[segment] || messages.overthinking;
+
+    // Couples 24h messages
+    const couplesMessages: Record<string, { message: string; buttonText: string }> = {
+      'couples-communication': {
+        message: `${name}, just checking in 💕
+
+Still having those same conversations that go nowhere? You're not alone.
+
+Luna for Couples has helped thousands of partners break the cycle.
+
+One session could change how you both feel tonight.
+
+Ready to try together?`,
+        buttonText: "Start Together",
+      },
+      'couples-disconnected': {
+        message: `${name}, thinking of you both 💫
+
+Feeling distant from each other is so hard. But it doesn't have to stay this way.
+
+Luna for Couples can help you find your way back.
+
+Want to reconnect?`,
+        buttonText: "Reconnect Now",
+      },
+      'couples-trust': {
+        message: `${name}, just wanted to check in 💜
+
+Rebuilding trust takes time. But having the right tools makes all the difference.
+
+Luna for Couples is here when you're both ready.
+
+No rush. We're here.`,
+        buttonText: "Start Healing",
+      },
+    };
+
+    if (isCouples) {
+      return couplesMessages[segment] || couplesMessages['couples-communication'];
+    }
+    return singlesMessages[segment] || singlesMessages.overthinking;
   } else {
-    // 72-hour follow-up messages - more urgent/valuable
-    const messages: Record<string, { message: string; buttonText: string }> = {
+    // 72-hour follow-up messages
+    // Singles 72h messages
+    const singlesMessages: Record<string, { message: string; buttonText: string }> = {
       overthinking: {
         message: `${name}, one last thing 💭
 
@@ -95,7 +143,51 @@ Ready?`,
         buttonText: "Start Feeling Better",
       },
     };
-    return messages[segment] || messages.overthinking;
+
+    // Couples 72h messages
+    const couplesMessages: Record<string, { message: string; buttonText: string }> = {
+      'couples-communication': {
+        message: `${name}, one last thing 💕
+
+It's been a few days. How are things between you two?
+
+Couples who use Luna together say it's like having a relationship coach in your pocket — without the awkward silences.
+
+Maybe tonight's the night to try something different?
+
+💕`,
+        buttonText: "Try It Together",
+      },
+      'couples-disconnected': {
+        message: `${name}, sending warmth to you both 💫
+
+I know feeling disconnected is lonely — even when you're in the same room.
+
+Luna for Couples has helped thousands of partners find their way back to each other.
+
+You don't have to figure this out alone.
+
+💕`,
+        buttonText: "Reconnect Tonight",
+      },
+      'couples-trust': {
+        message: `${name}, final check-in 💜
+
+Trust doesn't rebuild overnight. But every step forward matters.
+
+Luna for Couples gives you both a safe space to heal — together.
+
+When you're ready, we're here.
+
+💕`,
+        buttonText: "Take the First Step",
+      },
+    };
+
+    if (isCouples) {
+      return couplesMessages[segment] || couplesMessages['couples-communication'];
+    }
+    return singlesMessages[segment] || singlesMessages.overthinking;
   }
 };
 
@@ -187,12 +279,16 @@ serve(async (req) => {
       );
     }
 
-    const appUrl = "https://luna.app";
+    const appUrl = "https://talkswithluna.com";
     const results = {
       followUp24h: { sent: 0, failed: 0 },
       followUp72h: { sent: 0, failed: 0 },
-      details: [] as Array<{ subscriber_id: string; type: string; success: boolean; error?: string }>,
+      details: [] as Array<{ subscriber_id: string; type: string; segment: string; success: boolean; error?: string }>,
     };
+
+    // Helper to get the correct funnel path
+    const getFunnelPath = (segment: string) => isCouplesSegment(segment) ? '/couples-funnel' : '/dm';
+    const getFunnelType = (segment: string) => isCouplesSegment(segment) ? 'couples_dm' : 'dm';
 
     // Manual trigger for specific leads
     if (manualLeadIds?.length) {
@@ -208,7 +304,8 @@ serve(async (req) => {
       for (const lead of manualLeads || []) {
         const followUpType = forceFollowUpType || "24h";
         const followUp = getFollowUpMessage(lead.segment, lead.first_name || "", followUpType);
-        const buttonUrl = `${appUrl}/dm?segment=${lead.segment}&utm_source=instagram&utm_medium=dm&utm_campaign=followup_manual`;
+        const funnelPath = getFunnelPath(lead.segment);
+        const buttonUrl = `${appUrl}${funnelPath}?segment=${lead.segment}&utm_source=instagram&utm_medium=dm&utm_campaign=followup_manual`;
 
         const sendResult = await sendManyChatMessage(
           lead.subscriber_id,
@@ -221,6 +318,7 @@ serve(async (req) => {
         results.details.push({
           subscriber_id: lead.subscriber_id,
           type: `manual_${followUpType}`,
+          segment: lead.segment,
           success: sendResult.success,
           error: sendResult.error,
         });
@@ -234,7 +332,7 @@ serve(async (req) => {
 
           await supabase.from("funnel_events").insert({
             event_type: `followup_${followUpType}_sent`,
-            funnel_type: "dm",
+            funnel_type: getFunnelType(lead.segment),
             segment: lead.segment,
             utm_source: "instagram",
             utm_medium: "dm",
@@ -278,7 +376,8 @@ serve(async (req) => {
 
     for (const lead of leads24h || []) {
       const followUp = getFollowUpMessage(lead.segment, lead.first_name || "", "24h");
-      const buttonUrl = `${appUrl}/dm?segment=${lead.segment}&utm_source=instagram&utm_medium=dm&utm_campaign=followup_24h`;
+      const funnelPath = getFunnelPath(lead.segment);
+      const buttonUrl = `${appUrl}${funnelPath}?segment=${lead.segment}&utm_source=instagram&utm_medium=dm&utm_campaign=followup_24h`;
 
       const sendResult = await sendManyChatMessage(
         lead.subscriber_id,
@@ -291,6 +390,7 @@ serve(async (req) => {
       results.details.push({
         subscriber_id: lead.subscriber_id,
         type: "24h",
+        segment: lead.segment,
         success: sendResult.success,
         error: sendResult.error,
       });
@@ -304,7 +404,7 @@ serve(async (req) => {
 
         await supabase.from("funnel_events").insert({
           event_type: "followup_24h_sent",
-          funnel_type: "dm",
+          funnel_type: getFunnelType(lead.segment),
           segment: lead.segment,
           utm_source: "instagram",
           utm_medium: "dm",
@@ -335,7 +435,8 @@ serve(async (req) => {
 
     for (const lead of leads72h || []) {
       const followUp = getFollowUpMessage(lead.segment, lead.first_name || "", "72h");
-      const buttonUrl = `${appUrl}/dm?segment=${lead.segment}&utm_source=instagram&utm_medium=dm&utm_campaign=followup_72h`;
+      const funnelPath = getFunnelPath(lead.segment);
+      const buttonUrl = `${appUrl}${funnelPath}?segment=${lead.segment}&utm_source=instagram&utm_medium=dm&utm_campaign=followup_72h`;
 
       const sendResult = await sendManyChatMessage(
         lead.subscriber_id,
@@ -348,6 +449,7 @@ serve(async (req) => {
       results.details.push({
         subscriber_id: lead.subscriber_id,
         type: "72h",
+        segment: lead.segment,
         success: sendResult.success,
         error: sendResult.error,
       });
@@ -361,7 +463,7 @@ serve(async (req) => {
 
         await supabase.from("funnel_events").insert({
           event_type: "followup_72h_sent",
-          funnel_type: "dm",
+          funnel_type: getFunnelType(lead.segment),
           segment: lead.segment,
           utm_source: "instagram",
           utm_medium: "dm",

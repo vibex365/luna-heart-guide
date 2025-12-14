@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Copy, ExternalLink, MessageCircle, Eye, TrendingUp, Users, Download, RefreshCw, Send, Loader2, Plus, TestTube } from "lucide-react";
+import { Save, Copy, Eye, MessageCircle, TrendingUp, Users, Download, RefreshCw, Send, Loader2, Plus, TestTube, Heart } from "lucide-react";
 import { format } from "date-fns";
 
 interface Segment {
@@ -46,9 +46,10 @@ const AdminMarketing = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [editingSegment, setEditingSegment] = useState<Segment | null>(null);
-  const [leadFilter, setLeadFilter] = useState<{ segment: string; status: string }>({
+  const [leadFilter, setLeadFilter] = useState<{ segment: string; status: string; funnelType: string }>({
     segment: "all",
     status: "all",
+    funnelType: "all",
   });
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [sendingFollowUp, setSendingFollowUp] = useState(false);
@@ -63,6 +64,9 @@ const AdminMarketing = () => {
 
   const baseUrl = window.location.origin;
 
+  // Check if segment is for couples
+  const isCouplesSegment = (segment: string) => segment.startsWith('couples-');
+
   const { data: segments, isLoading } = useQuery({
     queryKey: ['dm-segments'],
     queryFn: async () => {
@@ -75,6 +79,10 @@ const AdminMarketing = () => {
       return data as Segment[];
     },
   });
+
+  // Separate segments into singles and couples
+  const singlesSegments = segments?.filter(s => !isCouplesSegment(s.slug)) || [];
+  const couplesSegments = segments?.filter(s => isCouplesSegment(s.slug)) || [];
 
   const { data: leads, isLoading: leadsLoading, refetch: refetchLeads } = useQuery({
     queryKey: ['leads', leadFilter],
@@ -90,6 +98,13 @@ const AdminMarketing = () => {
       }
       if (leadFilter.status !== "all") {
         query = query.eq('status', leadFilter.status);
+      }
+      if (leadFilter.funnelType !== "all") {
+        if (leadFilter.funnelType === "singles") {
+          query = query.not('segment', 'like', 'couples-%');
+        } else if (leadFilter.funnelType === "couples") {
+          query = query.like('segment', 'couples-%');
+        }
       }
       
       const { data, error } = await query;
@@ -112,6 +127,8 @@ const AdminMarketing = () => {
         new: data?.filter(l => l.status === 'new').length || 0,
         followedUp: data?.filter(l => l.status === 'followed_up').length || 0,
         converted: data?.filter(l => l.status === 'converted').length || 0,
+        singles: data?.filter(l => !l.segment.startsWith('couples-')).length || 0,
+        couples: data?.filter(l => l.segment.startsWith('couples-')).length || 0,
         bySegment: {} as Record<string, number>,
       };
       
@@ -128,8 +145,8 @@ const AdminMarketing = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('funnel_events')
-        .select('segment, event_type')
-        .eq('funnel_type', 'dm')
+        .select('segment, event_type, funnel_type')
+        .in('funnel_type', ['dm', 'couples_dm'])
         .not('segment', 'is', null);
       
       if (error) throw error;
@@ -250,24 +267,25 @@ const AdminMarketing = () => {
     }
   };
 
-  const createTestLead = async () => {
+  const createTestLead = async (isCouples = false) => {
     setCreatingTestLead(true);
     try {
+      const segment = isCouples ? "couples-communication" : "overthinking";
       const { error } = await supabase.from('leads').insert({
         subscriber_id: `test_${Date.now()}`,
         first_name: "Test User",
         email: "test@example.com",
-        segment: "overthinking",
+        segment,
         source: "manual",
         status: "new",
         utm_source: "admin",
         utm_medium: "test",
-        utm_campaign: "manual_test",
+        utm_campaign: isCouples ? "manual_test_couples" : "manual_test",
       });
       
       if (error) throw error;
       
-      toast({ title: "Test lead created successfully" });
+      toast({ title: `Test ${isCouples ? 'couples' : 'singles'} lead created` });
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       queryClient.invalidateQueries({ queryKey: ['lead-stats'] });
     } catch (error) {
@@ -364,9 +382,11 @@ const AdminMarketing = () => {
     toast({ title: "Leads exported" });
   };
 
-  const dmTemplates = [
+  // DM Templates for singles
+  const singlesDmTemplates = [
     {
       segment: "overthinking",
+      keyword: "overthinking",
       message: `Hey {{first_name}} 👋
 
 That loop of replaying every conversation... analyzing every pause...
@@ -382,6 +402,7 @@ Want to try her for 30 days?
     },
     {
       segment: "breakup",
+      keyword: "breakup",
       message: `Hey {{first_name}} 💔
 
 Breakups are hard. Especially when everyone says "just move on" but your heart isn't ready.
@@ -397,6 +418,7 @@ Ready to start healing?
     },
     {
       segment: "anxiety",
+      keyword: "anxiety",
       message: `Hey {{first_name}} 💕
 
 That anxious feeling about where you stand in your relationship... the constant need for reassurance...
@@ -412,6 +434,58 @@ Want to feel more at peace?
     },
   ];
 
+  // DM Templates for couples
+  const couplesDmTemplates = [
+    {
+      segment: "couples-communication",
+      keyword: "communication",
+      message: `Hey {{first_name}} 💕
+
+Having the same argument on repeat? That's exhausting for both of you.
+
+Luna for Couples helps you break the cycle — together.
+
+Real tools. No awkward silences. One subscription for both of you.
+
+Ready to reconnect?
+
+👇 Tap below`,
+      link: `${baseUrl}/couples-funnel?segment=couples-communication&utm_source=instagram&utm_medium=dm&utm_campaign=manychat_couples`,
+    },
+    {
+      segment: "couples-disconnected",
+      keyword: "disconnected",
+      message: `Hey {{first_name}} 💫
+
+Feeling more like roommates than partners? You're not alone.
+
+Luna for Couples helps you rediscover each other — one conversation at a time.
+
+Thousands of couples use it to find their way back to each other.
+
+Ready to feel connected again?
+
+👇 Tap below`,
+      link: `${baseUrl}/couples-funnel?segment=couples-disconnected&utm_source=instagram&utm_medium=dm&utm_campaign=manychat_couples`,
+    },
+    {
+      segment: "couples-trust",
+      keyword: "trust",
+      message: `Hey {{first_name}} 💜
+
+Rebuilding trust isn't easy. But you don't have to figure it out alone.
+
+Luna for Couples gives you both the tools to heal — together.
+
+No blame. No shame. Just progress.
+
+Ready to start healing?
+
+👇 Tap below`,
+      link: `${baseUrl}/couples-funnel?segment=couples-trust&utm_source=instagram&utm_medium=dm&utm_campaign=manychat_couples`,
+    },
+  ];
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'new': return 'default';
@@ -422,12 +496,216 @@ Want to feel more at peace?
     }
   };
 
+  const getSegmentPreviewUrl = (segment: Segment) => {
+    const isCouples = isCouplesSegment(segment.slug);
+    return isCouples 
+      ? `${baseUrl}/couples-funnel?segment=${segment.slug}`
+      : `${baseUrl}/dm?segment=${segment.slug}`;
+  };
+
+  const renderSegmentCard = (segment: Segment) => (
+    <Card key={segment.id}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <CardTitle className="text-lg">{segment.name}</CardTitle>
+            <Badge variant={segment.is_active ? "default" : "secondary"}>
+              {segment.is_active ? "Active" : "Inactive"}
+            </Badge>
+            {isCouplesSegment(segment.slug) && (
+              <Badge variant="outline" className="gap-1">
+                <Heart className="w-3 h-3" />
+                Couples
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(getSegmentPreviewUrl(segment), '_blank')}
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              Preview
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditingSegment(segment)}
+            >
+              Edit
+            </Button>
+          </div>
+        </div>
+        <CardDescription>
+          URL: {getSegmentPreviewUrl(segment)}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-2 h-6 px-2"
+            onClick={() => copyToClipboard(getSegmentPreviewUrl(segment))}
+          >
+            <Copy className="w-3 h-3" />
+          </Button>
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {editingSegment?.id === segment.id ? (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Headline</Label>
+              <Input
+                value={editingSegment.headline}
+                onChange={(e) => setEditingSegment({
+                  ...editingSegment,
+                  headline: e.target.value,
+                })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Subheadline</Label>
+              <Textarea
+                value={editingSegment.subheadline}
+                onChange={(e) => setEditingSegment({
+                  ...editingSegment,
+                  subheadline: e.target.value,
+                })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Pain Points (one per line)</Label>
+              <Textarea
+                rows={4}
+                value={editingSegment.pain_points.join('\n')}
+                onChange={(e) => setEditingSegment({
+                  ...editingSegment,
+                  pain_points: e.target.value.split('\n').filter(p => p.trim()),
+                })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>CTA Button Text</Label>
+              <Input
+                value={editingSegment.cta_text}
+                onChange={(e) => setEditingSegment({
+                  ...editingSegment,
+                  cta_text: e.target.value,
+                })}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={editingSegment.is_active}
+                onCheckedChange={(checked) => setEditingSegment({
+                  ...editingSegment,
+                  is_active: checked,
+                })}
+              />
+              <Label>Active</Label>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => updateSegment.mutate(editingSegment)}
+                disabled={updateSegment.isPending}
+              >
+                <Save className="w-4 h-4 mr-1" />
+                Save Changes
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setEditingSegment(null)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3 text-sm">
+            <div>
+              <span className="text-muted-foreground">Headline:</span>
+              <p className="font-medium">{segment.headline}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Subheadline:</span>
+              <p>{segment.subheadline}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Pain Points:</span>
+              <ul className="list-disc list-inside">
+                {segment.pain_points.map((point, i) => (
+                  <li key={i}>{point}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <span className="text-muted-foreground">CTA:</span>
+              <p className="font-medium">{segment.cta_text}</p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderDmTemplates = (templates: typeof singlesDmTemplates, title: string, isCouples: boolean) => (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          {isCouples ? <Heart className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
+          {title}
+        </CardTitle>
+        <CardDescription>
+          Copy these messages into ManyChat. Keywords: {templates.map(t => t.keyword).join(', ')}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {templates.map((template, index) => (
+          <div key={index} className="border rounded-lg p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="capitalize">
+                  {template.segment}
+                </Badge>
+                <Badge variant="secondary">Keyword: {template.keyword}</Badge>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyToClipboard(template.message)}
+              >
+                <Copy className="w-4 h-4 mr-1" />
+                Copy Message
+              </Button>
+            </div>
+            <pre className="bg-muted p-3 rounded text-sm whitespace-pre-wrap font-mono">
+              {template.message}
+            </pre>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Button Link:</span>
+              <code className="bg-muted px-2 py-1 rounded text-xs flex-1 truncate">
+                {template.link}
+              </code>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2"
+                onClick={() => copyToClipboard(template.link)}
+              >
+                <Copy className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <AdminLayout>
       <div className="p-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold">Marketing & Segments</h1>
-          <p className="text-muted-foreground">Manage DM funnel segments, leads, and copy</p>
+          <p className="text-muted-foreground">Manage DM funnel segments, leads, and copy for singles & couples</p>
         </div>
 
         <Tabs defaultValue="leads" className="space-y-6">
@@ -450,11 +728,19 @@ Want to feel more at peace?
                 <div className="flex gap-2">
                   <Button 
                     variant="outline" 
-                    onClick={createTestLead}
+                    onClick={() => createTestLead(false)}
                     disabled={creatingTestLead}
                   >
                     {creatingTestLead ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Plus className="w-4 h-4 mr-1" />}
-                    Create Test Lead
+                    Singles Lead
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => createTestLead(true)}
+                    disabled={creatingTestLead}
+                  >
+                    {creatingTestLead ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Heart className="w-4 h-4 mr-1" />}
+                    Couples Lead
                   </Button>
                 </div>
                 <div className="flex gap-2 items-end">
@@ -464,13 +750,16 @@ Want to feel more at peace?
                       value={webhookTestData.keyword}
                       onValueChange={(value) => setWebhookTestData(prev => ({ ...prev, keyword: value }))}
                     >
-                      <SelectTrigger className="w-[140px]">
+                      <SelectTrigger className="w-[160px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="overthinking">overthinking</SelectItem>
                         <SelectItem value="breakup">breakup</SelectItem>
                         <SelectItem value="anxiety">anxiety</SelectItem>
+                        <SelectItem value="communication">communication</SelectItem>
+                        <SelectItem value="disconnected">disconnected</SelectItem>
+                        <SelectItem value="trust">trust</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -494,11 +783,23 @@ Want to feel more at peace?
             </Card>
 
             {/* Lead Stats */}
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-6">
               <Card>
                 <CardHeader className="pb-2">
                   <CardDescription>Total Leads</CardDescription>
                   <CardTitle className="text-3xl">{leadStats?.total || 0}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Singles</CardDescription>
+                  <CardTitle className="text-3xl text-purple-500">{leadStats?.singles || 0}</CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Couples</CardDescription>
+                  <CardTitle className="text-3xl text-pink-500">{leadStats?.couples || 0}</CardTitle>
                 </CardHeader>
               </Card>
               <Card>
@@ -523,12 +824,26 @@ Want to feel more at peace?
 
             {/* Filters and Actions */}
             <div className="flex flex-wrap gap-4 items-center justify-between">
-              <div className="flex gap-4">
+              <div className="flex gap-4 flex-wrap">
+                <Select
+                  value={leadFilter.funnelType}
+                  onValueChange={(value) => setLeadFilter(prev => ({ ...prev, funnelType: value }))}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Funnel type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Funnels</SelectItem>
+                    <SelectItem value="singles">Singles</SelectItem>
+                    <SelectItem value="couples">Couples</SelectItem>
+                  </SelectContent>
+                </Select>
+                
                 <Select
                   value={leadFilter.segment}
                   onValueChange={(value) => setLeadFilter(prev => ({ ...prev, segment: value }))}
                 >
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-[200px]">
                     <SelectValue placeholder="Filter by segment" />
                   </SelectTrigger>
                   <SelectContent>
@@ -536,6 +851,9 @@ Want to feel more at peace?
                     <SelectItem value="overthinking">Overthinking</SelectItem>
                     <SelectItem value="breakup">Breakup</SelectItem>
                     <SelectItem value="anxiety">Anxiety</SelectItem>
+                    <SelectItem value="couples-communication">Couples - Communication</SelectItem>
+                    <SelectItem value="couples-disconnected">Couples - Disconnected</SelectItem>
+                    <SelectItem value="couples-trust">Couples - Trust</SelectItem>
                   </SelectContent>
                 </Select>
                 
@@ -656,9 +974,14 @@ Want to feel more at peace?
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="capitalize">
-                              {lead.segment}
-                            </Badge>
+                            <div className="flex items-center gap-1">
+                              <Badge variant="outline" className="capitalize">
+                                {lead.segment.replace('couples-', '')}
+                              </Badge>
+                              {isCouplesSegment(lead.segment) && (
+                                <Heart className="w-3 h-3 text-pink-500" />
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <Badge variant={getStatusBadgeVariant(lead.status)}>
@@ -695,270 +1018,96 @@ Want to feel more at peace?
           </TabsContent>
 
           {/* Segment Content Tab */}
-          <TabsContent value="segments" className="space-y-4">
+          <TabsContent value="segments" className="space-y-6">
             {isLoading ? (
               <p>Loading segments...</p>
             ) : (
-              <div className="grid gap-4">
-                {segments?.map((segment) => (
-                  <Card key={segment.id}>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <CardTitle className="text-lg">{segment.name}</CardTitle>
-                          <Badge variant={segment.is_active ? "default" : "secondary"}>
-                            {segment.is_active ? "Active" : "Inactive"}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(`${baseUrl}/dm?segment=${segment.slug}`, '_blank')}
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            Preview
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEditingSegment(segment)}
-                          >
-                            Edit
-                          </Button>
-                        </div>
-                      </div>
-                      <CardDescription>
-                        URL: {baseUrl}/dm?segment={segment.slug}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="ml-2 h-6 px-2"
-                          onClick={() => copyToClipboard(`${baseUrl}/dm?segment=${segment.slug}`)}
-                        >
-                          <Copy className="w-3 h-3" />
-                        </Button>
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {editingSegment?.id === segment.id ? (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>Headline</Label>
-                            <Input
-                              value={editingSegment.headline}
-                              onChange={(e) => setEditingSegment({
-                                ...editingSegment,
-                                headline: e.target.value,
-                              })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Subheadline</Label>
-                            <Textarea
-                              value={editingSegment.subheadline}
-                              onChange={(e) => setEditingSegment({
-                                ...editingSegment,
-                                subheadline: e.target.value,
-                              })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Pain Points (one per line)</Label>
-                            <Textarea
-                              rows={4}
-                              value={editingSegment.pain_points.join('\n')}
-                              onChange={(e) => setEditingSegment({
-                                ...editingSegment,
-                                pain_points: e.target.value.split('\n').filter(p => p.trim()),
-                              })}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>CTA Button Text</Label>
-                            <Input
-                              value={editingSegment.cta_text}
-                              onChange={(e) => setEditingSegment({
-                                ...editingSegment,
-                                cta_text: e.target.value,
-                              })}
-                            />
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={editingSegment.is_active}
-                              onCheckedChange={(checked) => setEditingSegment({
-                                ...editingSegment,
-                                is_active: checked,
-                              })}
-                            />
-                            <Label>Active</Label>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={() => updateSegment.mutate(editingSegment)}
-                              disabled={updateSegment.isPending}
-                            >
-                              <Save className="w-4 h-4 mr-1" />
-                              Save Changes
-                            </Button>
-                            <Button
-                              variant="outline"
-                              onClick={() => setEditingSegment(null)}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-3 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Headline:</span>
-                            <p className="font-medium">{segment.headline}</p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Subheadline:</span>
-                            <p>{segment.subheadline}</p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Pain Points:</span>
-                            <ul className="list-disc list-inside">
-                              {segment.pain_points.map((point, i) => (
-                                <li key={i}>{point}</li>
-                              ))}
-                            </ul>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">CTA:</span>
-                            <p className="font-medium">{segment.cta_text}</p>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <>
+                {/* Singles Segments */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    Singles Segments
+                  </h2>
+                  <div className="grid gap-4">
+                    {singlesSegments.map(renderSegmentCard)}
+                  </div>
+                </div>
+
+                {/* Couples Segments */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    <Heart className="w-5 h-5" />
+                    Couples Segments
+                  </h2>
+                  <div className="grid gap-4">
+                    {couplesSegments.map(renderSegmentCard)}
+                  </div>
+                </div>
+              </>
             )}
           </TabsContent>
 
           {/* DM Templates Tab */}
-          <TabsContent value="dm-templates" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageCircle className="w-5 h-5" />
-                  ManyChat DM Templates
-                </CardTitle>
-                <CardDescription>
-                  Copy these messages into your ManyChat flow for each button
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {dmTemplates.map((template, index) => (
-                  <div key={index} className="border rounded-lg p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="capitalize">
-                        {template.segment}
-                      </Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => copyToClipboard(template.message)}
-                      >
-                        <Copy className="w-4 h-4 mr-1" />
-                        Copy Message
-                      </Button>
-                    </div>
-                    <pre className="bg-muted p-3 rounded text-sm whitespace-pre-wrap font-mono">
-                      {template.message}
-                    </pre>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">Button Link:</span>
-                      <code className="bg-muted px-2 py-1 rounded text-xs flex-1 truncate">
-                        {template.link}
-                      </code>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(template.link)}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => window.open(template.link, '_blank')}
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>ManyChat Setup Instructions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 text-sm">
-                <ol className="list-decimal list-inside space-y-3">
-                  <li>Create a new Flow in ManyChat triggered by "Comment Automation" or "Story Reply"</li>
-                  <li>Add a "Send Message" block with the question: "What's been on your mind lately?"</li>
-                  <li>Add 3 Quick Reply buttons:
-                    <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
-                      <li><strong>😵‍💫 Overthinking</strong></li>
-                      <li><strong>💔 Breakup</strong></li>
-                      <li><strong>😰 Relationship Anxiety</strong></li>
-                    </ul>
-                  </li>
-                  <li>For each button, create a new message block with the corresponding template above</li>
-                  <li>Add a "Button" block under each message with the link and text "Talk to Luna Now"</li>
-                  <li>Test the flow before publishing</li>
-                </ol>
-              </CardContent>
-            </Card>
+          <TabsContent value="dm-templates" className="space-y-6">
+            {renderDmTemplates(singlesDmTemplates, "Singles DM Templates", false)}
+            {renderDmTemplates(couplesDmTemplates, "Couples DM Templates", true)}
           </TabsContent>
 
           {/* Performance Tab */}
           <TabsContent value="performance" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-3">
-              {segments?.map((segment) => {
-                const stats = segmentStats?.[segment.slug] || { views: 0, checkouts: 0, conversions: 0 };
-                const conversionRate = stats.views > 0 
-                  ? ((stats.checkouts / stats.views) * 100).toFixed(1) 
-                  : '0.0';
-                
-                return (
-                  <Card key={segment.id}>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4" />
-                        {segment.name}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Page Views</span>
-                        <span className="font-medium">{stats.views}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Checkout Starts</span>
-                        <span className="font-medium">{stats.checkouts}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Conversions</span>
-                        <span className="font-medium">{stats.conversions}</span>
-                      </div>
-                      <div className="pt-2 border-t flex justify-between">
-                        <span className="text-muted-foreground">Conversion Rate</span>
-                        <span className="font-bold text-primary">{conversionRate}%</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  Segment Performance
+                </CardTitle>
+                <CardDescription>
+                  Track views, checkouts, and conversions by segment
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Segment</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="text-right">Leads</TableHead>
+                      <TableHead className="text-right">Page Views</TableHead>
+                      <TableHead className="text-right">Checkouts</TableHead>
+                      <TableHead className="text-right">Conversions</TableHead>
+                      <TableHead className="text-right">Conv. Rate</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {segments?.map((segment) => {
+                      const stats = segmentStats?.[segment.slug] || { views: 0, checkouts: 0, conversions: 0 };
+                      const leads = leadStats?.bySegment[segment.slug] || 0;
+                      const convRate = stats.views > 0 
+                        ? ((stats.conversions / stats.views) * 100).toFixed(1)
+                        : '0.0';
+                      const isCouples = isCouplesSegment(segment.slug);
+                      
+                      return (
+                        <TableRow key={segment.id}>
+                          <TableCell className="font-medium">{segment.name}</TableCell>
+                          <TableCell>
+                            <Badge variant={isCouples ? "outline" : "secondary"}>
+                              {isCouples ? "Couples" : "Singles"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">{leads}</TableCell>
+                          <TableCell className="text-right">{stats.views}</TableCell>
+                          <TableCell className="text-right">{stats.checkouts}</TableCell>
+                          <TableCell className="text-right">{stats.conversions}</TableCell>
+                          <TableCell className="text-right">{convRate}%</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
