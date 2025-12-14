@@ -12,7 +12,8 @@ import {
   AlertTriangle,
   LogOut,
   MessageSquare,
-  Bell
+  Bell,
+  Megaphone
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ const navItems = [
   { icon: AlertTriangle, label: "Safety", path: "/admin/safety" },
   { icon: BarChart3, label: "Analytics", path: "/admin/analytics" },
   { icon: BarChart3, label: "Funnels", path: "/admin/funnels" },
+  { icon: Megaphone, label: "Marketing", path: "/admin/marketing" },
   { icon: MessageSquare, label: "Feedback", path: "/admin/feedback" },
   { icon: Bell, label: "Notifications", path: "/admin/notifications" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },
