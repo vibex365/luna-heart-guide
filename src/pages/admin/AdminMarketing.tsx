@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Copy, ExternalLink, MessageCircle, Eye, TrendingUp, Users, Download, RefreshCw } from "lucide-react";
+import { Save, Copy, ExternalLink, MessageCircle, Eye, TrendingUp, Users, Download, RefreshCw, Send, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface Segment {
@@ -50,6 +50,8 @@ const AdminMarketing = () => {
     segment: "all",
     status: "all",
   });
+  const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
+  const [sendingFollowUp, setSendingFollowUp] = useState(false);
 
   const baseUrl = window.location.origin;
 
@@ -185,6 +187,78 @@ const AdminMarketing = () => {
     },
   });
 
+  const triggerFollowUp = async (leadIds: string[], followUpType: "24h" | "72h") => {
+    setSendingFollowUp(true);
+    try {
+      const response = await supabase.functions.invoke('lead-followup', {
+        body: { lead_ids: leadIds, follow_up_type: followUpType },
+      });
+      
+      if (response.error) throw response.error;
+      
+      const data = response.data;
+      toast({
+        title: "Follow-up DMs sent",
+        description: `Sent: ${data.followUp24h?.sent || 0 + data.followUp72h?.sent || 0}, Failed: ${data.followUp24h?.failed || 0 + data.followUp72h?.failed || 0}`,
+      });
+      
+      setSelectedLeads([]);
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['lead-stats'] });
+    } catch (error) {
+      toast({
+        title: "Error sending follow-ups",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingFollowUp(false);
+    }
+  };
+
+  const triggerAutomatedFollowUp = async () => {
+    setSendingFollowUp(true);
+    try {
+      const response = await supabase.functions.invoke('lead-followup');
+      
+      if (response.error) throw response.error;
+      
+      const data = response.data;
+      toast({
+        title: "Automated follow-up completed",
+        description: `24h: ${data.followUp24h?.sent || 0} sent, 72h: ${data.followUp72h?.sent || 0} sent`,
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['lead-stats'] });
+    } catch (error) {
+      toast({
+        title: "Error running follow-up",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingFollowUp(false);
+    }
+  };
+
+  const toggleLeadSelection = (leadId: string) => {
+    setSelectedLeads(prev => 
+      prev.includes(leadId) 
+        ? prev.filter(id => id !== leadId)
+        : [...prev, leadId]
+    );
+  };
+
+  const selectAllLeads = () => {
+    if (!leads) return;
+    if (selectedLeads.length === leads.length) {
+      setSelectedLeads([]);
+    } else {
+      setSelectedLeads(leads.map(l => l.id));
+    }
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copied to clipboard" });
@@ -271,6 +345,7 @@ Want to feel more at peace?
     switch (status) {
       case 'new': return 'default';
       case 'followed_up': return 'secondary';
+      case 'followed_up_72h': return 'secondary';
       case 'converted': return 'outline';
       default: return 'secondary';
     }
@@ -350,13 +425,44 @@ Want to feel more at peace?
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="followed_up">Followed Up</SelectItem>
+                    <SelectItem value="followed_up">Followed Up (24h)</SelectItem>
+                    <SelectItem value="followed_up_72h">Followed Up (72h)</SelectItem>
                     <SelectItem value="converted">Converted</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
+                {selectedLeads.length > 0 && (
+                  <>
+                    <Button 
+                      size="sm" 
+                      onClick={() => triggerFollowUp(selectedLeads, "24h")}
+                      disabled={sendingFollowUp}
+                    >
+                      {sendingFollowUp ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}
+                      Send 24h Follow-up ({selectedLeads.length})
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="secondary"
+                      onClick={() => triggerFollowUp(selectedLeads, "72h")}
+                      disabled={sendingFollowUp}
+                    >
+                      {sendingFollowUp ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}
+                      Send 72h Follow-up ({selectedLeads.length})
+                    </Button>
+                  </>
+                )}
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  onClick={triggerAutomatedFollowUp}
+                  disabled={sendingFollowUp}
+                >
+                  {sendingFollowUp ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}
+                  Run Auto Follow-ups
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => refetchLeads()}>
                   <RefreshCw className="w-4 h-4 mr-1" />
                   Refresh
@@ -374,6 +480,14 @@ Want to feel more at peace?
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-12">
+                        <input 
+                          type="checkbox" 
+                          checked={leads?.length ? selectedLeads.length === leads.length : false}
+                          onChange={selectAllLeads}
+                          className="rounded border-muted-foreground/50"
+                        />
+                      </TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Segment</TableHead>
@@ -386,19 +500,27 @@ Want to feel more at peace?
                   <TableBody>
                     {leadsLoading ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8">
+                        <TableCell colSpan={8} className="text-center py-8">
                           Loading leads...
                         </TableCell>
                       </TableRow>
                     ) : !leads?.length ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                           No leads found
                         </TableCell>
                       </TableRow>
                     ) : (
                       leads.map((lead) => (
                         <TableRow key={lead.id}>
+                          <TableCell>
+                            <input 
+                              type="checkbox" 
+                              checked={selectedLeads.includes(lead.id)}
+                              onChange={() => toggleLeadSelection(lead.id)}
+                              className="rounded border-muted-foreground/50"
+                            />
+                          </TableCell>
                           <TableCell className="font-medium">
                             {lead.first_name || 'Unknown'}
                           </TableCell>
@@ -428,12 +550,13 @@ Want to feel more at peace?
                               value={lead.status}
                               onValueChange={(value) => updateLeadStatus.mutate({ id: lead.id, status: value })}
                             >
-                              <SelectTrigger className="w-[130px] h-8">
+                              <SelectTrigger className="w-[140px] h-8">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="new">New</SelectItem>
-                                <SelectItem value="followed_up">Followed Up</SelectItem>
+                                <SelectItem value="followed_up">Followed Up (24h)</SelectItem>
+                                <SelectItem value="followed_up_72h">Followed Up (72h)</SelectItem>
                                 <SelectItem value="converted">Converted</SelectItem>
                               </SelectContent>
                             </Select>
