@@ -16,11 +16,6 @@ interface Lead {
   last_interaction_at: string;
 }
 
-interface SegmentData {
-  slug: string;
-  cta_text: string;
-}
-
 const getFollowUpMessage = (segment: string, firstName: string): { message: string; buttonText: string } => {
   const name = firstName || "Hey";
   
@@ -60,6 +55,59 @@ Want to give it a try?`,
   return messages[segment] || messages.overthinking;
 };
 
+const sendManyChatMessage = async (
+  subscriberId: string,
+  message: string,
+  buttonText: string,
+  buttonUrl: string,
+  apiKey: string
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    // ManyChat Send Content API
+    const response = await fetch(`https://api.manychat.com/fb/subscriber/sendContent`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        subscriber_id: subscriberId,
+        data: {
+          version: "v2",
+          content: {
+            messages: [
+              {
+                type: "text",
+                text: message,
+                buttons: [
+                  {
+                    type: "url",
+                    caption: buttonText,
+                    url: buttonUrl,
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[ManyChat API] Error response:`, response.status, errorText);
+      return { success: false, error: `ManyChat API error: ${response.status}` };
+    }
+
+    const result = await response.json();
+    console.log(`[ManyChat API] Success for subscriber ${subscriberId}:`, result);
+    return { success: true };
+  } catch (error) {
+    console.error(`[ManyChat API] Exception:`, error);
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -70,7 +118,17 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const manyChatApiKey = Deno.env.get("MANYCHAT_API_KEY");
+    
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    if (!manyChatApiKey) {
+      console.error("[Lead Follow-up] MANYCHAT_API_KEY not configured");
+      return new Response(
+        JSON.stringify({ error: "ManyChat API key not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Find leads that:
     // 1. Are still "new" status
@@ -94,7 +152,7 @@ serve(async (req) => {
     if (!leadsToFollowUp?.length) {
       console.log("[Lead Follow-up] No leads to follow up");
       return new Response(
-        JSON.stringify({ message: "No leads to follow up", processed: 0 }),
+        JSON.stringify({ message: "No leads to follow up", processed: 0, sent: 0, failed: 0 }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -102,54 +160,77 @@ serve(async (req) => {
     console.log(`[Lead Follow-up] Found ${leadsToFollowUp.length} leads to follow up`);
 
     const appUrl = "https://luna.app"; // Replace with actual production URL
-    const followUpResults: Array<{ subscriber_id: string; segment: string; message: string; buttonUrl: string }> = [];
+    const results = {
+      sent: 0,
+      failed: 0,
+      details: [] as Array<{ subscriber_id: string; success: boolean; error?: string }>,
+    };
 
     for (const lead of leadsToFollowUp) {
       const followUp = getFollowUpMessage(lead.segment, lead.first_name || "");
       const buttonUrl = `${appUrl}/dm?segment=${lead.segment}&utm_source=instagram&utm_medium=dm&utm_campaign=followup`;
 
-      // Update lead status to followed_up
-      const { error: updateError } = await supabase
-        .from("leads")
-        .update({
-          status: "followed_up",
-          last_interaction_at: new Date().toISOString(),
-        })
-        .eq("id", lead.id);
+      // Send the actual DM via ManyChat API
+      const sendResult = await sendManyChatMessage(
+        lead.subscriber_id,
+        followUp.message,
+        followUp.buttonText,
+        buttonUrl,
+        manyChatApiKey
+      );
 
-      if (updateError) {
-        console.error(`[Lead Follow-up] Error updating lead ${lead.id}:`, updateError);
-        continue;
+      results.details.push({
+        subscriber_id: lead.subscriber_id,
+        success: sendResult.success,
+        error: sendResult.error,
+      });
+
+      if (sendResult.success) {
+        results.sent++;
+        
+        // Update lead status to followed_up
+        const { error: updateError } = await supabase
+          .from("leads")
+          .update({
+            status: "followed_up",
+            last_interaction_at: new Date().toISOString(),
+          })
+          .eq("id", lead.id);
+
+        if (updateError) {
+          console.error(`[Lead Follow-up] Error updating lead ${lead.id}:`, updateError);
+        }
+
+        // Track the follow-up event
+        await supabase.from("funnel_events").insert({
+          event_type: "followup_sent",
+          funnel_type: "dm",
+          segment: lead.segment,
+          utm_source: "instagram",
+          utm_medium: "dm",
+          utm_campaign: "followup",
+          session_id: lead.subscriber_id,
+        });
+
+        console.log(`[Lead Follow-up] Successfully sent DM to subscriber ${lead.subscriber_id}`);
+      } else {
+        results.failed++;
+        console.error(`[Lead Follow-up] Failed to send DM to subscriber ${lead.subscriber_id}: ${sendResult.error}`);
       }
 
-      // Track the follow-up event
-      await supabase.from("funnel_events").insert({
-        event_type: "followup_sent",
-        funnel_type: "dm",
-        segment: lead.segment,
-        utm_source: "instagram",
-        utm_medium: "dm",
-        utm_campaign: "followup",
-        session_id: lead.subscriber_id,
-      });
-
-      followUpResults.push({
-        subscriber_id: lead.subscriber_id,
-        segment: lead.segment,
-        message: followUp.message,
-        buttonUrl,
-      });
-
-      console.log(`[Lead Follow-up] Prepared follow-up for subscriber ${lead.subscriber_id}`);
+      // Rate limiting: wait 100ms between API calls to avoid hitting limits
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    // Return the follow-up messages for ManyChat to send
-    // In production, you would integrate with ManyChat's API to send these
+    console.log(`[Lead Follow-up] Completed. Sent: ${results.sent}, Failed: ${results.failed}`);
+
     return new Response(
       JSON.stringify({
-        message: "Follow-ups prepared",
-        processed: followUpResults.length,
-        followUps: followUpResults,
+        message: "Follow-up sequence completed",
+        processed: leadsToFollowUp.length,
+        sent: results.sent,
+        failed: results.failed,
+        details: results.details,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
