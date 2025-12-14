@@ -199,7 +199,8 @@ const sendManyChatMessage = async (
   apiKey: string
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    const response = await fetch(`https://api.manychat.com/fb/subscriber/sendContent`, {
+    // Correct endpoint is /fb/sending/sendContent (not /fb/subscriber/sendContent)
+    const response = await fetch(`https://api.manychat.com/fb/sending/sendContent`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
