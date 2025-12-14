@@ -512,39 +512,48 @@ export type Database = {
           created_at: string | null
           cta_text: string
           headline: string
+          hero_icon: string | null
           id: string
           is_active: boolean | null
           name: string
           pain_points: Json
+          relatability_tagline: string | null
           slug: string
           subheadline: string
           testimonial_ids: Json | null
+          testimonials: Json | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           cta_text?: string
           headline: string
+          hero_icon?: string | null
           id?: string
           is_active?: boolean | null
           name: string
           pain_points?: Json
+          relatability_tagline?: string | null
           slug: string
           subheadline: string
           testimonial_ids?: Json | null
+          testimonials?: Json | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           cta_text?: string
           headline?: string
+          hero_icon?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
           pain_points?: Json
+          relatability_tagline?: string | null
           slug?: string
           subheadline?: string
           testimonial_ids?: Json | null
+          testimonials?: Json | null
           updated_at?: string | null
         }
         Relationships: []

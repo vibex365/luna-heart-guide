@@ -1,138 +1,71 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircleHeart, Target, Sparkles, Shield, ChevronLeft, ChevronRight, Users, TrendingUp, Gift, Calendar, MessageSquare, Home, ShieldAlert } from 'lucide-react';
+import { Heart, MessageCircleHeart, Sparkles, Shield, ChevronLeft, ChevronRight, Users, TrendingUp, Gift, Calendar, MessageSquare, Home, ShieldAlert, LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useFunnelTracking } from '@/hooks/useFunnelTracking';
+import { useQuery } from '@tanstack/react-query';
 
-// Segment-specific content configuration
-const segmentContent = {
-  'couples-communication': {
-    headline: "Stop Having the Same Argument on Repeat.",
-    subheadline: "Luna helps you break the cycle — together.",
-    heroIcon: MessageSquare,
-    painPoints: [
-      "Having the same argument again... and again",
-      "Feeling like you're speaking different languages",
-      "One of you shuts down while the other explodes",
-      "Walking on eggshells just to keep the peace"
-    ],
-    testimonials: [
-      {
-        quote: "We used to argue about the same things every week. Luna gave us scripts that actually work.",
-        author: "Together 4 years",
-        emoji: "🔄"
-      },
-      {
-        quote: "The conflict resolution tools helped us stop yelling and start listening.",
-        author: "Married 3 years",
-        emoji: "🗣️"
-      },
-      {
-        quote: "We finally learned HOW to communicate, not just what to say.",
-        author: "Dating 2 years",
-        emoji: "💬"
-      }
-    ],
-    ctaText: "Break the Cycle Together",
-    relatabilityTagline: "You're not incompatible. You're stuck in a pattern."
-  },
-  'couples-disconnected': {
-    headline: "Feel Like Roommates Instead of Partners?",
-    subheadline: "Reignite your connection with daily rituals that bring you closer.",
-    heroIcon: Home,
-    painPoints: [
-      "Living together but feeling miles apart",
-      "Missing the spark you used to have",
-      "Conversations that never go deeper than logistics",
-      "Wondering where 'us' went"
-    ],
-    testimonials: [
-      {
-        quote: "The daily appreciation prompts reminded us why we fell in love.",
-        author: "Together 6 years",
-        emoji: "💕"
-      },
-      {
-        quote: "We went from roommates to actually dating each other again.",
-        author: "Married 5 years",
-        emoji: "🏠"
-      },
-      {
-        quote: "Luna's activities gave us something to share beyond Netflix and chores.",
-        author: "Living together 2 years",
-        emoji: "✨"
-      }
-    ],
-    ctaText: "Reconnect as Partners",
-    relatabilityTagline: "You're not falling out of love. You've just stopped nurturing it."
-  },
-  'couples-trust': {
-    headline: "Rebuild Trust Without the Constant Suspicion.",
-    subheadline: "Tools for transparency, healing, and moving forward together.",
-    heroIcon: ShieldAlert,
-    painPoints: [
-      "Trust was broken and you're still picking up pieces",
-      "Jealousy that spirals into arguments",
-      "Constantly checking or being checked on",
-      "Wanting to heal but not knowing how"
-    ],
-    testimonials: [
-      {
-        quote: "Luna helped us have the hard conversations we kept avoiding.",
-        author: "Rebuilding 1 year",
-        emoji: "🛡️"
-      },
-      {
-        quote: "The shared mood tracking showed me when my partner was struggling, not hiding.",
-        author: "Together 3 years",
-        emoji: "💔"
-      },
-      {
-        quote: "We learned to be transparent without it feeling like surveillance.",
-        author: "Married 4 years",
-        emoji: "🤝"
-      }
-    ],
-    ctaText: "Start Rebuilding Together",
-    relatabilityTagline: "Healing is possible. But it takes both of you."
-  },
-  default: {
-    headline: "Reconnect Before It's Too Late.",
-    subheadline: "Communication tools that actually work. Together.",
-    heroIcon: Heart,
-    painPoints: [
-      "Having the same argument again",
-      "Feeling unheard even when they're listening",
-      "Missing the connection you used to have",
-      "Wondering if you're growing apart"
-    ],
-    testimonials: [
-      {
-        quote: "We stopped fighting about the same things every week. Luna helped us break the cycle.",
-        author: "Together 4 years",
-        emoji: "💕"
-      },
-      {
-        quote: "The appreciation prompts reminded us why we fell in love in the first place.",
-        author: "Married 2 years",
-        emoji: "🥰"
-      },
-      {
-        quote: "Our relationship score helped us see what we were missing. Now we're stronger than ever.",
-        author: "Dating 18 months",
-        emoji: "📈"
-      }
-    ],
-    ctaText: "Start Together – $19/mo for Both",
-    relatabilityTagline: "You're not failing. You're struggling to communicate."
-  }
+// Icon mapping for hero icons from database
+const iconMap: Record<string, LucideIcon> = {
+  'heart': Heart,
+  'message-square': MessageSquare,
+  'home': Home,
+  'shield-alert': ShieldAlert,
 };
 
+// Default content as fallback
+const defaultContent = {
+  headline: "Reconnect Before It's Too Late.",
+  subheadline: "Communication tools that actually work. Together.",
+  hero_icon: 'heart',
+  pain_points: [
+    "Having the same argument again",
+    "Feeling unheard even when they're listening",
+    "Missing the connection you used to have",
+    "Wondering if you're growing apart"
+  ],
+  testimonials: [
+    {
+      quote: "We stopped fighting about the same things every week. Luna helped us break the cycle.",
+      author: "Together 4 years",
+      emoji: "💕"
+    },
+    {
+      quote: "The appreciation prompts reminded us why we fell in love in the first place.",
+      author: "Married 2 years",
+      emoji: "🥰"
+    },
+    {
+      quote: "Our relationship score helped us see what we were missing. Now we're stronger than ever.",
+      author: "Dating 18 months",
+      emoji: "📈"
+    }
+  ],
+  cta_text: "Start Together – $19/mo for Both",
+  relatability_tagline: "You're not failing. You're struggling to communicate."
+};
+
+interface Testimonial {
+  quote: string;
+  author: string;
+  emoji: string;
+}
+
+interface SegmentContent {
+  headline: string;
+  subheadline: string;
+  hero_icon: string;
+  pain_points: string[];
+  testimonials: Testimonial[];
+  cta_text: string;
+  relatability_tagline: string;
+}
+
 // Testimonial Carousel Component
-const TestimonialCarousel = ({ testimonials }: { testimonials: typeof segmentContent.default.testimonials }) => {
+const TestimonialCarousel = ({ testimonials }: { testimonials: Testimonial[] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -206,14 +139,45 @@ const TestimonialCarousel = ({ testimonials }: { testimonials: typeof segmentCon
 
 const CouplesFunnel = () => {
   const [searchParams] = useSearchParams();
-  const segment = searchParams.get('segment') || 'default';
+  const segment = searchParams.get('segment') || '';
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { trackEvent, getUTMData } = useFunnelTracking('couples');
 
-  // Get segment-specific content
-  const content = segmentContent[segment as keyof typeof segmentContent] || segmentContent.default;
-  const HeroIcon = content.heroIcon;
+  // Fetch segment-specific content from database
+  const { data: segmentData } = useQuery({
+    queryKey: ['dm-segment', segment],
+    queryFn: async () => {
+      if (!segment) return null;
+      
+      const { data, error } = await supabase
+        .from('dm_segments')
+        .select('headline, subheadline, pain_points, cta_text, relatability_tagline, hero_icon, testimonials')
+        .eq('slug', segment)
+        .eq('is_active', true)
+        .single();
+      
+      if (error) {
+        console.log('[CouplesFunnel] No segment found:', segment);
+        return null;
+      }
+      return data;
+    },
+    enabled: !!segment,
+  });
+
+  // Use database content or fallback to defaults
+  const content: SegmentContent = segmentData ? {
+    headline: segmentData.headline,
+    subheadline: segmentData.subheadline,
+    hero_icon: segmentData.hero_icon || 'heart',
+    pain_points: (segmentData.pain_points as string[]) || defaultContent.pain_points,
+    testimonials: (segmentData.testimonials as unknown as Testimonial[]) || defaultContent.testimonials,
+    cta_text: segmentData.cta_text,
+    relatability_tagline: segmentData.relatability_tagline || defaultContent.relatability_tagline,
+  } : defaultContent;
+
+  const HeroIcon = iconMap[content.hero_icon] || Heart;
 
   const handleCheckout = async () => {
     setIsLoading(true);
@@ -302,7 +266,7 @@ const CouplesFunnel = () => {
             size="lg"
             className="bg-couples-accent hover:bg-couples-accent/90 text-background font-semibold px-8 py-6 text-lg rounded-full shadow-lg"
           >
-            {isLoading ? "Loading..." : content.ctaText}
+            {isLoading ? "Loading..." : content.cta_text}
           </Button>
           
           <p className="text-xs text-white/70 mt-3 font-medium">
@@ -331,7 +295,7 @@ const CouplesFunnel = () => {
           <h2 className="text-2xl font-bold mb-8">Sound familiar?</h2>
           
           <div className="space-y-4 mb-8">
-            {content.painPoints.map((point, index) => (
+            {content.pain_points.map((point, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
@@ -346,7 +310,7 @@ const CouplesFunnel = () => {
           </div>
           
           <p className="text-couples-accent font-medium">
-            {content.relatabilityTagline}
+            {content.relatability_tagline}
           </p>
         </motion.div>
       </section>
@@ -491,7 +455,7 @@ const CouplesFunnel = () => {
             size="lg"
             className="bg-couples-accent hover:bg-couples-accent/90 text-background font-semibold px-8 py-6 text-lg rounded-full shadow-lg w-full"
           >
-            {isLoading ? "Loading..." : content.ctaText}
+            {isLoading ? "Loading..." : content.cta_text}
           </Button>
           
           <p className="text-xs text-white/70 mt-3 font-medium">
