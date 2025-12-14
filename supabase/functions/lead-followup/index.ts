@@ -232,7 +232,22 @@ const sendManyChatMessage = async (
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[ManyChat API] Error response:`, response.status, errorText);
-      return { success: false, error: `ManyChat API error: ${response.status}` };
+
+      // Try to parse ManyChat error message for more context
+      let detailedMessage = `ManyChat API error: ${response.status}`;
+      try {
+        const parsed = JSON.parse(errorText);
+        if (parsed && typeof parsed === "object" && "message" in parsed) {
+          detailedMessage = `ManyChat API error: ${response.status} - ${parsed.message}`;
+        }
+      } catch {
+        // fallback to raw error text if JSON parsing fails
+        if (errorText) {
+          detailedMessage = `ManyChat API error: ${response.status} - ${errorText}`;
+        }
+      }
+
+      return { success: false, error: detailedMessage };
     }
 
     const result = await response.json();
