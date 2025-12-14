@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Info, Check, X } from "lucide-react";
@@ -82,14 +83,16 @@ export const FeatureMatrix = ({
                         {feature.description}
                       </div>
                     </div>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="h-4 w-4 text-muted-foreground shrink-0" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">{feature.description}</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-4 w-4 text-muted-foreground shrink-0" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs">{feature.description}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </td>
                 {tiers.map((tier) => {
