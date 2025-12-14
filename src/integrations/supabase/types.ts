@@ -507,6 +507,48 @@ export type Database = {
           },
         ]
       }
+      dm_segments: {
+        Row: {
+          created_at: string | null
+          cta_text: string
+          headline: string
+          id: string
+          is_active: boolean | null
+          name: string
+          pain_points: Json
+          slug: string
+          subheadline: string
+          testimonial_ids: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          cta_text?: string
+          headline: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          pain_points?: Json
+          slug: string
+          subheadline: string
+          testimonial_ids?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          cta_text?: string
+          headline?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          pain_points?: Json
+          slug?: string
+          subheadline?: string
+          testimonial_ids?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       flagged_conversations: {
         Row: {
           conversation_id: string | null
@@ -569,6 +611,7 @@ export type Database = {
           event_type: string
           funnel_type: string
           id: string
+          segment: string | null
           session_id: string | null
           user_id: string | null
           utm_campaign: string | null
@@ -581,6 +624,7 @@ export type Database = {
           event_type: string
           funnel_type: string
           id?: string
+          segment?: string | null
           session_id?: string | null
           user_id?: string | null
           utm_campaign?: string | null
@@ -593,6 +637,7 @@ export type Database = {
           event_type?: string
           funnel_type?: string
           id?: string
+          segment?: string | null
           session_id?: string | null
           user_id?: string | null
           utm_campaign?: string | null

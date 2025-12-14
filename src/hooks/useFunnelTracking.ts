@@ -45,6 +45,9 @@ export const useFunnelTracking = (funnelType: 'dm' | 'couples') => {
   const trackEvent = useCallback(async (eventType: 'page_view' | 'checkout_start' | 'checkout_complete') => {
     try {
       const utmData = getUTMData();
+      const segment = sessionStorage.getItem(`${funnelType}_segment`) || 
+                     new URLSearchParams(window.location.search).get('segment') || 
+                     null;
       
       const { error } = await supabase.from('funnel_events').insert({
         event_type: eventType,
@@ -53,13 +56,14 @@ export const useFunnelTracking = (funnelType: 'dm' | 'couples') => {
         utm_medium: utmData.utm_medium,
         utm_campaign: utmData.utm_campaign,
         utm_content: utmData.utm_content,
-        session_id: utmData.session_id
+        session_id: utmData.session_id,
+        segment: segment,
       });
 
       if (error) {
         console.error(`[FunnelTracking] Error tracking ${eventType}:`, error);
       } else {
-        console.log(`[FunnelTracking] Tracked ${eventType} for ${funnelType} funnel`, utmData);
+        console.log(`[FunnelTracking] Tracked ${eventType} for ${funnelType} funnel`, { ...utmData, segment });
       }
     } catch (err) {
       console.error(`[FunnelTracking] Exception tracking ${eventType}:`, err);

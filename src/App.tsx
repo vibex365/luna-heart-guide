@@ -21,7 +21,7 @@ import DMFunnel from "./pages/DMFunnel";
 import CouplesFunnel from "./pages/CouplesFunnel";
 import Welcome from "./pages/Welcome";
 import CouplesWelcome from "./pages/CouplesWelcome";
-import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminAnalytics, AdminFunnelAnalytics, AdminSettings, AdminFeedback, AdminNotifications } from "./pages/admin";
+import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminAnalytics, AdminFunnelAnalytics, AdminMarketing, AdminSettings, AdminFeedback, AdminNotifications } from "./pages/admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -119,6 +119,14 @@ const App = () => (
             element={
               <AdminRoute>
                 <AdminFunnelAnalytics />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/marketing"
+            element={
+              <AdminRoute>
+                <AdminMarketing />
               </AdminRoute>
             }
           />

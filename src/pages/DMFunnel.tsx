@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Clock, Shield, Heart, Check, Sparkles, ChevronLeft, ChevronRight, Quote } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useFunnelTracking } from "@/hooks/useFunnelTracking";
 import LunaAvatar from "@/components/LunaAvatar";
+import { useQuery } from "@tanstack/react-query";
 
 // Testimonials data
 const testimonials = [
@@ -35,6 +37,28 @@ const testimonials = [
     context: "2 weeks with Luna",
   },
 ];
+
+// Default content when no segment or segment not found
+const defaultContent = {
+  headline: "Stop Overthinking in 30 Days.",
+  subheadline: "Your AI relationship companion when your thoughts won't slow down.",
+  painPoints: [
+    "replaying conversations",
+    "checking their socials",
+    "typing texts then deleting them",
+    "feeling okay during the day, spiraling at night",
+  ],
+  ctaText: "Start Healing Today – $12",
+};
+
+interface SegmentData {
+  slug: string;
+  name: string;
+  headline: string;
+  subheadline: string;
+  pain_points: string[];
+  cta_text: string;
+}
 
 // Testimonial Carousel Component
 const TestimonialCarousel = () => {
@@ -68,7 +92,6 @@ const TestimonialCarousel = () => {
     });
   };
 
-  // Auto-advance every 5 seconds
   useEffect(() => {
     const timer = setInterval(() => paginate(1), 5000);
     return () => clearInterval(timer);
@@ -106,7 +129,6 @@ const TestimonialCarousel = () => {
         </AnimatePresence>
       </div>
 
-      {/* Navigation */}
       <div className="flex items-center justify-center gap-4 mt-4">
         <button
           onClick={() => paginate(-1)}
@@ -144,23 +166,59 @@ const TestimonialCarousel = () => {
 };
 
 const DMFunnel = () => {
+  const [searchParams] = useSearchParams();
+  const segment = searchParams.get('segment');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { trackEvent, getUTMData } = useFunnelTracking('dm');
 
+  // Fetch segment data if segment param exists
+  const { data: segmentData } = useQuery({
+    queryKey: ['dm-segment', segment],
+    queryFn: async () => {
+      if (!segment) return null;
+      const { data, error } = await supabase
+        .from('dm_segments')
+        .select('*')
+        .eq('slug', segment)
+        .eq('is_active', true)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching segment:', error);
+        return null;
+      }
+      return data as SegmentData;
+    },
+    enabled: !!segment,
+  });
+
+  // Track segment in page view
+  useEffect(() => {
+    if (segment) {
+      // Store segment in session for checkout tracking
+      sessionStorage.setItem('dm_segment', segment);
+    }
+  }, [segment]);
+
+  // Get content based on segment or defaults
+  const headline = segmentData?.headline || defaultContent.headline;
+  const subheadline = segmentData?.subheadline || defaultContent.subheadline;
+  const painPoints = segmentData?.pain_points || defaultContent.painPoints;
+  const ctaText = segmentData?.cta_text ? `${segmentData.cta_text} – $12` : defaultContent.ctaText;
+
   const handleCheckout = async () => {
     setIsLoading(true);
     try {
-      // Track checkout start
       await trackEvent('checkout_start');
       
       const { data: { session } } = await supabase.auth.getSession();
       const utmData = getUTMData();
       
       if (!session) {
-        // Redirect to auth with return URL
         const utmString = `utm_source=${utmData.utm_source}&utm_medium=${utmData.utm_medium}&utm_campaign=${utmData.utm_campaign}&utm_content=${utmData.utm_content}`;
-        const redirectUrl = `/dm?${utmString}`;
+        const segmentString = segment ? `&segment=${segment}` : '';
+        const redirectUrl = `/dm?${utmString}${segmentString}`;
         window.location.href = `/auth?redirect=${encodeURIComponent(redirectUrl)}&checkout=true`;
         return;
       }
@@ -169,7 +227,10 @@ const DMFunnel = () => {
         body: { 
           priceId: "price_1SdhyfAsrgxssNTVTPpZuI3t",
           returnUrl: "/welcome",
-          metadata: utmData,
+          metadata: {
+            ...utmData,
+            segment: segment || 'none',
+          },
         },
       });
 
@@ -188,13 +249,6 @@ const DMFunnel = () => {
       setIsLoading(false);
     }
   };
-
-  const relatabilityItems = [
-    "replaying conversations",
-    "checking their socials",
-    "typing texts then deleting them",
-    "feeling okay during the day, spiraling at night",
-  ];
 
   const features = [
     { icon: Clock, text: "Available 24/7" },
@@ -222,13 +276,18 @@ const DMFunnel = () => {
           className="relative z-10 max-w-md mx-auto"
         >
           <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-            Stop Overthinking<br />in 30 Days.
+            {headline.split('.').map((part, i) => (
+              <span key={i}>
+                {part.trim()}
+                {i < headline.split('.').length - 1 && part.trim() && <br />}
+              </span>
+            ))}
           </h1>
           <p className="text-xl text-white/80 mb-3">
             Private. Judgment-free. Always available.
           </p>
           <p className="text-white/60 text-sm">
-            Your AI relationship companion when your thoughts won't slow down.
+            {subheadline}
           </p>
         </motion.div>
       </section>
@@ -243,7 +302,7 @@ const DMFunnel = () => {
         >
           <p className="text-white/50 text-sm mb-6">You know the feeling...</p>
           <div className="space-y-3">
-            {relatabilityItems.map((item, index) => (
+            {painPoints.map((item, index) => (
               <motion.p
                 key={index}
                 initial={{ opacity: 0, x: -10 }}
@@ -356,7 +415,6 @@ const DMFunnel = () => {
           className="max-w-sm mx-auto"
         >
           <div className="grid grid-cols-2 gap-4">
-            {/* Traditional Therapy */}
             <div className="bg-white/5 rounded-2xl p-5 opacity-60">
               <p className="text-xs text-white/50 mb-2">Traditional Therapy</p>
               <p className="text-lg font-bold text-white/70">$190</p>
@@ -366,7 +424,6 @@ const DMFunnel = () => {
               </div>
             </div>
             
-            {/* Luna */}
             <div className="bg-funnel-accent/10 border border-funnel-accent/30 rounded-2xl p-5 relative overflow-hidden">
               <div className="absolute top-0 right-0 bg-funnel-accent text-black text-[10px] px-2 py-1 rounded-bl-lg font-medium">
                 BEST VALUE
@@ -430,7 +487,7 @@ const DMFunnel = () => {
             ) : (
               <span className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5" />
-                Start Healing Today – $12
+                {ctaText}
               </span>
             )}
           </Button>
@@ -448,7 +505,7 @@ const DMFunnel = () => {
             disabled={isLoading}
             className="w-full h-12 font-semibold bg-funnel-accent hover:bg-funnel-accent/90 text-black rounded-full shadow-lg shadow-funnel-accent/30"
           >
-            {isLoading ? "Processing..." : "Start Healing Today – $12"}
+            {isLoading ? "Processing..." : ctaText}
           </Button>
         </div>
       </div>
