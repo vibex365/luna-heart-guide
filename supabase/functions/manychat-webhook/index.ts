@@ -206,7 +206,7 @@ serve(async (req) => {
 
     // Generate personalized response
     const name = first_name || "friend";
-    const appUrl = "https://luna.app"; // Replace with actual production URL
+    const appUrl = "https://talkswithluna.com";
     const response = getPersonalizedResponse(segment, name, appUrl);
 
     console.log("[ManyChat Webhook] Sending response for segment:", segmentSlug);

@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Copy, ExternalLink, MessageCircle, Eye, TrendingUp, Users, Download, RefreshCw, Send, Loader2 } from "lucide-react";
+import { Save, Copy, ExternalLink, MessageCircle, Eye, TrendingUp, Users, Download, RefreshCw, Send, Loader2, Plus, TestTube } from "lucide-react";
 import { format } from "date-fns";
 
 interface Segment {
@@ -52,6 +52,14 @@ const AdminMarketing = () => {
   });
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [sendingFollowUp, setSendingFollowUp] = useState(false);
+  const [creatingTestLead, setCreatingTestLead] = useState(false);
+  const [testingWebhook, setTestingWebhook] = useState(false);
+  const [webhookTestData, setWebhookTestData] = useState({
+    subscriber_id: `test_${Date.now()}`,
+    first_name: "Test User",
+    email: "test@example.com",
+    keyword: "overthinking",
+  });
 
   const baseUrl = window.location.origin;
 
@@ -242,6 +250,69 @@ const AdminMarketing = () => {
     }
   };
 
+  const createTestLead = async () => {
+    setCreatingTestLead(true);
+    try {
+      const { error } = await supabase.from('leads').insert({
+        subscriber_id: `test_${Date.now()}`,
+        first_name: "Test User",
+        email: "test@example.com",
+        segment: "overthinking",
+        source: "manual",
+        status: "new",
+        utm_source: "admin",
+        utm_medium: "test",
+        utm_campaign: "manual_test",
+      });
+      
+      if (error) throw error;
+      
+      toast({ title: "Test lead created successfully" });
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['lead-stats'] });
+    } catch (error) {
+      toast({
+        title: "Error creating test lead",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingTestLead(false);
+    }
+  };
+
+  const testWebhook = async () => {
+    setTestingWebhook(true);
+    try {
+      const response = await supabase.functions.invoke('manychat-webhook', {
+        body: webhookTestData,
+      });
+      
+      if (response.error) throw response.error;
+      
+      toast({ 
+        title: "Webhook test successful",
+        description: "Check the leads table for the new entry",
+      });
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['lead-stats'] });
+      
+      // Update subscriber_id for next test
+      setWebhookTestData(prev => ({
+        ...prev,
+        subscriber_id: `test_${Date.now()}`,
+      }));
+    } catch (error) {
+      toast({
+        title: "Webhook test failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingWebhook(false);
+    }
+  };
+
   const toggleLeadSelection = (leadId: string) => {
     setSelectedLeads(prev => 
       prev.includes(leadId) 
@@ -369,6 +440,59 @@ Want to feel more at peace?
 
           {/* Leads Tab */}
           <TabsContent value="leads" className="space-y-4">
+            {/* Test Tools */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Test Tools</CardTitle>
+                <CardDescription>Create test data to verify the leads pipeline</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-4 items-end">
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={createTestLead}
+                    disabled={creatingTestLead}
+                  >
+                    {creatingTestLead ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Plus className="w-4 h-4 mr-1" />}
+                    Create Test Lead
+                  </Button>
+                </div>
+                <div className="flex gap-2 items-end">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Keyword</Label>
+                    <Select
+                      value={webhookTestData.keyword}
+                      onValueChange={(value) => setWebhookTestData(prev => ({ ...prev, keyword: value }))}
+                    >
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="overthinking">overthinking</SelectItem>
+                        <SelectItem value="breakup">breakup</SelectItem>
+                        <SelectItem value="anxiety">anxiety</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Name</Label>
+                    <Input 
+                      value={webhookTestData.first_name}
+                      onChange={(e) => setWebhookTestData(prev => ({ ...prev, first_name: e.target.value }))}
+                      className="w-[120px]"
+                    />
+                  </div>
+                  <Button 
+                    onClick={testWebhook}
+                    disabled={testingWebhook}
+                  >
+                    {testingWebhook ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <TestTube className="w-4 h-4 mr-1" />}
+                    Test Webhook
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Lead Stats */}
             <div className="grid gap-4 md:grid-cols-4">
               <Card>
