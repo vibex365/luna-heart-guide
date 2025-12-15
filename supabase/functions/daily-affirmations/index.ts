@@ -116,11 +116,13 @@ serve(async (req) => {
         // Pick a random template
         const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
         
-        // Personalize message
+        // Personalize message with opt-out footer
         let message = randomTemplate.message;
         if (user.display_name) {
           message = `Hi ${user.display_name}! ${message}`;
         }
+        // Add opt-out instruction at the end
+        message = `💜 Luna: ${message}\n\nReply STOP to unsubscribe`;
 
         // Send SMS via Twilio
         const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`;

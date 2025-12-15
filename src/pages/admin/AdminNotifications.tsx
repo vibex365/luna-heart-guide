@@ -359,6 +359,15 @@ export default function AdminNotifications() {
                     <li>SMS notifications enabled in their profile</li>
                   </ul>
                 </div>
+                <div className="p-3 md:p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-xs md:text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                    📱 SMS Opt-Out Feature Enabled
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    Users can unsubscribe from SMS by replying STOP to any message. 
+                    They can re-subscribe by replying START.
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
@@ -392,15 +401,29 @@ export default function AdminNotifications() {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base md:text-lg">
                   <Clock className="h-4 w-4 md:h-5 md:w-5" />
-                  Scheduled Job Status
+                  Scheduled Jobs Status
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <Badge variant="default" className="bg-green-500 w-fit">Active</Badge>
-                  <span className="text-xs md:text-sm text-muted-foreground">
-                    Notifications are sent daily at 9:00 AM UTC via pg_cron
-                  </span>
+              <CardContent className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-muted/50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium">Daily Affirmations</p>
+                    <p className="text-xs text-muted-foreground">Sends uplifting messages to users</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="default" className="bg-green-500">Active</Badge>
+                    <span className="text-xs text-muted-foreground">9:00 AM UTC</span>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-muted/50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium">Scheduled SMS Processor</p>
+                    <p className="text-xs text-muted-foreground">Processes scheduled messages</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="default" className="bg-green-500">Active</Badge>
+                    <span className="text-xs text-muted-foreground">Every minute</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
