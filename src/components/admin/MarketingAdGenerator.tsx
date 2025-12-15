@@ -176,7 +176,24 @@ export const MarketingAdGenerator = () => {
       const { data, error } = await supabase.functions.invoke("generate-ad-copy", {
         body: { targetGender, targetType, painPoint, tone, demographics },
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw new Error(error.message || "Failed to call AI function");
+      }
+      
+      if (!data) {
+        throw new Error("No response from AI function");
+      }
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      if (!data.variations || !Array.isArray(data.variations)) {
+        throw new Error("Invalid response format from AI");
+      }
+      
       return data.variations as AdVariant[];
     },
     onSuccess: (variations) => {
@@ -192,7 +209,7 @@ export const MarketingAdGenerator = () => {
       console.error("AI generation error:", error);
       toast({ 
         title: "Generation failed", 
-        description: error instanceof Error ? error.message : "Please try again",
+        description: error instanceof Error ? error.message : "Please try again later",
         variant: "destructive" 
       });
     },
