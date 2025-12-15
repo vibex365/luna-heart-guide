@@ -92,7 +92,7 @@ export const useCouplesGame = (partnerLinkId: string | undefined, gameType: Game
 
   // Subscribe to real-time updates
   useEffect(() => {
-    if (!partnerLinkId || !gameType) return;
+    if (!partnerLinkId || !gameType || !user) return;
 
     const channel = supabase
       .channel(`game-${partnerLinkId}-${gameType}`)
@@ -106,10 +106,19 @@ export const useCouplesGame = (partnerLinkId: string | undefined, gameType: Game
         },
         (payload) => {
           if (payload.new && (payload.new as GameSession).game_type === gameType) {
+            const session = payload.new as GameSession;
             queryClient.invalidateQueries({ 
               queryKey: ["game-session", partnerLinkId, gameType] 
             });
-            setLocalGameState(jsonToRecord((payload.new as GameSession).game_state));
+            setLocalGameState(jsonToRecord(session.game_state));
+            
+            // Show toast when partner joins/updates the game
+            if (session.started_by !== user.id) {
+              toast({
+                title: "Partner joined! 🎮",
+                description: `Your partner is playing ${gameType.replace(/_/g, " ")} with you!`,
+              });
+            }
           }
         }
       )
@@ -118,7 +127,7 @@ export const useCouplesGame = (partnerLinkId: string | undefined, gameType: Game
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [partnerLinkId, gameType, queryClient]);
+  }, [partnerLinkId, gameType, queryClient, user, toast]);
 
   // Sync local state with session state
   useEffect(() => {

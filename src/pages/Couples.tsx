@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Heart, ArrowLeft, Crown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -24,6 +25,7 @@ import { CouplesQuizGame } from "@/components/couples/CouplesQuizGame";
 import { NeverHaveIEver } from "@/components/couples/NeverHaveIEver";
 import { ConversationStarters } from "@/components/couples/ConversationStarters";
 import { GameStatsCard } from "@/components/couples/GameStatsCard";
+import { PhoneNumberPrompt, usePhonePrompt } from "@/components/PhoneNumberPrompt";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,9 +35,19 @@ const Couples = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isLinked, isLoading, partnerLink } = useCouplesAccount();
+  const { shouldPrompt, dismiss } = usePhonePrompt();
+  const [showPhonePrompt, setShowPhonePrompt] = useState(false);
   
   // Enable real-time partner notifications
   usePartnerNotifications();
+
+  // Show phone prompt after a short delay when user is linked but has no phone
+  useEffect(() => {
+    if (isLinked && shouldPrompt) {
+      const timer = setTimeout(() => setShowPhonePrompt(true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLinked, shouldPrompt]);
 
   // Check if user has couples subscription
   const { data: hasCouplesAccess, isLoading: isLoadingAccess } = useQuery({
@@ -308,6 +320,15 @@ const Couples = () => {
           </motion.div>
         )}
       </div>
+
+      {/* Phone Number Prompt */}
+      <PhoneNumberPrompt
+        open={showPhonePrompt}
+        onOpenChange={(open) => {
+          setShowPhonePrompt(open);
+          if (!open) dismiss();
+        }}
+      />
     </div>
   );
 };
