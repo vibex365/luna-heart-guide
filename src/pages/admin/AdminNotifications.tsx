@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { ManualSmsSender } from "@/components/admin/ManualSmsSender";
 import { 
   Bell, 
   Smartphone, 
@@ -297,6 +297,8 @@ export default function AdminNotifications() {
           </CardContent>
         </Card>
 
+        {/* Manual SMS Sender */}
+        <ManualSmsSender />
         {/* Actions */}
         <div className="flex items-center gap-4">
           <Button onClick={handleSaveSettings} disabled={updateSettingsMutation.isPending}>
