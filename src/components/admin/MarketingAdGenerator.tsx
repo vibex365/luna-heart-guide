@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useRef } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { 
   Sparkles, 
   Copy, 
@@ -16,7 +17,10 @@ import {
   Target,
   Users,
   Heart,
-  MessageSquare
+  MessageSquare,
+  Loader2,
+  Wand2,
+  Image as ImageIcon
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -27,7 +31,7 @@ interface AdVariant {
   painPoint: string;
 }
 
-const AD_TEMPLATES = {
+const STATIC_TEMPLATES = {
   male: {
     singles: [
       {
@@ -42,12 +46,6 @@ const AD_TEMPLATES = {
         cta: "Decode Now",
         painPoint: "Mixed signals driving you crazy",
       },
-      {
-        headline: "Better Communication. Better Relationships.",
-        subheadline: "Learn to express what you mean without the drama.",
-        cta: "Start Now",
-        painPoint: "Tired of arguments that go nowhere",
-      },
     ],
     couples: [
       {
@@ -55,12 +53,6 @@ const AD_TEMPLATES = {
         subheadline: "Luna for Couples helps you both grow — together.",
         cta: "Start Together",
         painPoint: "Want to step up your relationship game",
-      },
-      {
-        headline: "Fix It Before It Breaks",
-        subheadline: "Tools to strengthen your relationship, not just react to problems.",
-        cta: "Build Stronger",
-        painPoint: "You know things could be better",
       },
     ],
   },
@@ -78,12 +70,6 @@ const AD_TEMPLATES = {
         cta: "Start Healing",
         painPoint: "Tired of being told to 'just get over it'",
       },
-      {
-        headline: "Untangle the Thoughts at 2am",
-        subheadline: "When your mind won't stop, Luna listens without judgment.",
-        cta: "Find Peace",
-        painPoint: "Can't stop overthinking at night",
-      },
     ],
     couples: [
       {
@@ -91,12 +77,6 @@ const AD_TEMPLATES = {
         subheadline: "Luna for Couples helps you rediscover each other.",
         cta: "Reconnect",
         painPoint: "Feeling like roommates, not partners",
-      },
-      {
-        headline: "He'll Never Understand — Unless...",
-        subheadline: "Tools that help both of you communicate and grow together.",
-        cta: "Try Together",
-        painPoint: "Wishing he could see your perspective",
       },
     ],
   },
@@ -107,12 +87,6 @@ const AD_TEMPLATES = {
         subheadline: "AI-powered emotional support, available whenever you need it.",
         cta: "Start Free",
         painPoint: "Processing complex emotions alone",
-      },
-      {
-        headline: "Your Safe Space to Process",
-        subheadline: "No judgment. No advice you didn't ask for. Just understanding.",
-        cta: "Talk Now",
-        painPoint: "Need someone who just listens",
       },
     ],
     couples: [
@@ -129,74 +103,219 @@ const AD_TEMPLATES = {
 export const MarketingAdGenerator = () => {
   const [targetGender, setTargetGender] = useState<"male" | "female" | "neutral">("female");
   const [targetType, setTargetType] = useState<"singles" | "couples">("singles");
-  const [customHeadline, setCustomHeadline] = useState("");
-  const [customSubheadline, setCustomSubheadline] = useState("");
-  const [customCta, setCustomCta] = useState("");
+  const [painPoint, setPainPoint] = useState("");
+  const [tone, setTone] = useState("empathetic and empowering");
+  const [aiGeneratedAds, setAiGeneratedAds] = useState<AdVariant[]>([]);
+  const [selectedAd, setSelectedAd] = useState<AdVariant | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Fetch gender distribution for targeting insights
+  // Fetch demographics for AI context
   const { data: demographics } = useQuery({
     queryKey: ["ad-demographics"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("gender");
+      const { data: profiles } = await supabase.from("profiles").select("gender");
+      const { data: analytics } = await supabase.from("conversation_analytics").select("module_activated").limit(500);
       
-      if (error) throw error;
-
-      const counts: Record<string, number> = {};
-      data?.forEach((p) => {
-        const gender = p.gender || "unknown";
-        counts[gender] = (counts[gender] || 0) + 1;
+      const genderCounts: Record<string, number> = {};
+      profiles?.forEach((p) => {
+        const g = p.gender || "unknown";
+        genderCounts[g] = (genderCounts[g] || 0) + 1;
       });
 
-      return counts;
+      const moduleCounts: Record<string, number> = {};
+      analytics?.forEach((a) => {
+        moduleCounts[a.module_activated] = (moduleCounts[a.module_activated] || 0) + 1;
+      });
+      const topModules = Object.entries(moduleCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([k]) => k);
+
+      return {
+        maleCount: genderCounts.male || 0,
+        femaleCount: genderCounts.female || 0,
+        topModules,
+      };
     },
   });
 
-  const currentTemplates = AD_TEMPLATES[targetGender][targetType];
+  // AI generation mutation
+  const generateMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("generate-ad-copy", {
+        body: { targetGender, targetType, painPoint, tone, demographics },
+      });
+      if (error) throw error;
+      return data.variations as AdVariant[];
+    },
+    onSuccess: (variations) => {
+      setAiGeneratedAds(variations);
+      toast({ title: "AI generated 3 ad variations!" });
+    },
+    onError: (error) => {
+      console.error("AI generation error:", error);
+      toast({ 
+        title: "Generation failed", 
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const currentTemplates = STATIC_TEMPLATES[targetGender][targetType];
+  const allAds = [...currentTemplates, ...aiGeneratedAds];
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copied to clipboard" });
   };
 
-  const downloadAdCopy = (ad: AdVariant) => {
-    const content = `
-HEADLINE: ${ad.headline}
+  // Generate downloadable image
+  const downloadAsImage = (ad: AdVariant, format: "story" | "feed") => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-SUBHEADLINE: ${ad.subheadline}
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-CTA BUTTON: ${ad.cta}
+    // Set dimensions based on format
+    const isStory = format === "story";
+    canvas.width = isStory ? 1080 : 1080;
+    canvas.height = isStory ? 1920 : 1080;
 
-TARGET PAIN POINT: ${ad.painPoint}
+    // Background gradient
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, "#1a1a2e");
+    gradient.addColorStop(0.5, "#16213e");
+    gradient.addColorStop(1, "#0f0f23");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
----
-Target: ${targetGender.toUpperCase()} | ${targetType.toUpperCase()}
-Generated: ${new Date().toISOString()}
-    `.trim();
+    // Add subtle pattern overlay
+    ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
+    for (let i = 0; i < 50; i++) {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      ctx.beginPath();
+      ctx.arc(x, y, Math.random() * 100 + 50, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `ad-copy-${targetGender}-${targetType}-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast({ title: "Ad copy downloaded" });
+    // Icon placeholder (heart)
+    const iconY = isStory ? 600 : 280;
+    ctx.fillStyle = "#a855f7";
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, iconY, 60, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Heart shape
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 48px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("♥", canvas.width / 2, iconY + 16);
+
+    // Headline
+    const headlineY = isStory ? 800 : 420;
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 64px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.textAlign = "center";
+    
+    // Word wrap headline
+    const headlineWords = ad.headline.split(" ");
+    let headlineLine = "";
+    let headlineLines: string[] = [];
+    headlineWords.forEach((word) => {
+      const testLine = headlineLine + word + " ";
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > canvas.width - 120) {
+        headlineLines.push(headlineLine.trim());
+        headlineLine = word + " ";
+      } else {
+        headlineLine = testLine;
+      }
+    });
+    headlineLines.push(headlineLine.trim());
+    
+    headlineLines.forEach((line, i) => {
+      ctx.fillText(line, canvas.width / 2, headlineY + i * 80);
+    });
+
+    // Subheadline
+    const subY = headlineY + headlineLines.length * 80 + 40;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+    ctx.font = "32px -apple-system, BlinkMacSystemFont, sans-serif";
+    
+    const subWords = ad.subheadline.split(" ");
+    let subLine = "";
+    let subLines: string[] = [];
+    subWords.forEach((word) => {
+      const testLine = subLine + word + " ";
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > canvas.width - 160) {
+        subLines.push(subLine.trim());
+        subLine = word + " ";
+      } else {
+        subLine = testLine;
+      }
+    });
+    subLines.push(subLine.trim());
+    
+    subLines.forEach((line, i) => {
+      ctx.fillText(line, canvas.width / 2, subY + i * 44);
+    });
+
+    // CTA Button
+    const ctaY = isStory ? 1400 : 800;
+    const ctaWidth = ctx.measureText(ad.cta).width + 80;
+    const ctaHeight = 70;
+    const ctaX = (canvas.width - ctaWidth) / 2;
+
+    // Button background
+    const btnGradient = ctx.createLinearGradient(ctaX, ctaY, ctaX + ctaWidth, ctaY + ctaHeight);
+    btnGradient.addColorStop(0, "#a855f7");
+    btnGradient.addColorStop(1, "#ec4899");
+    ctx.fillStyle = btnGradient;
+    ctx.beginPath();
+    ctx.roundRect(ctaX, ctaY, ctaWidth, ctaHeight, 35);
+    ctx.fill();
+
+    // Button text
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 28px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.fillText(ad.cta, canvas.width / 2, ctaY + 46);
+
+    // Target badge
+    ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.font = "18px -apple-system, BlinkMacSystemFont, sans-serif";
+    const targetText = `${targetGender === "male" ? "♂" : targetGender === "female" ? "♀" : "⚧"} ${targetType === "couples" ? "Couples" : "Singles"}`;
+    ctx.fillText(targetText, canvas.width / 2, isStory ? 1800 : 980);
+
+    // Download
+    const link = document.createElement("a");
+    link.download = `luna-ad-${format}-${Date.now()}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+
+    toast({ title: `${format === "story" ? "Story" : "Feed"} image downloaded!` });
   };
 
   return (
     <div className="space-y-6">
+      <canvas ref={canvasRef} className="hidden" />
+      
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Sparkles className="w-6 h-6 text-primary" />
-            Ad Generator
+            AI Ad Generator
           </h2>
           <p className="text-muted-foreground">
-            Clean, minimalist ad copy targeted by demographic
+            Generate and download targeted ad creatives
           </p>
         </div>
+        <Badge variant="outline" className="gap-1">
+          <Wand2 className="w-3 h-3" /> AI-Powered
+        </Badge>
       </div>
 
       {/* Targeting Controls */}
@@ -204,12 +323,11 @@ Generated: ${new Date().toISOString()}
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Target className="w-4 h-4" />
-            Target Audience
+            Target Audience & AI Generation
           </CardTitle>
-          <CardDescription>Select your target demographic for tailored ad copy</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-3 gap-4">
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label>Target Gender</Label>
               <Select value={targetGender} onValueChange={(v) => setTargetGender(v as typeof targetGender)}>
@@ -224,7 +342,7 @@ Generated: ${new Date().toISOString()}
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Product Type</Label>
+              <Label>Product</Label>
               <Select value={targetType} onValueChange={(v) => setTargetType(v as typeof targetType)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -236,32 +354,67 @@ Generated: ${new Date().toISOString()}
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>User Distribution</Label>
-              <div className="flex items-center gap-2 h-10">
-                {demographics && (
-                  <div className="flex gap-1 text-xs">
-                    <Badge variant="outline">♂ {demographics.male || 0}</Badge>
-                    <Badge variant="outline">♀ {demographics.female || 0}</Badge>
-                    <Badge variant="outline">⚧ {demographics["non-binary"] || 0}</Badge>
-                  </div>
-                )}
-              </div>
+              <Label>Pain Point Focus</Label>
+              <Input 
+                placeholder="e.g., overthinking at night"
+                value={painPoint}
+                onChange={(e) => setPainPoint(e.target.value)}
+              />
             </div>
+            <div className="space-y-2">
+              <Label>Tone</Label>
+              <Select value={tone} onValueChange={setTone}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="empathetic and empowering">Empathetic</SelectItem>
+                  <SelectItem value="direct and action-oriented">Direct</SelectItem>
+                  <SelectItem value="warm and nurturing">Nurturing</SelectItem>
+                  <SelectItem value="bold and confident">Bold</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4 pt-2">
+            <Button 
+              onClick={() => generateMutation.mutate()}
+              disabled={generateMutation.isPending}
+              className="gap-2"
+            >
+              {generateMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Wand2 className="w-4 h-4" />
+              )}
+              Generate AI Ads
+            </Button>
+            {demographics && (
+              <div className="text-xs text-muted-foreground">
+                Using data from {demographics.maleCount + demographics.femaleCount} users
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="templates" className="space-y-4">
+      <Tabs defaultValue="grid" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="templates">Ad Templates</TabsTrigger>
-          <TabsTrigger value="custom">Custom Copy</TabsTrigger>
+          <TabsTrigger value="grid">Ad Grid</TabsTrigger>
           <TabsTrigger value="preview">Visual Preview</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="templates" className="space-y-4">
+        <TabsContent value="grid" className="space-y-4">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {currentTemplates.map((ad, index) => (
-              <Card key={index} className="overflow-hidden">
+            {allAds.map((ad, index) => (
+              <Card 
+                key={index} 
+                className={`overflow-hidden cursor-pointer transition-all ${
+                  selectedAd === ad ? "ring-2 ring-primary" : ""
+                }`}
+                onClick={() => setSelectedAd(ad)}
+              >
                 <div className="bg-gradient-to-br from-primary/10 to-accent/10 p-6">
                   <h3 className="text-xl font-bold tracking-tight mb-2">{ad.headline}</h3>
                   <p className="text-sm text-muted-foreground mb-4">{ad.subheadline}</p>
@@ -275,6 +428,11 @@ Generated: ${new Date().toISOString()}
                     <Badge variant="secondary" className="text-xs">
                       {targetType === "couples" ? "💑 Couples" : "👤 Singles"}
                     </Badge>
+                    {index >= currentTemplates.length && (
+                      <Badge variant="outline" className="text-xs gap-1">
+                        <Wand2 className="w-2 h-2" /> AI
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground mb-3">
                     <strong>Pain Point:</strong> {ad.painPoint}
@@ -284,16 +442,22 @@ Generated: ${new Date().toISOString()}
                       size="sm"
                       variant="outline"
                       className="flex-1"
-                      onClick={() => copyToClipboard(`${ad.headline}\n\n${ad.subheadline}\n\n[${ad.cta}]`)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(`${ad.headline}\n\n${ad.subheadline}\n\n[${ad.cta}]`);
+                      }}
                     >
                       <Copy className="w-3 h-3 mr-1" /> Copy
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => downloadAdCopy(ad)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        downloadAsImage(ad, "story");
+                      }}
                     >
-                      <Download className="w-3 h-3" />
+                      <ImageIcon className="w-3 h-3" />
                     </Button>
                   </div>
                 </CardContent>
@@ -302,105 +466,71 @@ Generated: ${new Date().toISOString()}
           </div>
         </TabsContent>
 
-        <TabsContent value="custom" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Create Custom Ad Copy</CardTitle>
-              <CardDescription>Write your own ad copy with demographic targeting</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Headline</Label>
-                <Textarea
-                  placeholder="Your attention-grabbing headline..."
-                  value={customHeadline}
-                  onChange={(e) => setCustomHeadline(e.target.value)}
-                  className="min-h-[60px]"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Subheadline</Label>
-                <Textarea
-                  placeholder="Supporting message..."
-                  value={customSubheadline}
-                  onChange={(e) => setCustomSubheadline(e.target.value)}
-                  className="min-h-[80px]"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>CTA Button Text</Label>
-                <Textarea
-                  placeholder="Start Free, Try Now, etc."
-                  value={customCta}
-                  onChange={(e) => setCustomCta(e.target.value)}
-                  className="min-h-[40px]"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => copyToClipboard(`${customHeadline}\n\n${customSubheadline}\n\n[${customCta}]`)}
-                  disabled={!customHeadline}
-                >
-                  <Copy className="w-4 h-4 mr-2" /> Copy Ad Copy
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setCustomHeadline("");
-                    setCustomSubheadline("");
-                    setCustomCta("");
-                  }}
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" /> Clear
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         <TabsContent value="preview" className="space-y-4">
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Instagram Story Preview */}
+            {/* Story Preview */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Instagram Story</CardTitle>
+                <CardTitle className="text-base flex items-center justify-between">
+                  <span>Instagram Story (9:16)</span>
+                  <Button 
+                    size="sm" 
+                    onClick={() => selectedAd && downloadAsImage(selectedAd, "story")}
+                    disabled={!selectedAd}
+                  >
+                    <Download className="w-4 h-4 mr-1" /> Download
+                  </Button>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="aspect-[9/16] max-w-[280px] mx-auto bg-gradient-to-br from-background to-muted rounded-xl overflow-hidden border shadow-lg">
+                <div className="aspect-[9/16] max-w-[280px] mx-auto bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23] rounded-xl overflow-hidden border shadow-lg">
                   <div className="h-full flex flex-col justify-center items-center p-6 text-center">
-                    <Heart className="w-12 h-12 text-primary mb-4" />
-                    <h3 className="text-lg font-bold tracking-tight mb-2">
-                      {customHeadline || currentTemplates[0]?.headline}
+                    <div className="w-16 h-16 rounded-full bg-primary/80 flex items-center justify-center mb-6">
+                      <Heart className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold tracking-tight mb-2 text-white">
+                      {selectedAd?.headline || currentTemplates[0]?.headline}
                     </h3>
-                    <p className="text-xs text-muted-foreground mb-6">
-                      {customSubheadline || currentTemplates[0]?.subheadline}
+                    <p className="text-xs text-white/70 mb-6">
+                      {selectedAd?.subheadline || currentTemplates[0]?.subheadline}
                     </p>
-                    <Button size="sm" className="w-full max-w-[200px]">
-                      {customCta || currentTemplates[0]?.cta}
+                    <Button size="sm" className="w-full max-w-[200px] bg-gradient-to-r from-primary to-pink-500">
+                      {selectedAd?.cta || currentTemplates[0]?.cta}
                     </Button>
-                    <p className="text-[10px] text-muted-foreground mt-4">Swipe Up</p>
+                    <p className="text-[10px] text-white/40 mt-4">Swipe Up</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Feed Post Preview */}
+            {/* Feed Preview */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Feed Post</CardTitle>
+                <CardTitle className="text-base flex items-center justify-between">
+                  <span>Feed Post (1:1)</span>
+                  <Button 
+                    size="sm" 
+                    onClick={() => selectedAd && downloadAsImage(selectedAd, "feed")}
+                    disabled={!selectedAd}
+                  >
+                    <Download className="w-4 h-4 mr-1" /> Download
+                  </Button>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="aspect-square max-w-[320px] mx-auto bg-gradient-to-br from-background to-muted rounded-xl overflow-hidden border shadow-lg">
+                <div className="aspect-square max-w-[320px] mx-auto bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23] rounded-xl overflow-hidden border shadow-lg">
                   <div className="h-full flex flex-col justify-center items-center p-8 text-center">
-                    <MessageSquare className="w-16 h-16 text-primary mb-6" />
-                    <h3 className="text-2xl font-bold tracking-tight mb-3">
-                      {customHeadline || currentTemplates[0]?.headline}
+                    <div className="w-20 h-20 rounded-full bg-primary/80 flex items-center justify-center mb-8">
+                      <MessageSquare className="w-10 h-10 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold tracking-tight mb-3 text-white">
+                      {selectedAd?.headline || currentTemplates[0]?.headline}
                     </h3>
-                    <p className="text-sm text-muted-foreground mb-8">
-                      {customSubheadline || currentTemplates[0]?.subheadline}
+                    <p className="text-sm text-white/70 mb-8">
+                      {selectedAd?.subheadline || currentTemplates[0]?.subheadline}
                     </p>
-                    <Button className="w-full max-w-[240px]">
-                      {customCta || currentTemplates[0]?.cta}
+                    <Button className="w-full max-w-[240px] bg-gradient-to-r from-primary to-pink-500">
+                      {selectedAd?.cta || currentTemplates[0]?.cta}
                     </Button>
                   </div>
                 </div>
@@ -408,23 +538,11 @@ Generated: ${new Date().toISOString()}
             </Card>
           </div>
 
-          <Card className="border-primary/20">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Targeting Notes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Target age: 18-45 for singles, 25-45 for couples</li>
-                <li>• Interests: Relationship advice, self-improvement, mental health</li>
-                <li>• Exclude: Dating apps, hookup culture content</li>
-                <li>• Best times: 8-10pm (overthinking hours), 7-9am (morning reflection)</li>
-                <li>• Platform optimization: Stories for urgency, Feed for consideration</li>
-              </ul>
-            </CardContent>
-          </Card>
+          {!selectedAd && (
+            <p className="text-center text-muted-foreground text-sm">
+              Click on an ad in the grid to preview and download
+            </p>
+          )}
         </TabsContent>
       </Tabs>
     </div>
