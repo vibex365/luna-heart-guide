@@ -72,16 +72,16 @@ serve(async (req) => {
         );
       }
 
-      // Validate phone number format - must start with + and have 8-15 digits
-      const cleaned = phoneNumber.replace(/[^\d+]/g, "");
-      if (!cleaned.startsWith("+") || cleaned.length < 9 || cleaned.length > 16) {
+      // Validate phone number format - must be exactly +[digits only], 8-15 digits
+      const phoneRegex = /^\+[1-9]\d{7,14}$/;
+      if (!phoneRegex.test(phoneNumber)) {
         return new Response(
-          JSON.stringify({ error: "Invalid phone number format. Use international format: +[country code][number]" }),
+          JSON.stringify({ error: "Invalid phone number. Use format: +1234567890 (country code + number, digits only)" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const formattedPhone = cleaned;
+      const formattedPhone = phoneNumber;
 
       // Rate limiting: Check if user sent a code in the last 60 seconds
       const { data: recentCode } = await supabase
@@ -225,19 +225,19 @@ serve(async (req) => {
         );
       }
 
-      // Validate phone number format
-      const cleaned = phoneNumber.replace(/[^\d+]/g, "");
-      if (!cleaned.startsWith("+") || cleaned.length < 9 || cleaned.length > 16) {
+      // Validate phone number format - must be exactly +[digits only], 8-15 digits
+      const phoneRegex = /^\+[1-9]\d{7,14}$/;
+      if (!phoneRegex.test(phoneNumber)) {
         return new Response(
-          JSON.stringify({ error: "Invalid phone number format. Use international format: +[country code][number]" }),
+          JSON.stringify({ error: "Invalid phone number. Use format: +1234567890 (country code + number, digits only, no spaces or letters)" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
       // Send direct SMS (for admin testing)
-      const result = await sendSms(cleaned, message);
+      const result = await sendSms(phoneNumber, message);
 
-      console.log(`Direct SMS sent to ${cleaned}: ${message.substring(0, 50)}...`);
+      console.log(`Direct SMS sent to ${phoneNumber}: ${message.substring(0, 50)}...`);
 
       return new Response(
         JSON.stringify({ success: true, message: "SMS sent", sid: result.sid }),
