@@ -640,6 +640,22 @@ export const MarketingAdGenerator = () => {
     toast({ title: `${style} ${format} image downloaded!` });
   };
 
+  // Helper to get preview background style based on style
+  const getPreviewBgStyle = (style: AdStyle): React.CSSProperties => {
+    switch (style) {
+      case "sunset":
+        return { background: "linear-gradient(to bottom, #fbbf24, #f97316, #ec4899, #7c3aed)" };
+      case "ocean":
+        return { background: "linear-gradient(to bottom, #0ea5e9, #0284c7, #0f766e)" };
+      case "aurora":
+        return { background: "linear-gradient(135deg, #1e1b4b, #4c1d95, #059669, #0284c7)" };
+      case "glass":
+        return { background: "linear-gradient(135deg, #6366f1, #a855f7, #ec4899)" };
+      default:
+        return {};
+    }
+  };
+
   // Helper to get preview background class based on style
   const getPreviewBgClass = (style: AdStyle) => {
     switch (style) {
@@ -648,18 +664,15 @@ export const MarketingAdGenerator = () => {
         return "bg-gradient-to-br from-pink-50 to-pink-100";
       case "timeline":
         return "bg-gradient-to-b from-[#0f0f0f] via-[#1a0a14] to-[#2d0a1a]";
-      case "sunset":
-        return "bg-gradient-to-b from-amber-400 via-orange-500 via-pink-500 to-violet-600";
-      case "ocean":
-        return "bg-gradient-to-b from-sky-500 via-sky-600 to-teal-700";
-      case "aurora":
-        return "bg-gradient-to-br from-indigo-950 via-violet-800 via-emerald-600 to-sky-600";
       case "neon":
         return "bg-[#0a0a0a]";
       case "minimal":
         return "bg-[#fafafa]";
+      case "sunset":
+      case "ocean":
+      case "aurora":
       case "glass":
-        return "bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500";
+        return ""; // Use inline style instead
       default:
         return "bg-gradient-to-br from-slate-900 to-slate-800";
     }
@@ -861,7 +874,7 @@ export const MarketingAdGenerator = () => {
                 }`}
                 onClick={() => setSelectedAd(ad)}
               >
-                <div className={`p-6 ${getPreviewBgClass(adStyle)}`}>
+                <div className={`p-6 ${getPreviewBgClass(adStyle)}`} style={getPreviewBgStyle(adStyle)}>
                   <h3 className={`text-xl font-black tracking-tight mb-2 ${
                     isLightTextStyle(adStyle) ? "text-white" : "text-slate-900"
                   }`}>
@@ -961,7 +974,7 @@ export const MarketingAdGenerator = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className={`aspect-[9/16] max-w-[280px] mx-auto rounded-xl overflow-hidden border shadow-lg relative ${getPreviewBgClass(adStyle)}`}>
+                <div className={`aspect-[9/16] max-w-[280px] mx-auto rounded-xl overflow-hidden border shadow-lg relative ${getPreviewBgClass(adStyle)}`} style={getPreviewBgStyle(adStyle)}>
                   {/* Glass overlay effect */}
                   {adStyle === "glass" && (
                     <div className="absolute inset-3 bg-white/10 backdrop-blur-sm rounded-lg" />
@@ -1065,7 +1078,7 @@ export const MarketingAdGenerator = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className={`aspect-square max-w-[320px] mx-auto rounded-xl overflow-hidden border shadow-lg relative ${getPreviewBgClass(adStyle)}`}>
+                <div className={`aspect-square max-w-[320px] mx-auto rounded-xl overflow-hidden border shadow-lg relative ${getPreviewBgClass(adStyle)}`} style={getPreviewBgStyle(adStyle)}>
                   {/* Glass overlay effect */}
                   {adStyle === "glass" && (
                     <div className="absolute inset-3 bg-white/10 backdrop-blur-sm rounded-lg" />
