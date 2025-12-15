@@ -731,8 +731,7 @@ export const MarketingAdGenerator = () => {
                   <span>Instagram Story (9:16)</span>
                   <Button 
                     size="sm" 
-                    onClick={() => selectedAd && downloadAsImage(selectedAd, "story")}
-                    disabled={!selectedAd}
+                    onClick={() => downloadAsImage(selectedAd || currentTemplates[0], "story")}
                   >
                     <Download className="w-4 h-4 mr-1" /> Download
                   </Button>
@@ -802,8 +801,7 @@ export const MarketingAdGenerator = () => {
                   <span>Feed Post (1:1)</span>
                   <Button 
                     size="sm" 
-                    onClick={() => selectedAd && downloadAsImage(selectedAd, "feed")}
-                    disabled={!selectedAd}
+                    onClick={() => downloadAsImage(selectedAd || currentTemplates[0], "feed")}
                   >
                     <Download className="w-4 h-4 mr-1" /> Download
                   </Button>
