@@ -22,6 +22,8 @@ import { AppreciationPrompts } from "@/components/couples/AppreciationPrompts";
 import { TruthOrDare } from "@/components/couples/TruthOrDare";
 import { CouplesQuizGame } from "@/components/couples/CouplesQuizGame";
 import { NeverHaveIEver } from "@/components/couples/NeverHaveIEver";
+import { ConversationStarters } from "@/components/couples/ConversationStarters";
+import { GameStatsCard } from "@/components/couples/GameStatsCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -263,13 +265,29 @@ const Couples = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.48 }}
             >
-              <DailyChallenges />
+              <ConversationStarters partnerLinkId={partnerLink?.id} />
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
+            >
+              <GameStatsCard partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.52 }}
+            >
+              <DailyChallenges />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.54 }}
             >
               <ConflictResolutionTools />
             </motion.div>
