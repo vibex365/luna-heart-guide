@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ManualSmsSender } from "@/components/admin/ManualSmsSender";
+import { SmsTemplatesManager } from "@/components/admin/SmsTemplatesManager";
+import { SmsDeliveryLogs } from "@/components/admin/SmsDeliveryLogs";
 import { 
   Bell, 
   Smartphone, 
@@ -40,6 +42,7 @@ const DEFAULT_SETTINGS: NotificationSettings = {
 export default function AdminNotifications() {
   const queryClient = useQueryClient();
   const [isSending, setIsSending] = useState(false);
+  const [templateMessage, setTemplateMessage] = useState<string | null>(null);
 
   // Fetch notification settings from luna_config
   const { data: settings = DEFAULT_SETTINGS, isLoading } = useQuery({
@@ -297,8 +300,18 @@ export default function AdminNotifications() {
           </CardContent>
         </Card>
 
-        {/* Manual SMS Sender */}
-        <ManualSmsSender />
+        {/* SMS Templates and Sender Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* SMS Templates */}
+          <SmsTemplatesManager onSelectTemplate={setTemplateMessage} />
+          
+          {/* Manual SMS Sender */}
+          <ManualSmsSender initialMessage={templateMessage} />
+        </div>
+
+        {/* Delivery Logs */}
+        <SmsDeliveryLogs />
+
         {/* Actions */}
         <div className="flex items-center gap-4">
           <Button onClick={handleSaveSettings} disabled={updateSettingsMutation.isPending}>
