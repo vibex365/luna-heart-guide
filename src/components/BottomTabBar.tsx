@@ -1,13 +1,14 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { MessageCircle, SmilePlus, BookOpen, Wind, User, Heart } from "lucide-react";
+import { MessageCircle, SmilePlus, BookOpen, Wind, User, Heart, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import LunaAvatar from "./LunaAvatar";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 
-const baseTabs = [
+const baseTabs: { to: string; icon: any; label: string; isLuna?: boolean; isCouples?: boolean; isAdmin?: boolean }[] = [
   { to: "/chat", icon: MessageCircle, label: "Chat", isLuna: true },
   { to: "/mood", icon: SmilePlus, label: "Mood" },
   { to: "/journal", icon: BookOpen, label: "Journal" },
@@ -19,6 +20,7 @@ export const BottomTabBar = () => {
   const location = useLocation();
   const { trigger } = useHapticFeedback();
   const { user } = useAuth();
+  const { isAdmin } = useUserRole();
 
   // Check if user has couples subscription
   const { data: hasCouplesAccess } = useQuery({
@@ -42,8 +44,8 @@ export const BottomTabBar = () => {
     staleTime: 60000, // Cache for 1 minute
   });
 
-  // Build tabs with couples if subscribed
-  const tabs = hasCouplesAccess
+  // Build tabs based on access
+  let tabs = hasCouplesAccess
     ? [
         baseTabs[0], // Chat
         baseTabs[1], // Mood
@@ -53,6 +55,14 @@ export const BottomTabBar = () => {
       ]
     : baseTabs;
 
+  // Add admin tab if user is admin
+  if (isAdmin) {
+    tabs = [
+      ...tabs.slice(0, 4),
+      { to: "/admin", icon: Shield, label: "Admin", isAdmin: true },
+    ];
+  }
+
   const handleTabPress = () => {
     trigger("selection");
   };
@@ -61,9 +71,11 @@ export const BottomTabBar = () => {
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border safe-area-bottom">
       <div className="flex items-center justify-around h-16 px-2">
         {tabs.map((tab) => {
-          const isActive = location.pathname === tab.to;
+          const isActive = location.pathname === tab.to || 
+            ('isAdmin' in tab && tab.isAdmin && location.pathname.startsWith('/admin'));
           const Icon = tab.icon;
           const isCouples = 'isCouples' in tab && tab.isCouples;
+          const isAdminTab = 'isAdmin' in tab && tab.isAdmin;
 
           return (
             <NavLink
@@ -78,7 +90,7 @@ export const BottomTabBar = () => {
                     <motion.div
                       layoutId="activeTab"
                       className={`absolute inset-x-2 top-0 h-0.5 rounded-full ${
-                        isCouples ? "bg-pink-500" : "bg-accent"
+                        isCouples ? "bg-pink-500" : isAdminTab ? "bg-yellow-500" : "bg-accent"
                       }`}
                       initial={false}
                       transition={{ type: "spring", stiffness: 500, damping: 35 }}
@@ -87,7 +99,7 @@ export const BottomTabBar = () => {
                   <motion.div
                     className={`flex flex-col items-center justify-center gap-0.5 ${
                       routeActive 
-                        ? isCouples ? "text-pink-500" : "text-accent" 
+                        ? isCouples ? "text-pink-500" : isAdminTab ? "text-yellow-500" : "text-accent" 
                         : "text-muted-foreground"
                     }`}
                     whileTap={{ scale: 0.9 }}
