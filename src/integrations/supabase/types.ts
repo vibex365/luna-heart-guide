@@ -413,6 +413,94 @@ export type Database = {
         }
         Relationships: []
       }
+      couples_game_history: {
+        Row: {
+          completed_at: string
+          details: Json | null
+          game_type: string
+          id: string
+          matches: number | null
+          partner_link_id: string
+          partner_played: boolean | null
+          played_by: string
+          score: number | null
+          total_questions: number | null
+        }
+        Insert: {
+          completed_at?: string
+          details?: Json | null
+          game_type: string
+          id?: string
+          matches?: number | null
+          partner_link_id: string
+          partner_played?: boolean | null
+          played_by: string
+          score?: number | null
+          total_questions?: number | null
+        }
+        Update: {
+          completed_at?: string
+          details?: Json | null
+          game_type?: string
+          id?: string
+          matches?: number | null
+          partner_link_id?: string
+          partner_played?: boolean | null
+          played_by?: string
+          score?: number | null
+          total_questions?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "couples_game_history_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      couples_game_sessions: {
+        Row: {
+          created_at: string
+          current_card_index: number
+          game_state: Json
+          game_type: string
+          id: string
+          partner_link_id: string
+          started_by: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_card_index?: number
+          game_state?: Json
+          game_type: string
+          id?: string
+          partner_link_id: string
+          started_by: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_card_index?: number
+          game_state?: Json
+          game_type?: string
+          id?: string
+          partner_link_id?: string
+          started_by?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "couples_game_sessions_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       couples_streaks: {
         Row: {
           badges_earned: string[]

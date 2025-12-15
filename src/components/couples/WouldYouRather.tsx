@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
+import { useCouplesGame } from "@/hooks/useCouplesGame";
 import { toast } from "sonner";
 
 interface Question {
@@ -54,6 +55,7 @@ interface WouldYouRatherProps {
 export const WouldYouRather = ({ partnerLinkId }: WouldYouRatherProps) => {
   const { user } = useAuth();
   const { partnerId } = useCouplesAccount();
+  const { saveGameResult, stats } = useCouplesGame(partnerLinkId, "would_you_rather");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<"A" | "B" | null>(null);
   const [partnerSelected, setPartnerSelected] = useState<"A" | "B" | null>(null);
@@ -126,8 +128,18 @@ export const WouldYouRather = ({ partnerLinkId }: WouldYouRatherProps) => {
   useEffect(() => {
     if (selectedOption && partnerSelected) {
       setTotalPlayed(prev => prev + 1);
-      if (selectedOption === partnerSelected) {
+      const isMatch = selectedOption === partnerSelected;
+      if (isMatch) {
         setMatchCount(prev => prev + 1);
+      }
+      
+      // Save to history every 5 rounds
+      if ((totalPlayed + 1) % 5 === 0) {
+        saveGameResult({
+          matches: matchCount + (isMatch ? 1 : 0),
+          total_questions: totalPlayed + 1,
+          score: Math.round(((matchCount + (isMatch ? 1 : 0)) / (totalPlayed + 1)) * 100),
+        });
       }
     }
   }, [selectedOption, partnerSelected]);
