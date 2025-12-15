@@ -1153,6 +1153,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          gender: string | null
           id: string
           phone_number: string | null
           phone_verified: boolean | null
@@ -1171,6 +1172,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          gender?: string | null
           id?: string
           phone_number?: string | null
           phone_verified?: boolean | null
@@ -1189,6 +1191,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          gender?: string | null
           id?: string
           phone_number?: string | null
           phone_verified?: boolean | null
