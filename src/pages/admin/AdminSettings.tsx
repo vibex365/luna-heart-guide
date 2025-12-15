@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -133,7 +133,7 @@ export default function AdminSettings() {
   });
 
   // Initialize settings from database
-  useState(() => {
+  useEffect(() => {
     if (settings) {
       const general = getSettingValue("app_general");
       if (Object.keys(general).length > 0) {
@@ -155,7 +155,7 @@ export default function AdminSettings() {
         setSecuritySettings((prev) => ({ ...prev, ...security }));
       }
     }
-  });
+  }, [settings]);
 
   const handleSaveGeneral = () => {
     updateSettingMutation.mutate({
