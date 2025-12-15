@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -97,11 +97,11 @@ export default function AdminNotifications() {
   const [localSettings, setLocalSettings] = useState<NotificationSettings>(settings);
 
   // Update local state when settings load
-  useState(() => {
+  useEffect(() => {
     if (settings) {
       setLocalSettings(settings);
     }
-  });
+  }, [settings]);
 
   const handleSaveSettings = () => {
     updateSettingsMutation.mutate(localSettings);
