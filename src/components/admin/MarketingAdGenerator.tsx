@@ -801,7 +801,7 @@ export const MarketingAdGenerator = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className={`aspect-[9/16] max-w-[280px] mx-auto rounded-xl overflow-hidden border shadow-lg ${
+                <div className={`aspect-[9/16] max-w-[280px] mx-auto rounded-xl overflow-hidden border shadow-lg relative ${
                   adStyle === "light" || adStyle === "calendar"
                     ? "bg-gradient-to-br from-pink-50 via-pink-100 to-pink-200"
                     : adStyle === "timeline"
@@ -853,6 +853,19 @@ export const MarketingAdGenerator = () => {
                       {selectedAd?.cta || currentTemplates[0]?.cta}
                     </Button>
                   </div>
+                  {/* Watermark Preview */}
+                  <div className={`absolute px-3 font-bold ${
+                    adStyle === "light" || adStyle === "calendar" ? "text-gray-500/60" : "text-white/40"
+                  } ${
+                    watermarkFontSize === "small" ? "text-[8px]" : watermarkFontSize === "medium" ? "text-[10px]" : "text-xs"
+                  } ${
+                    watermarkPosition === "bottom-center" ? "bottom-2 left-0 right-0 text-center" :
+                    watermarkPosition === "bottom-left" ? "bottom-2 left-3 text-left" :
+                    watermarkPosition === "bottom-right" ? "bottom-2 right-3 text-right" :
+                    "top-2 left-0 right-0 text-center"
+                  }`}>
+                    {watermarkText}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -871,7 +884,7 @@ export const MarketingAdGenerator = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className={`aspect-square max-w-[320px] mx-auto rounded-xl overflow-hidden border shadow-lg ${
+                <div className={`aspect-square max-w-[320px] mx-auto rounded-xl overflow-hidden border shadow-lg relative ${
                   adStyle === "light" || adStyle === "calendar"
                     ? "bg-gradient-to-br from-pink-50 via-pink-100 to-pink-200"
                     : adStyle === "timeline"
@@ -922,6 +935,19 @@ export const MarketingAdGenerator = () => {
                     <Button className="w-full max-w-[220px] bg-gradient-to-r from-pink-500 to-purple-500 font-bold">
                       {selectedAd?.cta || currentTemplates[0]?.cta}
                     </Button>
+                  </div>
+                  {/* Watermark Preview */}
+                  <div className={`absolute px-3 font-bold ${
+                    adStyle === "light" || adStyle === "calendar" ? "text-gray-500/60" : "text-white/40"
+                  } ${
+                    watermarkFontSize === "small" ? "text-[10px]" : watermarkFontSize === "medium" ? "text-xs" : "text-sm"
+                  } ${
+                    watermarkPosition === "bottom-center" ? "bottom-3 left-0 right-0 text-center" :
+                    watermarkPosition === "bottom-left" ? "bottom-3 left-3 text-left" :
+                    watermarkPosition === "bottom-right" ? "bottom-3 right-3 text-right" :
+                    "top-3 left-0 right-0 text-center"
+                  }`}>
+                    {watermarkText}
                   </div>
                 </div>
               </CardContent>
