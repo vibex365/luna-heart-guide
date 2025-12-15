@@ -35,12 +35,23 @@ interface Profile {
   phone_number: string | null;
   phone_verified: boolean | null;
   gender: string | null;
+  sexual_orientation: string | null;
 }
 
 const genderOptions = [
   { value: "male", label: "Male" },
   { value: "female", label: "Female" },
   { value: "non-binary", label: "Non-binary" },
+  { value: "prefer-not-to-say", label: "Prefer not to say" },
+];
+
+const orientationOptions = [
+  { value: "straight", label: "Straight" },
+  { value: "gay", label: "Gay" },
+  { value: "lesbian", label: "Lesbian" },
+  { value: "bisexual", label: "Bisexual" },
+  { value: "pansexual", label: "Pansexual" },
+  { value: "asexual", label: "Asexual" },
   { value: "prefer-not-to-say", label: "Prefer not to say" },
 ];
 
@@ -312,6 +323,7 @@ const ProfileSettings = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [gender, setGender] = useState<string | null>(null);
+  const [sexualOrientation, setSexualOrientation] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
   const [phoneVerified, setPhoneVerified] = useState(false);
@@ -366,6 +378,7 @@ const ProfileSettings = () => {
       setProfile(data);
       setDisplayName(data.display_name || "");
       setGender(data.gender || null);
+      setSexualOrientation(data.sexual_orientation || null);
       setAvatarUrl(data.avatar_url);
       setPhoneNumber(data.phone_number);
       setPhoneVerified(data.phone_verified ?? false);
@@ -475,7 +488,8 @@ const ProfileSettings = () => {
         .from("profiles")
         .update({ 
           display_name: displayName.trim() || null,
-          gender: gender 
+          gender: gender,
+          sexual_orientation: sexualOrientation
         })
         .eq("user_id", user.id);
 
@@ -726,6 +740,33 @@ const ProfileSettings = () => {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Helps Luna personalize communication insights
+                </p>
+              </div>
+
+              {/* Sexual Orientation Select */}
+              <div className="space-y-2">
+                <Label className="text-foreground flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-accent" />
+                  Sexual Orientation
+                </Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {orientationOptions.map(option => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setSexualOrientation(option.value)}
+                      className={`p-3 rounded-xl border text-center text-sm transition-all ${
+                        sexualOrientation === option.value
+                          ? "bg-secondary border-accent"
+                          : "bg-background border-border hover:border-accent/50"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Helps personalize relationship advice
                 </p>
               </div>
 

@@ -13,8 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Copy, Eye, MessageCircle, TrendingUp, Users, Download, RefreshCw, Send, Loader2, Plus, TestTube, Heart } from "lucide-react";
+import { Save, Copy, Eye, MessageCircle, TrendingUp, Users, Download, RefreshCw, Send, Loader2, Plus, TestTube, Heart, Brain, Sparkles } from "lucide-react";
 import { format } from "date-fns";
+import { GenderAnalyticsDashboard } from "@/components/admin/GenderAnalyticsDashboard";
+import { MarketingAdGenerator } from "@/components/admin/MarketingAdGenerator";
 
 interface Segment {
   id: string;
@@ -714,6 +716,8 @@ Ready to start healing?
             <TabsTrigger value="segments">Segment Content</TabsTrigger>
             <TabsTrigger value="dm-templates">DM Templates</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-1"><Brain className="w-3 h-3" />Gender Analytics</TabsTrigger>
+            <TabsTrigger value="ads" className="gap-1"><Sparkles className="w-3 h-3" />Ad Generator</TabsTrigger>
           </TabsList>
 
           {/* Leads Tab */}
@@ -1108,6 +1112,14 @@ Ready to start healing?
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <GenderAnalyticsDashboard />
+          </TabsContent>
+
+          <TabsContent value="ads">
+            <MarketingAdGenerator />
           </TabsContent>
         </Tabs>
       </div>
