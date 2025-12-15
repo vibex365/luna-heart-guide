@@ -711,13 +711,13 @@ Ready to start healing?
         </div>
 
         <Tabs defaultValue="leads" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="leads">Leads</TabsTrigger>
-            <TabsTrigger value="segments">Segment Content</TabsTrigger>
-            <TabsTrigger value="dm-templates">DM Templates</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-1"><Brain className="w-3 h-3" />Gender Analytics</TabsTrigger>
-            <TabsTrigger value="ads" className="gap-1"><Sparkles className="w-3 h-3" />Ad Generator</TabsTrigger>
+          <TabsList className="flex flex-wrap h-auto gap-1 p-1">
+            <TabsTrigger value="leads" className="text-xs sm:text-sm">Leads</TabsTrigger>
+            <TabsTrigger value="segments" className="text-xs sm:text-sm">Segments</TabsTrigger>
+            <TabsTrigger value="dm-templates" className="text-xs sm:text-sm">DM Templates</TabsTrigger>
+            <TabsTrigger value="performance" className="text-xs sm:text-sm">Performance</TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-1 text-xs sm:text-sm"><Brain className="w-3 h-3 hidden sm:block" />Analytics</TabsTrigger>
+            <TabsTrigger value="ads" className="gap-1 text-xs sm:text-sm"><Sparkles className="w-3 h-3 hidden sm:block" />Ads</TabsTrigger>
           </TabsList>
 
           {/* Leads Tab */}
