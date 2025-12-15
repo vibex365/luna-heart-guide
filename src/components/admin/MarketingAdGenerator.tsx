@@ -210,14 +210,14 @@ export const MarketingAdGenerator = () => {
     
     // Heart shape
     ctx.fillStyle = "#fff";
-    ctx.font = "bold 48px Arial";
+    ctx.font = "900 48px Arial";
     ctx.textAlign = "center";
     ctx.fillText("♥", canvas.width / 2, iconY + 16);
 
-    // Headline
+    // Headline - Extra bold for impact
     const headlineY = isStory ? 800 : 420;
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 64px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.font = "900 84px 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif";
     ctx.textAlign = "center";
     
     // Word wrap headline
@@ -227,7 +227,7 @@ export const MarketingAdGenerator = () => {
     headlineWords.forEach((word) => {
       const testLine = headlineLine + word + " ";
       const metrics = ctx.measureText(testLine);
-      if (metrics.width > canvas.width - 120) {
+      if (metrics.width > canvas.width - 100) {
         headlineLines.push(headlineLine.trim());
         headlineLine = word + " ";
       } else {
@@ -237,13 +237,24 @@ export const MarketingAdGenerator = () => {
     headlineLines.push(headlineLine.trim());
     
     headlineLines.forEach((line, i) => {
-      ctx.fillText(line, canvas.width / 2, headlineY + i * 80);
+      // Add text shadow for depth
+      ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+      ctx.fillText(line.toUpperCase(), canvas.width / 2, headlineY + i * 100);
     });
+    
+    // Reset shadow
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
 
     // Subheadline
-    const subY = headlineY + headlineLines.length * 80 + 40;
-    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-    ctx.font = "32px -apple-system, BlinkMacSystemFont, sans-serif";
+    const subY = headlineY + headlineLines.length * 100 + 50;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+    ctx.font = "500 36px 'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
     
     const subWords = ad.subheadline.split(" ");
     let subLine = "";
@@ -251,7 +262,7 @@ export const MarketingAdGenerator = () => {
     subWords.forEach((word) => {
       const testLine = subLine + word + " ";
       const metrics = ctx.measureText(testLine);
-      if (metrics.width > canvas.width - 160) {
+      if (metrics.width > canvas.width - 140) {
         subLines.push(subLine.trim());
         subLine = word + " ";
       } else {
@@ -261,28 +272,29 @@ export const MarketingAdGenerator = () => {
     subLines.push(subLine.trim());
     
     subLines.forEach((line, i) => {
-      ctx.fillText(line, canvas.width / 2, subY + i * 44);
+      ctx.fillText(line, canvas.width / 2, subY + i * 50);
     });
 
     // CTA Button
-    const ctaY = isStory ? 1400 : 800;
-    const ctaWidth = ctx.measureText(ad.cta).width + 80;
-    const ctaHeight = 70;
+    const ctaY = isStory ? 1500 : 850;
+    ctx.font = "800 32px 'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+    const ctaWidth = ctx.measureText(ad.cta).width + 100;
+    const ctaHeight = 80;
     const ctaX = (canvas.width - ctaWidth) / 2;
 
     // Button background
     const btnGradient = ctx.createLinearGradient(ctaX, ctaY, ctaX + ctaWidth, ctaY + ctaHeight);
-    btnGradient.addColorStop(0, "#a855f7");
-    btnGradient.addColorStop(1, "#ec4899");
+    btnGradient.addColorStop(0, "#ec4899");
+    btnGradient.addColorStop(1, "#a855f7");
     ctx.fillStyle = btnGradient;
     ctx.beginPath();
-    ctx.roundRect(ctaX, ctaY, ctaWidth, ctaHeight, 35);
+    ctx.roundRect(ctaX, ctaY, ctaWidth, ctaHeight, 40);
     ctx.fill();
 
     // Button text
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 28px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.fillText(ad.cta, canvas.width / 2, ctaY + 46);
+    ctx.font = "800 32px 'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.fillText(ad.cta.toUpperCase(), canvas.width / 2, ctaY + 52);
 
     // Target badge
     ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
