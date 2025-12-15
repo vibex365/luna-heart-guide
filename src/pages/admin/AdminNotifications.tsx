@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { 
   Bell, 
-  Mail, 
+  Smartphone, 
   Send, 
   Clock,
   MessageSquare,
@@ -28,7 +28,6 @@ interface NotificationSettings {
   low_messages_threshold: number;
   subscription_expiring_enabled: boolean;
   subscription_expiring_days: number;
-  email_from_name: string;
 }
 
 const DEFAULT_SETTINGS: NotificationSettings = {
@@ -36,7 +35,6 @@ const DEFAULT_SETTINGS: NotificationSettings = {
   low_messages_threshold: 2,
   subscription_expiring_enabled: true,
   subscription_expiring_days: 3,
-  email_from_name: "Luna",
 };
 
 export default function AdminNotifications() {
@@ -138,9 +136,9 @@ export default function AdminNotifications() {
           <div className="flex items-center gap-3">
             <Bell className="h-8 w-8 text-accent" />
             <div>
-              <h1 className="text-2xl font-bold">Notification Settings</h1>
+              <h1 className="text-2xl font-bold">SMS Notification Settings</h1>
               <p className="text-sm text-muted-foreground">
-                Configure automated email notifications
+                Configure automated SMS notifications (sent via Twilio)
               </p>
             </div>
           </div>
@@ -275,41 +273,26 @@ export default function AdminNotifications() {
           </Card>
         </div>
 
-        {/* Email Settings */}
+        {/* SMS Settings */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Email Configuration
+              <Smartphone className="h-5 w-5" />
+              SMS Configuration
             </CardTitle>
             <CardDescription>
-              Customize email sender settings
+              SMS notifications are sent via Twilio to users with verified phone numbers
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="email-from-name">Sender Name</Label>
-                <Input
-                  id="email-from-name"
-                  value={localSettings.email_from_name}
-                  onChange={(e) =>
-                    setLocalSettings({ ...localSettings, email_from_name: e.target.value })
-                  }
-                  placeholder="Luna"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Sender Email</Label>
-                <Input
-                  value="onboarding@resend.dev"
-                  disabled
-                  className="bg-muted"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Configure custom domain in Resend dashboard
-                </p>
-              </div>
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                SMS notifications are only sent to users who have:
+              </p>
+              <ul className="text-sm text-muted-foreground mt-2 list-disc list-inside space-y-1">
+                <li>A verified phone number</li>
+                <li>SMS notifications enabled in their profile</li>
+              </ul>
             </div>
           </CardContent>
         </Card>

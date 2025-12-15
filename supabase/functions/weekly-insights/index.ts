@@ -16,20 +16,38 @@ interface AnalyticsEntry {
   created_at: string;
 }
 
-function generateInsightsSummary(
+interface Profile {
+  user_id: string;
+  display_name: string | null;
+  phone_number: string | null;
+  phone_verified: boolean | null;
+  sms_notifications_enabled: boolean | null;
+}
+
+const moduleLabels: Record<string, string> = {
+  "communication_coaching": "communication",
+  "conflict_deescalation": "conflict resolution",
+  "emotional_mirror": "emotions",
+  "pattern_spotting": "patterns",
+  "boundary_building": "boundaries",
+  "breakup_healing": "healing",
+  "self_worth": "self-worth",
+  "general_support": "support"
+};
+
+function generateInsightsSms(
+  displayName: string,
   moodEntries: MoodEntry[],
   analyticsEntries: AnalyticsEntry[]
-): { title: string; body: string } {
-  // Calculate mood trend
-  let moodInsight = "";
+): string {
+  let message = `💜 Weekly Insights for ${displayName}!\n\n`;
+  
   if (moodEntries.length > 0) {
     const avgMood = moodEntries.reduce((sum, e) => sum + e.mood_level, 0) / moodEntries.length;
-    const moodTrend = avgMood >= 7 ? "great" : avgMood >= 5 ? "balanced" : "challenging";
-    moodInsight = `Your mood has been ${moodTrend} this week (avg: ${avgMood.toFixed(1)}/10). `;
+    const moodTrend = avgMood >= 7 ? "great 😊" : avgMood >= 5 ? "balanced 🙂" : "challenging 💪";
+    message += `🎭 Mood: ${moodTrend} (avg ${avgMood.toFixed(1)}/10)\n`;
   }
 
-  // Find top conversation module
-  let moduleInsight = "";
   if (analyticsEntries.length > 0) {
     const moduleCounts: Record<string, number> = {};
     analyticsEntries.forEach(e => {
@@ -39,24 +57,52 @@ function generateInsightsSummary(
     const topModule = Object.entries(moduleCounts)
       .sort(([, a], [, b]) => b - a)[0];
     
-    const moduleLabels: Record<string, string> = {
-      "communication_coaching": "communication skills",
-      "conflict_deescalation": "conflict resolution",
-      "emotional_mirror": "emotional processing",
-      "pattern_spotting": "pattern recognition",
-      "boundary_building": "boundary setting",
-      "breakup_healing": "healing & recovery",
-      "self_worth": "self-worth building",
-      "general_support": "general support"
-    };
-    
-    moduleInsight = `You focused most on ${moduleLabels[topModule[0]] || topModule[0]} (${topModule[1]} conversations).`;
+    message += `💬 Focus: ${moduleLabels[topModule[0]] || topModule[0]} (${topModule[1]} chats)\n`;
   }
 
-  const title = "Your Weekly Luna Insights 💜";
-  const body = moodInsight + moduleInsight || "Keep checking in with Luna to build your insights!";
+  message += `\n🌟 Keep taking care of yourself! Open Luna to continue your journey.`;
 
-  return { title, body };
+  return message;
+}
+
+async function sendSms(phoneNumber: string, message: string): Promise<boolean> {
+  const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
+  const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+  const fromNumber = Deno.env.get('TWILIO_PHONE_NUMBER');
+
+  if (!accountSid || !authToken || !fromNumber) {
+    console.error('[WEEKLY-INSIGHTS] Twilio credentials not configured');
+    return false;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Basic ' + btoa(`${accountSid}:${authToken}`),
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          To: phoneNumber,
+          From: fromNumber,
+          Body: message,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('[WEEKLY-INSIGHTS] Twilio error:', errorData);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('[WEEKLY-INSIGHTS] Failed to send SMS:', error);
+    return false;
+  }
 }
 
 Deno.serve(async (req) => {
@@ -65,51 +111,52 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate scheduled/cron requests
-    // This function should only be called by Supabase Cron or with a valid secret
     const authHeader = req.headers.get('Authorization');
     const cronSecret = Deno.env.get('CRON_SECRET');
     
-    // Allow requests with valid cron secret OR service role key
     const isValidCronRequest = cronSecret && authHeader === `Bearer ${cronSecret}`;
     const isValidServiceRequest = authHeader?.includes(Deno.env.get('SUPABASE_ANON_KEY') || '');
     
     if (!isValidCronRequest && !isValidServiceRequest) {
-      console.error('Unauthorized request to weekly-insights function');
+      console.error('[WEEKLY-INSIGHTS] Unauthorized request');
       return new Response(
-        JSON.stringify({ error: 'Unauthorized. This endpoint requires authentication.' }),
+        JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    console.log('Weekly insights function authenticated successfully');
+    console.log('[WEEKLY-INSIGHTS] Function started');
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get the date range for the past week
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     const oneWeekAgoISO = oneWeekAgo.toISOString();
 
-    // Get all users with weekly insights notifications enabled
+    // Get all users with weekly insights enabled AND verified phone
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('user_id, display_name')
+      .select('user_id, display_name, phone_number, phone_verified, sms_notifications_enabled')
       .eq('weekly_insights_enabled', true);
 
     if (profilesError) {
-      console.error('Error fetching profiles:', profilesError);
+      console.error('[WEEKLY-INSIGHTS] Error fetching profiles:', profilesError);
       throw profilesError;
     }
 
-    console.log(`Processing weekly insights for ${profiles?.length || 0} users`);
+    console.log(`[WEEKLY-INSIGHTS] Processing ${profiles?.length || 0} users`);
 
     const results = [];
 
-    for (const profile of profiles || []) {
+    for (const profile of (profiles as Profile[]) || []) {
+      // Skip if no verified phone or SMS disabled
+      if (!profile.phone_verified || !profile.sms_notifications_enabled || !profile.phone_number) {
+        console.log(`[WEEKLY-INSIGHTS] Skipping ${profile.user_id} - no verified phone or SMS disabled`);
+        continue;
+      }
+
       // Get mood entries for this user from the past week
       const { data: moodEntries } = await supabase
         .from('mood_entries')
@@ -125,27 +172,30 @@ Deno.serve(async (req) => {
         .eq('user_id', profile.user_id)
         .gte('created_at', oneWeekAgoISO);
 
-      const { title, body } = generateInsightsSummary(
+      const smsMessage = generateInsightsSms(
+        profile.display_name || 'there',
         moodEntries || [],
         analyticsEntries || []
       );
 
+      const sent = await sendSms(profile.phone_number, smsMessage);
+
       results.push({
         user_id: profile.user_id,
         display_name: profile.display_name,
-        title,
-        body,
+        sms_sent: sent,
         mood_count: moodEntries?.length || 0,
         analytics_count: analyticsEntries?.length || 0
       });
 
-      console.log(`Generated insights for user ${profile.user_id}: ${body}`);
+      console.log(`[WEEKLY-INSIGHTS] SMS ${sent ? 'sent' : 'failed'} for user ${profile.user_id}`);
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         processed: results.length,
+        smsSent: results.filter(r => r.sms_sent).length,
         insights: results 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -153,7 +203,7 @@ Deno.serve(async (req) => {
 
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error generating weekly insights:', error);
+    console.error('[WEEKLY-INSIGHTS] Error:', error);
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
