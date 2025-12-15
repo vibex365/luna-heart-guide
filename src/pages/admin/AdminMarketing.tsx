@@ -17,6 +17,7 @@ import { Save, Copy, Eye, MessageCircle, TrendingUp, Users, Download, RefreshCw,
 import { format } from "date-fns";
 import { GenderAnalyticsDashboard } from "@/components/admin/GenderAnalyticsDashboard";
 import { MarketingAdGenerator } from "@/components/admin/MarketingAdGenerator";
+import CouplesMarketingHero from "@/components/couples/CouplesMarketingHero";
 
 interface Segment {
   id: string;
@@ -1118,7 +1119,16 @@ Ready to start healing?
             <GenderAnalyticsDashboard />
           </TabsContent>
 
-          <TabsContent value="ads">
+          <TabsContent value="ads" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Couples Marketing Hero Preview</CardTitle>
+                <CardDescription>Preview the marketing hero image with text overlay</CardDescription>
+              </CardHeader>
+              <CardContent className="flex justify-center">
+                <CouplesMarketingHero />
+              </CardContent>
+            </Card>
             <MarketingAdGenerator />
           </TabsContent>
         </Tabs>
