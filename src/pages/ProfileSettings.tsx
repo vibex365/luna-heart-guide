@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Camera, User, Save, Heart, Users, Sparkles, MessageCircle, LogOut, Crown, Link2, UserPlus, Download, Lock, Unlink } from "lucide-react";
+import { Camera, User, Save, Heart, Users, Sparkles, MessageCircle, LogOut, Crown, Link2, UserPlus, Download, Lock, Unlink, UserCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +34,15 @@ interface Profile {
   weekly_insights_enabled: boolean | null;
   phone_number: string | null;
   phone_verified: boolean | null;
+  gender: string | null;
 }
+
+const genderOptions = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "non-binary", label: "Non-binary" },
+  { value: "prefer-not-to-say", label: "Prefer not to say" },
+];
 
 interface UserPreferences {
   relationship_reason: string | null;
@@ -303,6 +311,7 @@ const ProfileSettings = () => {
   const [exportingData, setExportingData] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState("");
+  const [gender, setGender] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
   const [phoneVerified, setPhoneVerified] = useState(false);
@@ -356,6 +365,7 @@ const ProfileSettings = () => {
     } else if (data) {
       setProfile(data);
       setDisplayName(data.display_name || "");
+      setGender(data.gender || null);
       setAvatarUrl(data.avatar_url);
       setPhoneNumber(data.phone_number);
       setPhoneVerified(data.phone_verified ?? false);
@@ -463,7 +473,10 @@ const ProfileSettings = () => {
       // Save profile
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({ display_name: displayName.trim() || null })
+        .update({ 
+          display_name: displayName.trim() || null,
+          gender: gender 
+        })
         .eq("user_id", user.id);
 
       if (profileError) throw profileError;
@@ -686,6 +699,33 @@ const ProfileSettings = () => {
                 />
                 <p className="text-xs text-muted-foreground">
                   This is how Luna will address you in conversations
+                </p>
+              </div>
+
+              {/* Gender Select */}
+              <div className="space-y-2">
+                <Label className="text-foreground flex items-center gap-2">
+                  <UserCircle2 className="w-4 h-4 text-accent" />
+                  Gender
+                </Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {genderOptions.map(option => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setGender(option.value)}
+                      className={`p-3 rounded-xl border text-center text-sm transition-all ${
+                        gender === option.value
+                          ? "bg-secondary border-accent"
+                          : "bg-background border-border hover:border-accent/50"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Helps Luna personalize communication insights
                 </p>
               </div>
 
