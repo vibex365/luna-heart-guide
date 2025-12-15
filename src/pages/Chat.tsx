@@ -882,7 +882,7 @@ const Chat = () => {
                   className="flex gap-3"
                 >
                   <div className="flex-shrink-0">
-                    <LunaAvatar size="sm" showGlow={false} />
+                    <LunaAvatar size="sm" showGlow={true} isTyping={true} />
                   </div>
                   <div className="bg-luna-bubble rounded-2xl rounded-tl-md px-4 py-3">
                     <div className="flex gap-1.5">

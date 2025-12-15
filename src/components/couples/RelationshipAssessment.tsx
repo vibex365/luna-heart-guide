@@ -101,7 +101,7 @@ export const RelationshipAssessment = () => {
   // Get partner ID
   const partnerId = partnerLink?.user_id === user?.id ? partnerLink?.partner_id : partnerLink?.user_id;
 
-  // Check if partner completed today
+  // Check if partner completed today and get their scores
   const { data: partnerAssessment } = useQuery({
     queryKey: ["partner-assessment", partnerLink?.id, user?.id],
     queryFn: async () => {
@@ -111,7 +111,7 @@ export const RelationshipAssessment = () => {
       
       const { data, error } = await supabase
         .from("relationship_assessments")
-        .select("completed_at")
+        .select("*")
         .eq("partner_link_id", partnerLink.id)
         .eq("user_id", partnerId)
         .eq("assessment_date", today)
@@ -266,6 +266,13 @@ export const RelationshipAssessment = () => {
 
   // Already completed today
   if (todayAssessment) {
+    const categories = [
+      { key: "communication", label: "Communication", myScore: todayAssessment.communication_score, partnerScore: partnerAssessment?.communication_score, color: "text-blue-500", bg: "bg-blue-500" },
+      { key: "trust", label: "Trust", myScore: todayAssessment.trust_score, partnerScore: partnerAssessment?.trust_score, color: "text-green-500", bg: "bg-green-500" },
+      { key: "intimacy", label: "Intimacy", myScore: todayAssessment.intimacy_score, partnerScore: partnerAssessment?.intimacy_score, color: "text-pink-500", bg: "bg-pink-500" },
+      { key: "conflict", label: "Conflict", myScore: todayAssessment.conflict_score, partnerScore: partnerAssessment?.conflict_score, color: "text-purple-500", bg: "bg-purple-500" },
+    ];
+
     return (
       <Card className="border-green-500/20 bg-green-500/5">
         <CardHeader className="pb-2">
@@ -275,38 +282,79 @@ export const RelationshipAssessment = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            You have completed today's relationship assessment.
-          </p>
-          
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: "Communication", score: todayAssessment.communication_score, color: "text-blue-500" },
-              { label: "Trust", score: todayAssessment.trust_score, color: "text-green-500" },
-              { label: "Intimacy", score: todayAssessment.intimacy_score, color: "text-pink-500" },
-              { label: "Conflict Resolution", score: todayAssessment.conflict_score, color: "text-purple-500" },
-            ].map(item => (
-              <div key={item.label} className="p-3 bg-background rounded-lg border border-border">
-                <p className="text-xs text-muted-foreground">{item.label}</p>
-                <p className={`text-lg font-bold ${item.color}`}>{item.score}%</p>
-              </div>
-            ))}
-          </div>
-
           {partnerAssessment ? (
-            <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-lg">
-              <Users className="w-4 h-4 text-green-500" />
-              <span className="text-sm text-green-600 dark:text-green-400">
-                Both partners completed - scores updated!
-              </span>
-            </div>
+            <>
+              <p className="text-sm text-muted-foreground">
+                Compare your scores with your partner's below.
+              </p>
+              
+              {/* Side-by-side comparison header */}
+              <div className="flex items-center justify-between px-3 text-xs font-medium text-muted-foreground">
+                <span>You</span>
+                <span>Partner</span>
+              </div>
+              
+              {/* Category scores side-by-side */}
+              <div className="space-y-3">
+                {categories.map(item => (
+                  <div key={item.key} className="p-3 bg-background rounded-lg border border-border">
+                    <p className={`text-xs font-medium ${item.color} mb-2 text-center`}>{item.label}</p>
+                    <div className="flex items-center justify-between gap-3">
+                      {/* My score */}
+                      <div className="flex-1 text-center">
+                        <p className={`text-xl font-bold ${item.color}`}>{item.myScore}%</p>
+                      </div>
+                      
+                      {/* Visual comparison bar */}
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden relative">
+                        <div 
+                          className={`absolute left-0 top-0 h-full ${item.bg} opacity-60`} 
+                          style={{ width: `${item.myScore}%` }}
+                        />
+                        <div 
+                          className={`absolute left-0 top-0 h-1 ${item.bg} mt-0.5`} 
+                          style={{ width: `${item.partnerScore}%` }}
+                        />
+                      </div>
+                      
+                      {/* Partner score */}
+                      <div className="flex-1 text-center">
+                        <p className={`text-xl font-bold ${item.color}`}>{item.partnerScore}%</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-lg">
+                <Users className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-green-600 dark:text-green-400">
+                  Both partners completed - scores updated!
+                </span>
+              </div>
+            </>
           ) : (
-            <div className="flex items-center gap-2 p-3 bg-yellow-500/10 rounded-lg">
-              <Users className="w-4 h-4 text-yellow-600" />
-              <span className="text-sm text-yellow-600 dark:text-yellow-400">
-                Waiting for your partner to complete their assessment
-              </span>
-            </div>
+            <>
+              <p className="text-sm text-muted-foreground">
+                You have completed today's relationship assessment.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-3">
+                {categories.map(item => (
+                  <div key={item.key} className="p-3 bg-background rounded-lg border border-border">
+                    <p className="text-xs text-muted-foreground">{item.label}</p>
+                    <p className={`text-lg font-bold ${item.color}`}>{item.myScore}%</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 p-3 bg-yellow-500/10 rounded-lg">
+                <Users className="w-4 h-4 text-yellow-600" />
+                <span className="text-sm text-yellow-600 dark:text-yellow-400">
+                  Waiting for your partner to complete their assessment
+                </span>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
