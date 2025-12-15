@@ -22,7 +22,13 @@ import {
   Wand2,
   Image as ImageIcon,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  Sunset,
+  Waves,
+  Stars,
+  Zap,
+  Square,
+  Layers
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -34,7 +40,7 @@ interface AdVariant {
   accentWords?: string[]; // Words to highlight in pink
 }
 
-type AdStyle = "dark" | "light" | "calendar" | "timeline";
+type AdStyle = "dark" | "light" | "calendar" | "timeline" | "sunset" | "ocean" | "aurora" | "neon" | "minimal" | "glass";
 
 const STATIC_TEMPLATES = {
   male: {
@@ -389,11 +395,10 @@ export const MarketingAdGenerator = () => {
     canvas.width = isStory ? 1080 : 1080;
     canvas.height = isStory ? 1920 : 1080;
     
-    const isLightMode = style === "light" || style === "calendar";
+    const isLightMode = style === "light" || style === "calendar" || style === "minimal";
 
     // Background based on style
-    if (isLightMode) {
-      // Light mode - soft pink/white gradient
+    if (style === "light" || style === "calendar") {
       const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
       gradient.addColorStop(0, "#fdf2f8");
       gradient.addColorStop(0.5, "#fce7f3");
@@ -401,13 +406,54 @@ export const MarketingAdGenerator = () => {
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     } else if (style === "timeline") {
-      // Dark gradient with red/pink tint
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
       gradient.addColorStop(0, "#0f0f0f");
       gradient.addColorStop(0.5, "#1a0a14");
       gradient.addColorStop(1, "#2d0a1a");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else if (style === "sunset") {
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, "#fbbf24");
+      gradient.addColorStop(0.3, "#f97316");
+      gradient.addColorStop(0.6, "#ec4899");
+      gradient.addColorStop(1, "#7c3aed");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else if (style === "ocean") {
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, "#0ea5e9");
+      gradient.addColorStop(0.5, "#0284c7");
+      gradient.addColorStop(1, "#0f766e");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else if (style === "aurora") {
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, "#1e1b4b");
+      gradient.addColorStop(0.3, "#4c1d95");
+      gradient.addColorStop(0.6, "#059669");
+      gradient.addColorStop(1, "#0284c7");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else if (style === "neon") {
+      ctx.fillStyle = "#0a0a0a";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else if (style === "minimal") {
+      ctx.fillStyle = "#fafafa";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else if (style === "glass") {
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, "#6366f1");
+      gradient.addColorStop(0.5, "#a855f7");
+      gradient.addColorStop(1, "#ec4899");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Add glass overlay
+      ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+      const glassMargin = 60;
+      ctx.beginPath();
+      ctx.roundRect(glassMargin, glassMargin, canvas.width - glassMargin * 2, canvas.height - glassMargin * 2, 40);
+      ctx.fill();
     } else {
       // Default dark mode
       const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -425,8 +471,67 @@ export const MarketingAdGenerator = () => {
     } else if (style === "timeline") {
       const timelineY = isStory ? 350 : 150;
       drawTimeline(ctx, 80, timelineY, canvas.width - 160);
+    } else if (style === "sunset") {
+      // Draw sun/horizon
+      const sunY = isStory ? 450 : 200;
+      const gradient = ctx.createRadialGradient(canvas.width / 2, sunY + 100, 0, canvas.width / 2, sunY + 100, 200);
+      gradient.addColorStop(0, "rgba(255, 255, 255, 0.4)");
+      gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, sunY + 100, 200, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (style === "ocean") {
+      // Draw wave shapes
+      const waveY = isStory ? 500 : 250;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.beginPath();
+      ctx.moveTo(0, waveY);
+      for (let x = 0; x <= canvas.width; x += 50) {
+        ctx.quadraticCurveTo(x + 25, waveY - 30, x + 50, waveY);
+      }
+      ctx.lineTo(canvas.width, waveY + 100);
+      ctx.lineTo(0, waveY + 100);
+      ctx.closePath();
+      ctx.fill();
+    } else if (style === "aurora") {
+      // Draw particle stars
+      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+      for (let i = 0; i < 50; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * (isStory ? 600 : 350);
+        const size = Math.random() * 4 + 1;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (style === "neon") {
+      // Draw neon glow rings
+      const centerY = isStory ? 480 : 220;
+      [120, 80, 40].forEach((radius, i) => {
+        ctx.strokeStyle = i % 2 === 0 ? "#ec4899" : "#a855f7";
+        ctx.lineWidth = 3;
+        ctx.shadowColor = i % 2 === 0 ? "#ec4899" : "#a855f7";
+        ctx.shadowBlur = 30;
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, centerY, radius, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+      ctx.shadowBlur = 0;
+    } else if (style === "minimal") {
+      // No graphic - pure minimal
+    } else if (style === "glass") {
+      // Glass already has overlay, add subtle sparkle
+      ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+      const sparkleY = isStory ? 200 : 100;
+      ctx.beginPath();
+      ctx.arc(canvas.width * 0.2, sparkleY, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(canvas.width * 0.8, sparkleY + 50, 5, 0, Math.PI * 2);
+      ctx.fill();
     } else {
-      // Heart icon for default styles
+      // Heart icon for default styles (dark/light)
       const iconY = isStory ? 500 : 220;
       const gradient = ctx.createRadialGradient(canvas.width / 2, iconY, 0, canvas.width / 2, iconY, 60);
       gradient.addColorStop(0, "#ec4899");
@@ -535,6 +640,36 @@ export const MarketingAdGenerator = () => {
     toast({ title: `${style} ${format} image downloaded!` });
   };
 
+  // Helper to get preview background class based on style
+  const getPreviewBgClass = (style: AdStyle) => {
+    switch (style) {
+      case "light":
+      case "calendar":
+        return "bg-gradient-to-br from-pink-50 to-pink-100";
+      case "timeline":
+        return "bg-gradient-to-b from-[#0f0f0f] via-[#1a0a14] to-[#2d0a1a]";
+      case "sunset":
+        return "bg-gradient-to-b from-amber-400 via-orange-500 via-pink-500 to-violet-600";
+      case "ocean":
+        return "bg-gradient-to-b from-sky-500 via-sky-600 to-teal-700";
+      case "aurora":
+        return "bg-gradient-to-br from-indigo-950 via-violet-800 via-emerald-600 to-sky-600";
+      case "neon":
+        return "bg-[#0a0a0a]";
+      case "minimal":
+        return "bg-[#fafafa]";
+      case "glass":
+        return "bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500";
+      default:
+        return "bg-gradient-to-br from-slate-900 to-slate-800";
+    }
+  };
+
+  // Helper to check if style uses light text
+  const isLightTextStyle = (style: AdStyle) => {
+    return !["light", "calendar", "minimal"].includes(style);
+  };
+
   // Render headline with accent highlighting for preview
   const renderAccentHeadline = (headline: string, accentWords: string[] = []) => {
     const words = headline.split(" ");
@@ -609,10 +744,16 @@ export const MarketingAdGenerator = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="dark">Dark Mode</SelectItem>
-                  <SelectItem value="light">Light Mode</SelectItem>
-                  <SelectItem value="calendar">Calendar Style</SelectItem>
-                  <SelectItem value="timeline">Timeline Style</SelectItem>
+                  <SelectItem value="dark">🌙 Dark Mode</SelectItem>
+                  <SelectItem value="light">☀️ Light Mode</SelectItem>
+                  <SelectItem value="calendar">📅 Calendar</SelectItem>
+                  <SelectItem value="timeline">📈 Timeline</SelectItem>
+                  <SelectItem value="sunset">🌅 Sunset Gradient</SelectItem>
+                  <SelectItem value="ocean">🌊 Ocean Gradient</SelectItem>
+                  <SelectItem value="aurora">✨ Aurora Gradient</SelectItem>
+                  <SelectItem value="neon">💜 Neon Glow</SelectItem>
+                  <SelectItem value="minimal">⬜ Minimal Clean</SelectItem>
+                  <SelectItem value="glass">🪟 Glassmorphism</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -720,18 +861,14 @@ export const MarketingAdGenerator = () => {
                 }`}
                 onClick={() => setSelectedAd(ad)}
               >
-                <div className={`p-6 ${
-                  adStyle === "light" || adStyle === "calendar" 
-                    ? "bg-gradient-to-br from-pink-50 to-pink-100" 
-                    : "bg-gradient-to-br from-slate-900 to-slate-800"
-                }`}>
+                <div className={`p-6 ${getPreviewBgClass(adStyle)}`}>
                   <h3 className={`text-xl font-black tracking-tight mb-2 ${
-                    adStyle === "light" || adStyle === "calendar" ? "text-slate-900" : "text-white"
+                    isLightTextStyle(adStyle) ? "text-white" : "text-slate-900"
                   }`}>
                     {renderAccentHeadline(ad.headline, ad.accentWords)}
                   </h3>
                   <p className={`text-sm mb-4 ${
-                    adStyle === "light" || adStyle === "calendar" ? "text-slate-600" : "text-white/70"
+                    isLightTextStyle(adStyle) ? "text-white/70" : "text-slate-600"
                   }`}>
                     {ad.subheadline}
                   </p>
@@ -788,7 +925,7 @@ export const MarketingAdGenerator = () => {
         <TabsContent value="preview" className="space-y-4">
           {/* Style selector for preview */}
           <div className="flex gap-2 flex-wrap">
-            {(["dark", "light", "calendar", "timeline"] as AdStyle[]).map((style) => (
+            {(["dark", "light", "calendar", "timeline", "sunset", "ocean", "aurora", "neon", "minimal", "glass"] as AdStyle[]).map((style) => (
               <Button
                 key={style}
                 size="sm"
@@ -798,6 +935,12 @@ export const MarketingAdGenerator = () => {
               >
                 {style === "calendar" && <Calendar className="w-3 h-3 mr-1" />}
                 {style === "timeline" && <TrendingUp className="w-3 h-3 mr-1" />}
+                {style === "sunset" && <Sunset className="w-3 h-3 mr-1" />}
+                {style === "ocean" && <Waves className="w-3 h-3 mr-1" />}
+                {style === "aurora" && <Stars className="w-3 h-3 mr-1" />}
+                {style === "neon" && <Zap className="w-3 h-3 mr-1" />}
+                {style === "minimal" && <Square className="w-3 h-3 mr-1" />}
+                {style === "glass" && <Layers className="w-3 h-3 mr-1" />}
                 {style}
               </Button>
             ))}
@@ -818,14 +961,12 @@ export const MarketingAdGenerator = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className={`aspect-[9/16] max-w-[280px] mx-auto rounded-xl overflow-hidden border shadow-lg relative ${
-                  adStyle === "light" || adStyle === "calendar"
-                    ? "bg-gradient-to-br from-pink-50 via-pink-100 to-pink-200"
-                    : adStyle === "timeline"
-                    ? "bg-gradient-to-b from-[#0f0f0f] via-[#1a0a14] to-[#2d0a1a]"
-                    : "bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23]"
-                }`}>
-                  <div className="h-full flex flex-col justify-center items-center p-6 text-center">
+                <div className={`aspect-[9/16] max-w-[280px] mx-auto rounded-xl overflow-hidden border shadow-lg relative ${getPreviewBgClass(adStyle)}`}>
+                  {/* Glass overlay effect */}
+                  {adStyle === "glass" && (
+                    <div className="absolute inset-3 bg-white/10 backdrop-blur-sm rounded-lg" />
+                  )}
+                  <div className="h-full flex flex-col justify-center items-center p-6 text-center relative z-10">
                     {adStyle === "calendar" && (
                       <div className="flex gap-1 mb-4">
                         {["S", "M", "T", "W", "T", "F"].map((d, i) => (
@@ -848,13 +989,36 @@ export const MarketingAdGenerator = () => {
                         ))}
                       </div>
                     )}
-                    {(adStyle === "dark" || adStyle === "light") && (
+                    {adStyle === "sunset" && (
+                      <div className="w-16 h-16 rounded-full bg-white/30 blur-md mb-4" />
+                    )}
+                    {adStyle === "ocean" && (
+                      <div className="w-full h-8 bg-white/15 rounded-full mb-4" style={{ clipPath: 'ellipse(80% 50% at 50% 50%)' }} />
+                    )}
+                    {adStyle === "aurora" && (
+                      <div className="flex gap-1 mb-4">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="w-2 h-2 rounded-full bg-white/60" />
+                        ))}
+                      </div>
+                    )}
+                    {adStyle === "neon" && (
+                      <div className="relative w-16 h-16 mb-4">
+                        {[24, 18, 12].map((size, i) => (
+                          <div key={i} className={`absolute inset-0 m-auto rounded-full border-2 ${
+                            i % 2 === 0 ? "border-pink-500 shadow-[0_0_10px_#ec4899]" : "border-purple-500 shadow-[0_0_10px_#a855f7]"
+                          }`} style={{ width: size * 2, height: size * 2 }} />
+                        ))}
+                      </div>
+                    )}
+                    {(adStyle === "dark" || adStyle === "light" || adStyle === "glass") && (
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center mb-4">
                         <Heart className="w-6 h-6 text-white" />
                       </div>
                     )}
+                    {/* Minimal has no graphic */}
                     <h3 className={`text-base font-black tracking-tight mb-2 ${
-                      adStyle === "light" || adStyle === "calendar" ? "text-slate-900" : "text-white"
+                      isLightTextStyle(adStyle) ? "text-white" : "text-slate-900"
                     }`}>
                       {renderAccentHeadline(
                         selectedAd?.headline || currentTemplates[0]?.headline,
@@ -862,7 +1026,7 @@ export const MarketingAdGenerator = () => {
                       )}
                     </h3>
                     <p className={`text-xs mb-4 ${
-                      adStyle === "light" || adStyle === "calendar" ? "text-gray-600" : "text-white/70"
+                      isLightTextStyle(adStyle) ? "text-white/70" : "text-gray-600"
                     }`}>
                       {selectedAd?.subheadline || currentTemplates[0]?.subheadline}
                     </p>
@@ -871,8 +1035,8 @@ export const MarketingAdGenerator = () => {
                     </Button>
                   </div>
                   {/* Watermark Preview */}
-                  <div className={`absolute px-3 font-bold ${
-                    adStyle === "light" || adStyle === "calendar" ? "text-gray-500/60" : "text-white/40"
+                  <div className={`absolute px-3 font-bold z-20 ${
+                    isLightTextStyle(adStyle) ? "text-white/40" : "text-gray-500/60"
                   } ${
                     watermarkFontSize === "small" ? "text-[8px]" : watermarkFontSize === "medium" ? "text-[10px]" : "text-xs"
                   } ${
@@ -901,14 +1065,12 @@ export const MarketingAdGenerator = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className={`aspect-square max-w-[320px] mx-auto rounded-xl overflow-hidden border shadow-lg relative ${
-                  adStyle === "light" || adStyle === "calendar"
-                    ? "bg-gradient-to-br from-pink-50 via-pink-100 to-pink-200"
-                    : adStyle === "timeline"
-                    ? "bg-gradient-to-b from-[#0f0f0f] via-[#1a0a14] to-[#2d0a1a]"
-                    : "bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23]"
-                }`}>
-                  <div className="h-full flex flex-col justify-center items-center p-6 text-center">
+                <div className={`aspect-square max-w-[320px] mx-auto rounded-xl overflow-hidden border shadow-lg relative ${getPreviewBgClass(adStyle)}`}>
+                  {/* Glass overlay effect */}
+                  {adStyle === "glass" && (
+                    <div className="absolute inset-3 bg-white/10 backdrop-blur-sm rounded-lg" />
+                  )}
+                  <div className="h-full flex flex-col justify-center items-center p-6 text-center relative z-10">
                     {adStyle === "calendar" && (
                       <div className="flex gap-1 mb-6">
                         {["S", "M", "T", "W", "T", "F"].map((d, i) => (
@@ -931,13 +1093,36 @@ export const MarketingAdGenerator = () => {
                         ))}
                       </div>
                     )}
-                    {(adStyle === "dark" || adStyle === "light") && (
+                    {adStyle === "sunset" && (
+                      <div className="w-20 h-20 rounded-full bg-white/30 blur-md mb-6" />
+                    )}
+                    {adStyle === "ocean" && (
+                      <div className="w-full h-10 bg-white/15 rounded-full mb-6" style={{ clipPath: 'ellipse(80% 50% at 50% 50%)' }} />
+                    )}
+                    {adStyle === "aurora" && (
+                      <div className="flex gap-1 mb-6">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="w-3 h-3 rounded-full bg-white/60" />
+                        ))}
+                      </div>
+                    )}
+                    {adStyle === "neon" && (
+                      <div className="relative w-20 h-20 mb-6">
+                        {[30, 22, 14].map((size, i) => (
+                          <div key={i} className={`absolute inset-0 m-auto rounded-full border-2 ${
+                            i % 2 === 0 ? "border-pink-500 shadow-[0_0_10px_#ec4899]" : "border-purple-500 shadow-[0_0_10px_#a855f7]"
+                          }`} style={{ width: size * 2, height: size * 2 }} />
+                        ))}
+                      </div>
+                    )}
+                    {(adStyle === "dark" || adStyle === "light" || adStyle === "glass") && (
                       <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center mb-6">
                         <MessageSquare className="w-8 h-8 text-white" />
                       </div>
                     )}
+                    {/* Minimal has no graphic */}
                     <h3 className={`text-xl font-black tracking-tight mb-3 ${
-                      adStyle === "light" || adStyle === "calendar" ? "text-slate-900" : "text-white"
+                      isLightTextStyle(adStyle) ? "text-white" : "text-slate-900"
                     }`}>
                       {renderAccentHeadline(
                         selectedAd?.headline || currentTemplates[0]?.headline,
@@ -945,7 +1130,7 @@ export const MarketingAdGenerator = () => {
                       )}
                     </h3>
                     <p className={`text-sm mb-6 ${
-                      adStyle === "light" || adStyle === "calendar" ? "text-gray-600" : "text-white/70"
+                      isLightTextStyle(adStyle) ? "text-white/70" : "text-gray-600"
                     }`}>
                       {selectedAd?.subheadline || currentTemplates[0]?.subheadline}
                     </p>
@@ -954,8 +1139,8 @@ export const MarketingAdGenerator = () => {
                     </Button>
                   </div>
                   {/* Watermark Preview */}
-                  <div className={`absolute px-3 font-bold ${
-                    adStyle === "light" || adStyle === "calendar" ? "text-gray-500/60" : "text-white/40"
+                  <div className={`absolute px-3 font-bold z-20 ${
+                    isLightTextStyle(adStyle) ? "text-white/40" : "text-gray-500/60"
                   } ${
                     watermarkFontSize === "small" ? "text-[10px]" : watermarkFontSize === "medium" ? "text-xs" : "text-sm"
                   } ${
