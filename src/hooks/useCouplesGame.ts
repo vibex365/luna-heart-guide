@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Json } from "@/integrations/supabase/types";
+import { notifyPartner } from "@/utils/smsNotifications";
 
 export type GameType = 
   | "would_you_rather" 
@@ -152,7 +153,7 @@ export const useCouplesGame = (partnerLinkId: string | undefined, gameType: Game
           .single();
 
         if (error) throw error;
-        return data;
+        return { data, isNew: false };
       }
 
       // Create new session
@@ -168,10 +169,43 @@ export const useCouplesGame = (partnerLinkId: string | undefined, gameType: Game
         .single();
 
       if (error) throw error;
-      return data;
+      return { data, isNew: true };
     },
-    onSuccess: () => {
+    onSuccess: async ({ isNew }) => {
       queryClient.invalidateQueries({ queryKey: ["game-session", partnerLinkId, gameType] });
+      
+      // Notify partner when a NEW game is started
+      if (isNew && partnerLinkId && user) {
+        try {
+          // Get partner ID and user's display name
+          const { data: partnerLink } = await supabase
+            .from("partner_links")
+            .select("user_id, partner_id")
+            .eq("id", partnerLinkId)
+            .single();
+          
+          if (partnerLink) {
+            const partnerId = partnerLink.user_id === user.id 
+              ? partnerLink.partner_id 
+              : partnerLink.user_id;
+            
+            if (partnerId) {
+              const { data: profile } = await supabase
+                .from("profiles")
+                .select("display_name")
+                .eq("user_id", user.id)
+                .single();
+              
+              const userName = profile?.display_name || "Your partner";
+              const gameLabel = gameType.replace(/_/g, " ");
+              
+              notifyPartner.gameStarted(partnerId, userName, gameLabel);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to notify partner:", err);
+        }
+      }
     },
   });
 

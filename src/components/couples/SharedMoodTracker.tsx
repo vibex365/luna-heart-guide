@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { notifyPartner } from "@/utils/smsNotifications";
 
 const getMoodIcon = (level: number) => {
   if (level >= 4) return <Smile className="w-5 h-5 text-green-500" />;
@@ -57,6 +58,11 @@ export const SharedMoodTracker = () => {
         notes: notes || undefined,
         is_visible_to_partner: isVisible,
       });
+      
+      // Send SMS notification to partner if mood is visible
+      if (isVisible && partnerId) {
+        notifyPartner.moodLogged(partnerId, selectedMood.label);
+      }
       
       toast({
         title: "Mood shared!",

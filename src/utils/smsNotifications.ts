@@ -7,7 +7,8 @@ type NotificationType =
   | "activityCompleted"
   | "goalCompleted"
   | "milestoneReminder"
-  | "partnerLinked";
+  | "partnerLinked"
+  | "gameStarted";
 
 /**
  * Check if a user has a specific notification type enabled
@@ -104,6 +105,9 @@ export const smsTemplates = {
 
   partnerLinked: (partnerName: string) =>
     `💜 Luna: ${partnerName} has accepted your partner invite! You're now connected. Open Luna to start your journey together.`,
+
+  gameStarted: (partnerName: string, gameType: string) =>
+    `💜 Luna: ${partnerName} just started a "${gameType}" game! 🎮 Join now to play together!`,
 };
 
 /**
@@ -127,4 +131,7 @@ export const notifyPartner = {
 
   linked: (partnerId: string, userName: string) =>
     sendSmsNotification(partnerId, smsTemplates.partnerLinked(userName), "partnerLinked"),
+
+  gameStarted: (partnerId: string, partnerName: string, gameType: string) =>
+    sendSmsNotification(partnerId, smsTemplates.gameStarted(partnerName, gameType), "gameStarted"),
 };
