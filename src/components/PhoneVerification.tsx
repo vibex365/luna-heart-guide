@@ -11,42 +11,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { countryCodes, CountryCode } from "@/components/ui/phone-input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-
-// Common country codes
-const countryCodes = [
-  { code: "+1", country: "US", flag: "🇺🇸", name: "United States" },
-  { code: "+1", country: "CA", flag: "🇨🇦", name: "Canada" },
-  { code: "+44", country: "GB", flag: "🇬🇧", name: "United Kingdom" },
-  { code: "+61", country: "AU", flag: "🇦🇺", name: "Australia" },
-  { code: "+49", country: "DE", flag: "🇩🇪", name: "Germany" },
-  { code: "+33", country: "FR", flag: "🇫🇷", name: "France" },
-  { code: "+34", country: "ES", flag: "🇪🇸", name: "Spain" },
-  { code: "+39", country: "IT", flag: "🇮🇹", name: "Italy" },
-  { code: "+31", country: "NL", flag: "🇳🇱", name: "Netherlands" },
-  { code: "+46", country: "SE", flag: "🇸🇪", name: "Sweden" },
-  { code: "+47", country: "NO", flag: "🇳🇴", name: "Norway" },
-  { code: "+45", country: "DK", flag: "🇩🇰", name: "Denmark" },
-  { code: "+41", country: "CH", flag: "🇨🇭", name: "Switzerland" },
-  { code: "+43", country: "AT", flag: "🇦🇹", name: "Austria" },
-  { code: "+32", country: "BE", flag: "🇧🇪", name: "Belgium" },
-  { code: "+353", country: "IE", flag: "🇮🇪", name: "Ireland" },
-  { code: "+64", country: "NZ", flag: "🇳🇿", name: "New Zealand" },
-  { code: "+81", country: "JP", flag: "🇯🇵", name: "Japan" },
-  { code: "+82", country: "KR", flag: "🇰🇷", name: "South Korea" },
-  { code: "+86", country: "CN", flag: "🇨🇳", name: "China" },
-  { code: "+91", country: "IN", flag: "🇮🇳", name: "India" },
-  { code: "+55", country: "BR", flag: "🇧🇷", name: "Brazil" },
-  { code: "+52", country: "MX", flag: "🇲🇽", name: "Mexico" },
-  { code: "+27", country: "ZA", flag: "🇿🇦", name: "South Africa" },
-  { code: "+971", country: "AE", flag: "🇦🇪", name: "UAE" },
-  { code: "+65", country: "SG", flag: "🇸🇬", name: "Singapore" },
-  { code: "+852", country: "HK", flag: "🇭🇰", name: "Hong Kong" },
-  { code: "+972", country: "IL", flag: "🇮🇱", name: "Israel" },
-  { code: "+48", country: "PL", flag: "🇵🇱", name: "Poland" },
-  { code: "+420", country: "CZ", flag: "🇨🇿", name: "Czech Republic" },
-];
 
 interface PhoneVerificationProps {
   userId: string;
@@ -67,7 +34,7 @@ export const PhoneVerification = ({
 }: PhoneVerificationProps) => {
   const [step, setStep] = useState<"phone" | "verify">("phone");
   const [phoneNumber, setPhoneNumber] = useState(initialPhone);
-  const [countryCode, setCountryCode] = useState(
+  const [countryCode, setCountryCode] = useState<CountryCode>(
     countryCodes.find(c => c.code === initialCountryCode) || countryCodes[0]
   );
   const [verificationCode, setVerificationCode] = useState("");

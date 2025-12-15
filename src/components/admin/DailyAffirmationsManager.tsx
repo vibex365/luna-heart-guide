@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PhoneInput, CountryCode } from "@/components/ui/phone-input";
 import { toast } from "sonner";
 import { 
   Sparkles,
@@ -300,13 +301,12 @@ export const DailyAffirmationsManager = () => {
               <div className="space-y-4 mt-4">
                 <div className="space-y-2">
                   <Label>Phone Number</Label>
-                  <Input
-                    type="tel"
-                    placeholder="+1234567890"
+                  <PhoneInput
                     value={testPhoneNumber}
-                    onChange={(e) => setTestPhoneNumber(e.target.value)}
+                    onChange={(fullNumber) => setTestPhoneNumber(fullNumber)}
+                    defaultCountryCode="+1"
                   />
-                  <p className="text-xs text-muted-foreground">Include country code (e.g., +1 for US)</p>
+                  <p className="text-xs text-muted-foreground">Select country and enter number (digits only)</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Account Type</Label>
