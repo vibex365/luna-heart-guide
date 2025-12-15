@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
@@ -19,12 +19,25 @@ interface UserWithPhone {
   phone_verified: boolean | null;
 }
 
-export function ManualSmsSender() {
+interface ManualSmsSenderProps {
+  initialMessage?: string | null;
+}
+
+export function ManualSmsSender({ initialMessage }: ManualSmsSenderProps) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   const [recipientType, setRecipientType] = useState<"all" | "selected" | "single">("single");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [selectedSingleUser, setSelectedSingleUser] = useState<string>("");
   const [isSending, setIsSending] = useState(false);
+
+  // Update message when template is selected
+  useEffect(() => {
+    if (initialMessage) {
+      setMessage(initialMessage);
+    }
+  }, [initialMessage]);
 
   // Fetch users with verified phone numbers
   const { data: usersWithPhone = [], isLoading } = useQuery({
@@ -67,23 +80,41 @@ export function ManualSmsSender() {
     try {
       let successCount = 0;
       let failCount = 0;
+      const fullMessage = `💜 Luna: ${message}`;
 
-      for (const userId of recipients) {
+      for (const recipientUserId of recipients) {
+        const recipientUser = usersWithPhone.find(u => u.user_id === recipientUserId);
+        
         const { data, error } = await supabase.functions.invoke("send-sms", {
           body: {
             action: "send-notification",
-            userId,
-            message: `💜 Luna: ${message}`,
+            userId: recipientUserId,
+            message: fullMessage,
           },
+        });
+
+        // Log the delivery
+        const logStatus = error || data?.error ? "failed" : "delivered";
+        await supabase.from("sms_delivery_logs").insert({
+          user_id: recipientUserId,
+          phone_number: recipientUser?.phone_number || "unknown",
+          message: fullMessage,
+          status: logStatus,
+          twilio_sid: data?.sid || null,
+          error_message: error?.message || data?.error || null,
+          sent_by: user?.id,
         });
 
         if (error || data?.error) {
           failCount++;
-          console.error(`Failed to send SMS to ${userId}:`, error || data?.error);
+          console.error(`Failed to send SMS to ${recipientUserId}:`, error || data?.error);
         } else {
           successCount++;
         }
       }
+
+      // Refresh delivery logs
+      queryClient.invalidateQueries({ queryKey: ["sms-delivery-logs"] });
 
       if (successCount > 0) {
         toast.success(`SMS sent to ${successCount} user(s)`);

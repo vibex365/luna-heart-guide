@@ -1438,6 +1438,72 @@ export type Database = {
           },
         ]
       }
+      sms_delivery_logs: {
+        Row: {
+          error_message: string | null
+          id: string
+          message: string
+          phone_number: string
+          sent_at: string
+          sent_by: string | null
+          status: string
+          twilio_sid: string | null
+          user_id: string
+        }
+        Insert: {
+          error_message?: string | null
+          id?: string
+          message: string
+          phone_number: string
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+          twilio_sid?: string | null
+          user_id: string
+        }
+        Update: {
+          error_message?: string | null
+          id?: string
+          message?: string
+          phone_number?: string
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+          twilio_sid?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sms_templates: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sms_verification_codes: {
         Row: {
           code: string
