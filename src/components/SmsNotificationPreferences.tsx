@@ -18,6 +18,7 @@ interface NotificationPreferences {
   goalCompleted: boolean;
   milestoneReminder: boolean;
   partnerLinked: boolean;
+  gameStarted: boolean;
 }
 
 const defaultPreferences: NotificationPreferences = {
@@ -28,6 +29,7 @@ const defaultPreferences: NotificationPreferences = {
   goalCompleted: true,
   milestoneReminder: true,
   partnerLinked: true,
+  gameStarted: true,
 };
 
 const notificationLabels: Record<keyof NotificationPreferences, { label: string; description: string }> = {
@@ -58,6 +60,10 @@ const notificationLabels: Record<keyof NotificationPreferences, { label: string;
   partnerLinked: {
     label: "Partner Linked",
     description: "When a partner accepts your invite",
+  },
+  gameStarted: {
+    label: "Game Started",
+    description: "When your partner starts a couples game",
   },
 };
 

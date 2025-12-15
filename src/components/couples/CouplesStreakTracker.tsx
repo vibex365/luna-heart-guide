@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Flame, Trophy, Star, Heart, Award, Crown, Target, Sparkles } from "lucide-react";
+import { Flame, Trophy, Star, Heart, Award, Crown, Target, Sparkles, Gamepad2, Zap, Medal } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useQuery } from "@tanstack/react-query";
@@ -12,11 +12,12 @@ interface Badge {
   description: string;
   icon: React.ReactNode;
   requirement: number;
-  type: "streak" | "total";
+  type: "streak" | "total" | "games";
   color: string;
 }
 
 const badges: Badge[] = [
+  // Activity badges
   { id: "first-spark", name: "First Spark", description: "Complete your first activity together", icon: <Sparkles className="w-4 h-4" />, requirement: 1, type: "total", color: "from-yellow-400 to-orange-500" },
   { id: "getting-started", name: "Getting Started", description: "3-day streak", icon: <Flame className="w-4 h-4" />, requirement: 3, type: "streak", color: "from-orange-400 to-red-500" },
   { id: "week-warriors", name: "Week Warriors", description: "7-day streak", icon: <Star className="w-4 h-4" />, requirement: 7, type: "streak", color: "from-purple-400 to-pink-500" },
@@ -25,6 +26,11 @@ const badges: Badge[] = [
   { id: "activity-enthusiasts", name: "Activity Enthusiasts", description: "Complete 10 activities", icon: <Target className="w-4 h-4" />, requirement: 10, type: "total", color: "from-blue-400 to-cyan-500" },
   { id: "power-couple", name: "Power Couple", description: "Complete 25 activities", icon: <Award className="w-4 h-4" />, requirement: 25, type: "total", color: "from-emerald-400 to-green-500" },
   { id: "legendary-lovers", name: "Legendary Lovers", description: "Complete 50 activities", icon: <Crown className="w-4 h-4" />, requirement: 50, type: "total", color: "from-violet-400 to-purple-600" },
+  // Game badges
+  { id: "game-newbies", name: "Game Newbies", description: "Play 5 games together", icon: <Gamepad2 className="w-4 h-4" />, requirement: 5, type: "games", color: "from-teal-400 to-cyan-500" },
+  { id: "perfect-match", name: "Perfect Match", description: "Get 10 matching answers", icon: <Zap className="w-4 h-4" />, requirement: 10, type: "games", color: "from-yellow-400 to-amber-500" },
+  { id: "game-masters", name: "Game Masters", description: "Play 25 games together", icon: <Medal className="w-4 h-4" />, requirement: 25, type: "games", color: "from-indigo-400 to-purple-500" },
+  { id: "game-legends", name: "Game Legends", description: "Play 50 games together", icon: <Crown className="w-4 h-4" />, requirement: 50, type: "games", color: "from-rose-400 to-pink-600" },
 ];
 
 const milestones = [
@@ -58,14 +64,44 @@ export const CouplesStreakTracker = ({ partnerLinkId }: CouplesStreakTrackerProp
     enabled: !!partnerLinkId,
   });
 
+  // Fetch game stats for game badges
+  const { data: gameStats } = useQuery({
+    queryKey: ["couples-game-stats", partnerLinkId],
+    queryFn: async () => {
+      if (!partnerLinkId) return { totalGames: 0, totalMatches: 0 };
+      
+      const { data, error } = await supabase
+        .from("couples_game_history")
+        .select("matches")
+        .eq("partner_link_id", partnerLinkId);
+      
+      if (error) throw error;
+      
+      const totalGames = data?.length || 0;
+      const totalMatches = data?.reduce((acc, g) => acc + (g.matches || 0), 0) || 0;
+      
+      return { totalGames, totalMatches };
+    },
+    enabled: !!partnerLinkId,
+  });
+
   const currentStreak = streakData?.current_streak ?? 0;
   const longestStreak = streakData?.longest_streak ?? 0;
   const totalActivities = streakData?.total_activities_completed ?? 0;
+  const totalGamesPlayed = gameStats?.totalGames ?? 0;
+  const totalGameMatches = gameStats?.totalMatches ?? 0;
 
-  // Calculate earned badges
+  // Calculate earned badges (including game badges)
   const earnedBadges = badges.filter((badge) => {
     if (badge.type === "streak") {
       return longestStreak >= badge.requirement;
+    }
+    if (badge.type === "games") {
+      // For "perfect-match" badge, check matches; for others, check games played
+      if (badge.id === "perfect-match") {
+        return totalGameMatches >= badge.requirement;
+      }
+      return totalGamesPlayed >= badge.requirement;
     }
     return totalActivities >= badge.requirement;
   });
