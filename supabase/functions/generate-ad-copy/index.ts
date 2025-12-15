@@ -50,12 +50,17 @@ For each variation, provide:
 
 Return as JSON array with objects containing: headline, subheadline, cta, painPoint`;
 
+    // Add timeout for the AI request
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
+      signal: controller.signal,
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
@@ -93,6 +98,8 @@ Return as JSON array with objects containing: headline, subheadline, cta, painPo
         tool_choice: { type: "function", function: { name: "generate_ad_variations" } },
       }),
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -145,6 +152,18 @@ Return as JSON array with objects containing: headline, subheadline, cta, painPo
     throw new Error("Failed to parse AI response");
   } catch (error) {
     console.error("Error generating ad copy:", error);
+    
+    // Handle abort/timeout specifically
+    if (error instanceof Error && error.name === "AbortError") {
+      return new Response(
+        JSON.stringify({ error: "Request timed out. Please try again." }),
+        {
+          status: 504,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+    
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       {
