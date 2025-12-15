@@ -19,7 +19,9 @@ import {
   Loader2,
   Heart,
   User,
-  Settings
+  Settings,
+  Send,
+  TestTube
 } from "lucide-react";
 
 interface AffirmationTemplate {
@@ -38,6 +40,9 @@ export const DailyAffirmationsManager = () => {
   const [message, setMessage] = useState("");
   const [category, setCategory] = useState("motivation");
   const [accountType, setAccountType] = useState("personal");
+  const [isSendingTest, setIsSendingTest] = useState(false);
+  const [testPhoneNumber, setTestPhoneNumber] = useState("");
+  const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
 
   // Fetch affirmation templates
   const { data: templates = [], isLoading } = useQuery({
@@ -262,6 +267,114 @@ export const DailyAffirmationsManager = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Test Affirmation Card */}
+      <Card className="border-blue-500/20 bg-gradient-to-r from-blue-500/5 to-purple-500/5">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <TestTube className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
+            Test Daily Affirmation
+          </CardTitle>
+          <CardDescription className="text-xs md:text-sm">
+            Send a test affirmation to verify the system works
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-3 bg-muted/50 rounded-lg">
+            <p className="text-xs text-muted-foreground">
+              This will send a random affirmation to a specific phone number to test the SMS system before enabling for all users.
+            </p>
+          </div>
+          
+          <Dialog open={isTestDialogOpen} onOpenChange={setIsTestDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full md:w-auto border-blue-500/30 hover:bg-blue-500/10">
+                <Send className="h-4 w-4 mr-2 text-blue-500" />
+                Send Test Affirmation
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-sm mx-4">
+              <DialogHeader>
+                <DialogTitle>Send Test Affirmation</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label>Phone Number</Label>
+                  <Input
+                    type="tel"
+                    placeholder="+1234567890"
+                    value={testPhoneNumber}
+                    onChange={(e) => setTestPhoneNumber(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">Include country code (e.g., +1 for US)</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Account Type</Label>
+                  <Select value={accountType} onValueChange={setAccountType}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="personal">Personal</SelectItem>
+                      <SelectItem value="couples">Couples</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button 
+                  onClick={async () => {
+                    if (!testPhoneNumber.trim()) {
+                      toast.error("Please enter a phone number");
+                      return;
+                    }
+                    
+                    setIsSendingTest(true);
+                    try {
+                      // Get a random template of the selected type
+                      const templateList = accountType === "couples" ? couplesTemplates : personalTemplates;
+                      if (templateList.length === 0) {
+                        toast.error(`No ${accountType} templates available`);
+                        return;
+                      }
+                      
+                      const randomTemplate = templateList[Math.floor(Math.random() * templateList.length)];
+                      const testMessage = `💜 Luna: ${randomTemplate.message}\n\n(This is a test message)`;
+                      
+                      const { data, error } = await supabase.functions.invoke("send-sms", {
+                        body: {
+                          action: "send-direct",
+                          phoneNumber: testPhoneNumber.trim(),
+                          message: testMessage,
+                        },
+                      });
+                      
+                      if (error || data?.error) {
+                        throw new Error(error?.message || data?.error);
+                      }
+                      
+                      toast.success("Test affirmation sent successfully!");
+                      setIsTestDialogOpen(false);
+                      setTestPhoneNumber("");
+                    } catch (err: any) {
+                      toast.error(err.message || "Failed to send test");
+                    } finally {
+                      setIsSendingTest(false);
+                    }
+                  }}
+                  disabled={isSendingTest || !testPhoneNumber.trim()}
+                  className="w-full"
+                >
+                  {isSendingTest ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
+                  Send Test
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
 
       {/* Settings Card */}
       <Card>

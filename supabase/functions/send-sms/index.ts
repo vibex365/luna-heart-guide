@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 interface SendSmsRequest {
-  action: "send-verification" | "verify-code" | "send-notification";
+  action: "send-verification" | "verify-code" | "send-notification" | "send-direct";
   userId?: string;
   phoneNumber?: string;
   code?: string;
@@ -213,6 +213,34 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ success: true, message: "Notification sent" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "send-direct") {
+      if (!phoneNumber || !message) {
+        return new Response(
+          JSON.stringify({ error: "phoneNumber and message required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Validate phone number format
+      const cleaned = phoneNumber.replace(/[^\d+]/g, "");
+      if (!cleaned.startsWith("+") || cleaned.length < 9 || cleaned.length > 16) {
+        return new Response(
+          JSON.stringify({ error: "Invalid phone number format. Use international format: +[country code][number]" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Send direct SMS (for admin testing)
+      const result = await sendSms(cleaned, message);
+
+      console.log(`Direct SMS sent to ${cleaned}: ${message.substring(0, 50)}...`);
+
+      return new Response(
+        JSON.stringify({ success: true, message: "SMS sent", sid: result.sid }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

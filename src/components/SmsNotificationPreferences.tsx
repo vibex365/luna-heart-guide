@@ -19,6 +19,7 @@ interface NotificationPreferences {
   milestoneReminder: boolean;
   partnerLinked: boolean;
   gameStarted: boolean;
+  dailyAffirmations: boolean;
 }
 
 const defaultPreferences: NotificationPreferences = {
@@ -30,9 +31,14 @@ const defaultPreferences: NotificationPreferences = {
   milestoneReminder: true,
   partnerLinked: true,
   gameStarted: true,
+  dailyAffirmations: true,
 };
 
 const notificationLabels: Record<keyof NotificationPreferences, { label: string; description: string }> = {
+  dailyAffirmations: {
+    label: "Daily Affirmations",
+    description: "Receive daily uplifting messages to brighten your day",
+  },
   assessmentComplete: {
     label: "Assessment Complete",
     description: "When your partner completes a relationship assessment",
@@ -207,6 +213,14 @@ export const SmsNotificationPreferences = ({
                 </div>
               )
             )}
+          </div>
+
+          {/* Opt-out info */}
+          <div className="p-3 bg-blue-50 dark:bg-blue-950/50 rounded-xl border border-blue-200 dark:border-blue-800">
+            <p className="text-xs text-blue-700 dark:text-blue-300">
+              💡 You can also unsubscribe by replying <strong>STOP</strong> to any SMS. 
+              Reply <strong>START</strong> to re-subscribe.
+            </p>
           </div>
         </div>
       )}
