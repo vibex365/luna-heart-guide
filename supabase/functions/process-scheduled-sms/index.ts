@@ -112,11 +112,16 @@ serve(async (req) => {
 
         for (const user of users) {
           try {
+            // Add opt-out instruction to scheduled messages
+            const messageWithOptOut = sms.message.includes('STOP') 
+              ? sms.message 
+              : `${sms.message}\n\nReply STOP to unsubscribe`;
+            
             const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`;
             const formData = new URLSearchParams();
             formData.append('To', user.phone_number);
             formData.append('From', twilioPhoneNumber);
-            formData.append('Body', sms.message);
+            formData.append('Body', messageWithOptOut);
 
             const twilioResponse = await fetch(twilioUrl, {
               method: 'POST',
