@@ -545,6 +545,36 @@ export type Database = {
           },
         ]
       }
+      daily_affirmation_templates: {
+        Row: {
+          account_type: string
+          category: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          message: string
+          updated_at: string | null
+        }
+        Insert: {
+          account_type?: string
+          category?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message: string
+          updated_at?: string | null
+        }
+        Update: {
+          account_type?: string
+          category?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       date_night_ideas: {
         Row: {
           category: string
@@ -1357,6 +1387,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      scheduled_sms: {
+        Row: {
+          created_at: string
+          created_by: string
+          error_message: string | null
+          id: string
+          message: string
+          phone_number: string
+          recipient_type: string
+          scheduled_at: string
+          sent_at: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          error_message?: string | null
+          id?: string
+          message: string
+          phone_number: string
+          recipient_type?: string
+          scheduled_at: string
+          sent_at?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          error_message?: string | null
+          id?: string
+          message?: string
+          phone_number?: string
+          recipient_type?: string
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       shared_activities: {
         Row: {
