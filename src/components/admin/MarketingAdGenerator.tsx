@@ -135,6 +135,9 @@ export const MarketingAdGenerator = () => {
   const [adStyle, setAdStyle] = useState<AdStyle>("dark");
   const [aiGeneratedAds, setAiGeneratedAds] = useState<AdVariant[]>([]);
   const [selectedAd, setSelectedAd] = useState<AdVariant | null>(null);
+  const [watermarkText, setWatermarkText] = useState("Talks With Luna");
+  const [watermarkPosition, setWatermarkPosition] = useState<"bottom-center" | "bottom-left" | "bottom-right" | "top-center">("bottom-center");
+  const [watermarkFontSize, setWatermarkFontSize] = useState<"small" | "medium" | "large">("medium");
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Fetch demographics for AI context
@@ -308,7 +311,7 @@ export const MarketingAdGenerator = () => {
     const lines: { word: string; isAccent: boolean }[][] = [];
     let currentLine: { word: string; isAccent: boolean }[] = [];
     
-    ctx.font = "900 84px 'Inter', 'SF Pro Display', -apple-system, sans-serif";
+    ctx.font = "900 104px 'Inter', 'SF Pro Display', -apple-system, sans-serif";
     
     words.forEach((word) => {
       const testLine = currentLine.map(w => w.word).join(" ") + (currentLine.length ? " " : "") + word;
@@ -343,7 +346,7 @@ export const MarketingAdGenerator = () => {
         ctx.shadowOffsetX = 2;
         ctx.shadowOffsetY = 2;
         
-        ctx.fillText(wordText, currentX + ctx.measureText(wordText).width / 2, y + lineIndex * 100);
+        ctx.fillText(wordText, currentX + ctx.measureText(wordText).width / 2, y + lineIndex * 120);
         currentX += ctx.measureText(wordText).width;
       });
     });
@@ -440,9 +443,9 @@ export const MarketingAdGenerator = () => {
     );
 
     // Subheadline
-    const subY = headlineY + linesCount * 100 + 50;
-    ctx.fillStyle = isLightMode ? "rgba(107, 114, 128, 1)" : "rgba(255, 255, 255, 0.8)";
-    ctx.font = "500 36px 'Inter', -apple-system, sans-serif";
+    const subY = headlineY + linesCount * 120 + 60;
+    ctx.fillStyle = isLightMode ? "rgba(107, 114, 128, 1)" : "rgba(255, 255, 255, 0.85)";
+    ctx.font = "600 48px 'Inter', -apple-system, sans-serif";
     ctx.textAlign = "center";
     
     const subWords = ad.subheadline.split(" ");
@@ -461,14 +464,14 @@ export const MarketingAdGenerator = () => {
     subLines.push(subLine.trim());
     
     subLines.forEach((line, i) => {
-      ctx.fillText(line, canvas.width / 2, subY + i * 50);
+      ctx.fillText(line, canvas.width / 2, subY + i * 60);
     });
 
     // CTA Button
     const ctaY = isStory ? 1500 : 850;
-    ctx.font = "800 32px 'Inter', -apple-system, sans-serif";
-    const ctaWidth = ctx.measureText(ad.cta.toUpperCase()).width + 100;
-    const ctaHeight = 80;
+    ctx.font = "900 44px 'Inter', -apple-system, sans-serif";
+    const ctaWidth = ctx.measureText(ad.cta.toUpperCase()).width + 120;
+    const ctaHeight = 96;
     const ctaX = (canvas.width - ctaWidth) / 2;
 
     const btnGradient = ctx.createLinearGradient(ctaX, ctaY, ctaX + ctaWidth, ctaY + ctaHeight);
@@ -476,17 +479,35 @@ export const MarketingAdGenerator = () => {
     btnGradient.addColorStop(1, "#a855f7");
     ctx.fillStyle = btnGradient;
     ctx.beginPath();
-    ctx.roundRect(ctaX, ctaY, ctaWidth, ctaHeight, 40);
+    ctx.roundRect(ctaX, ctaY, ctaWidth, ctaHeight, 48);
     ctx.fill();
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "800 32px 'Inter', -apple-system, sans-serif";
-    ctx.fillText(ad.cta.toUpperCase(), canvas.width / 2, ctaY + 52);
+    ctx.font = "900 44px 'Inter', -apple-system, sans-serif";
+    ctx.fillText(ad.cta.toUpperCase(), canvas.width / 2, ctaY + 62);
 
-    // Brand watermark
-    ctx.fillStyle = isLightMode ? "rgba(107, 114, 128, 0.5)" : "rgba(255, 255, 255, 0.3)";
-    ctx.font = "500 24px 'Inter', sans-serif";
-    ctx.fillText("Talks With Luna", canvas.width / 2, isStory ? 1800 : 1000);
+    // Brand watermark with customization
+    const wmFontSizes = { small: 28, medium: 40, large: 52 };
+    const wmSize = wmFontSizes[watermarkFontSize];
+    ctx.fillStyle = isLightMode ? "rgba(107, 114, 128, 0.6)" : "rgba(255, 255, 255, 0.4)";
+    ctx.font = `700 ${wmSize}px 'Inter', sans-serif`;
+    
+    // Calculate watermark position
+    let wmX = canvas.width / 2;
+    let wmY = isStory ? 1820 : 1020;
+    ctx.textAlign = "center";
+    
+    if (watermarkPosition === "bottom-left") {
+      wmX = 80;
+      ctx.textAlign = "left";
+    } else if (watermarkPosition === "bottom-right") {
+      wmX = canvas.width - 80;
+      ctx.textAlign = "right";
+    } else if (watermarkPosition === "top-center") {
+      wmY = isStory ? 100 : 60;
+    }
+    
+    ctx.fillText(watermarkText, wmX, wmY);
 
     // Download
     const link = document.createElement("a");
@@ -599,6 +620,48 @@ export const MarketingAdGenerator = () => {
                   <SelectItem value="bold and confident">Bold</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+          
+          {/* Watermark Customization */}
+          <div className="border-t pt-4 mt-4">
+            <Label className="text-sm font-medium mb-3 block">Brand Watermark</Label>
+            <div className="grid md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Watermark Text</Label>
+                <Input 
+                  placeholder="Talks With Luna"
+                  value={watermarkText}
+                  onChange={(e) => setWatermarkText(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Position</Label>
+                <Select value={watermarkPosition} onValueChange={(v) => setWatermarkPosition(v as typeof watermarkPosition)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bottom-center">Bottom Center</SelectItem>
+                    <SelectItem value="bottom-left">Bottom Left</SelectItem>
+                    <SelectItem value="bottom-right">Bottom Right</SelectItem>
+                    <SelectItem value="top-center">Top Center</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Font Size</Label>
+                <Select value={watermarkFontSize} onValueChange={(v) => setWatermarkFontSize(v as typeof watermarkFontSize)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="small">Small (28px)</SelectItem>
+                    <SelectItem value="medium">Medium (40px)</SelectItem>
+                    <SelectItem value="large">Large (52px)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           
