@@ -38,3 +38,9 @@ verify_jwt = false
 
 [functions.lead-followup]
 verify_jwt = false
+
+[functions.daily-affirmations]
+verify_jwt = false
+
+[functions.process-scheduled-sms]
+verify_jwt = false
