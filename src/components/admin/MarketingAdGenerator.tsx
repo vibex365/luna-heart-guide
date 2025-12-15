@@ -20,7 +20,9 @@ import {
   MessageSquare,
   Loader2,
   Wand2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Calendar,
+  TrendingUp
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -29,7 +31,10 @@ interface AdVariant {
   subheadline: string;
   cta: string;
   painPoint: string;
+  accentWords?: string[]; // Words to highlight in pink
 }
+
+type AdStyle = "dark" | "light" | "calendar" | "timeline";
 
 const STATIC_TEMPLATES = {
   male: {
@@ -39,12 +44,14 @@ const STATIC_TEMPLATES = {
         subheadline: "Luna helps you cut through the noise and get clarity on your relationships.",
         cta: "Get Clear",
         painPoint: "You're stuck in your head about her",
+        accentWords: ["Understanding"],
       },
       {
         headline: "What She Really Means",
         subheadline: "AI-powered insights to decode mixed signals and communicate better.",
         cta: "Decode Now",
         painPoint: "Mixed signals driving you crazy",
+        accentWords: ["Really"],
       },
     ],
     couples: [
@@ -53,6 +60,7 @@ const STATIC_TEMPLATES = {
         subheadline: "Luna for Couples helps you both grow — together.",
         cta: "Start Together",
         painPoint: "Want to step up your relationship game",
+        accentWords: ["Deserves"],
       },
     ],
   },
@@ -63,12 +71,21 @@ const STATIC_TEMPLATES = {
         subheadline: "Luna understands what you're going through — 24/7, judgment-free.",
         cta: "Talk to Luna",
         painPoint: "Feeling unheard and unseen",
+        accentWords: ["Heard"],
       },
       {
         headline: "Your Feelings Are Valid",
         subheadline: "Process emotions, gain clarity, and find peace with AI support.",
         cta: "Start Healing",
         painPoint: "Tired of being told to 'just get over it'",
+        accentWords: ["Valid"],
+      },
+      {
+        headline: "Start Healing Monday",
+        subheadline: "Build a healthier routine with Luna",
+        cta: "Begin Now",
+        painPoint: "Need to start fresh",
+        accentWords: ["Monday"],
       },
     ],
     couples: [
@@ -77,6 +94,7 @@ const STATIC_TEMPLATES = {
         subheadline: "Luna for Couples helps you rediscover each other.",
         cta: "Reconnect",
         painPoint: "Feeling like roommates, not partners",
+        accentWords: ["Connected"],
       },
     ],
   },
@@ -87,6 +105,14 @@ const STATIC_TEMPLATES = {
         subheadline: "AI-powered emotional support, available whenever you need it.",
         cta: "Start Free",
         painPoint: "Processing complex emotions alone",
+        accentWords: ["Heart"],
+      },
+      {
+        headline: "Your Timeline to Thriving",
+        subheadline: "30 days from now, you won't recognize yourself",
+        cta: "Start Today",
+        painPoint: "Ready for transformation",
+        accentWords: ["Timeline"],
       },
     ],
     couples: [
@@ -95,6 +121,7 @@ const STATIC_TEMPLATES = {
         subheadline: "Luna for Couples: One subscription, two hearts, infinite growth.",
         cta: "Start Together",
         painPoint: "Love each other but struggling to connect",
+        accentWords: ["Together"],
       },
     ],
   },
@@ -105,6 +132,7 @@ export const MarketingAdGenerator = () => {
   const [targetType, setTargetType] = useState<"singles" | "couples">("singles");
   const [painPoint, setPainPoint] = useState("");
   const [tone, setTone] = useState("empathetic and empowering");
+  const [adStyle, setAdStyle] = useState<AdStyle>("dark");
   const [aiGeneratedAds, setAiGeneratedAds] = useState<AdVariant[]>([]);
   const [selectedAd, setSelectedAd] = useState<AdVariant | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -149,7 +177,12 @@ export const MarketingAdGenerator = () => {
       return data.variations as AdVariant[];
     },
     onSuccess: (variations) => {
-      setAiGeneratedAds(variations);
+      // Add accent words to AI generated ads
+      const withAccents = variations.map(v => ({
+        ...v,
+        accentWords: v.headline.split(" ").slice(-1), // Last word as accent
+      }));
+      setAiGeneratedAds(withAccents);
       toast({ title: "AI generated 3 ad variations!" });
     },
     onError: (error) => {
@@ -170,79 +203,149 @@ export const MarketingAdGenerator = () => {
     toast({ title: "Copied to clipboard" });
   };
 
-  // Generate downloadable image
-  const downloadAsImage = (ad: AdVariant, format: "story" | "feed") => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Set dimensions based on format
-    const isStory = format === "story";
-    canvas.width = isStory ? 1080 : 1080;
-    canvas.height = isStory ? 1920 : 1080;
-
-    // Background gradient
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, "#1a1a2e");
-    gradient.addColorStop(0.5, "#16213e");
-    gradient.addColorStop(1, "#0f0f23");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Add subtle pattern overlay
-    ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
-    for (let i = 0; i < 50; i++) {
-      const x = Math.random() * canvas.width;
-      const y = Math.random() * canvas.height;
-      ctx.beginPath();
-      ctx.arc(x, y, Math.random() * 100 + 50, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Icon placeholder (heart)
-    const iconY = isStory ? 600 : 280;
-    ctx.fillStyle = "#a855f7";
-    ctx.beginPath();
-    ctx.arc(canvas.width / 2, iconY, 60, 0, Math.PI * 2);
-    ctx.fill();
+  // Draw calendar graphic
+  const drawCalendar = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number) => {
+    const days = ["S", "M", "T", "W", "T", "F", "S"];
+    const dates = [7, 8, 9, 10, 11, 12, 13];
+    const cellWidth = width / 7;
+    const cellHeight = 60;
     
-    // Heart shape
-    ctx.fillStyle = "#fff";
-    ctx.font = "900 48px Arial";
+    // Draw day headers
+    ctx.fillStyle = "#9ca3af";
+    ctx.font = "500 24px 'Inter', sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("♥", canvas.width / 2, iconY + 16);
-
-    // Headline - Extra bold for impact
-    const headlineY = isStory ? 800 : 420;
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "900 84px 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.textAlign = "center";
-    
-    // Word wrap headline
-    const headlineWords = ad.headline.split(" ");
-    let headlineLine = "";
-    let headlineLines: string[] = [];
-    headlineWords.forEach((word) => {
-      const testLine = headlineLine + word + " ";
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width > canvas.width - 100) {
-        headlineLines.push(headlineLine.trim());
-        headlineLine = word + " ";
-      } else {
-        headlineLine = testLine;
-      }
+    days.forEach((day, i) => {
+      ctx.fillText(day, x + cellWidth * i + cellWidth / 2, y);
     });
-    headlineLines.push(headlineLine.trim());
     
-    headlineLines.forEach((line, i) => {
-      // Add text shadow for depth
-      ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
-      ctx.shadowBlur = 10;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
-      ctx.fillText(line.toUpperCase(), canvas.width / 2, headlineY + i * 100);
+    // Draw date cells
+    dates.forEach((date, i) => {
+      const cellX = x + cellWidth * i;
+      const cellY = y + 20;
+      
+      if (i === 1) { // Highlighted day (Monday)
+        // Pink gradient background
+        const gradient = ctx.createLinearGradient(cellX, cellY, cellX + cellWidth - 10, cellY + cellHeight);
+        gradient.addColorStop(0, "#f9a8d4");
+        gradient.addColorStop(1, "#ec4899");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.roundRect(cellX + 5, cellY, cellWidth - 10, cellHeight, 12);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+      } else {
+        ctx.fillStyle = "#6b7280";
+      }
+      
+      ctx.font = "600 28px 'Inter', sans-serif";
+      ctx.fillText(date.toString(), cellX + cellWidth / 2, cellY + 42);
+    });
+  };
+
+  // Draw timeline graphic
+  const drawTimeline = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number) => {
+    const stages = [
+      { day: "Day 1", label: "crying", emoji: "😢" },
+      { day: "Day 15", label: "thinking less", emoji: "🤔" },
+      { day: "Day 30", label: "thriving", emoji: "✨" },
+    ];
+    
+    const stageWidth = width / 3;
+    
+    // Draw connecting line
+    ctx.strokeStyle = "#4b5563";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + 40, y + 30);
+    ctx.lineTo(x + width - 40, y + 30);
+    ctx.stroke();
+    
+    stages.forEach((stage, i) => {
+      const stageX = x + stageWidth * i + stageWidth / 2;
+      
+      // Circle
+      const isLast = i === stages.length - 1;
+      if (isLast) {
+        const gradient = ctx.createRadialGradient(stageX, y + 30, 0, stageX, y + 30, 35);
+        gradient.addColorStop(0, "#ec4899");
+        gradient.addColorStop(1, "#be185d");
+        ctx.fillStyle = gradient;
+      } else {
+        ctx.fillStyle = "#374151";
+      }
+      ctx.beginPath();
+      ctx.arc(stageX, y + 30, 35, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Emoji
+      ctx.font = "32px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(stage.emoji, stageX, y + 42);
+      
+      // Day label
+      ctx.fillStyle = "#9ca3af";
+      ctx.font = "500 20px 'Inter', sans-serif";
+      ctx.fillText(stage.day, stageX, y + 90);
+      
+      // Status label
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "400 22px 'Inter', sans-serif";
+      ctx.fillText(stage.label, stageX, y + 120);
+    });
+  };
+
+  // Draw text with accent word highlighting
+  const drawAccentHeadline = (
+    ctx: CanvasRenderingContext2D, 
+    headline: string, 
+    accentWords: string[], 
+    x: number, 
+    y: number, 
+    maxWidth: number,
+    isLightMode: boolean
+  ) => {
+    const words = headline.split(" ");
+    const lines: { word: string; isAccent: boolean }[][] = [];
+    let currentLine: { word: string; isAccent: boolean }[] = [];
+    
+    ctx.font = "900 84px 'Inter', 'SF Pro Display', -apple-system, sans-serif";
+    
+    words.forEach((word) => {
+      const testLine = currentLine.map(w => w.word).join(" ") + (currentLine.length ? " " : "") + word;
+      const metrics = ctx.measureText(testLine.toUpperCase());
+      
+      if (metrics.width > maxWidth && currentLine.length > 0) {
+        lines.push(currentLine);
+        currentLine = [];
+      }
+      
+      const isAccent = accentWords.some(a => word.toLowerCase().includes(a.toLowerCase()));
+      currentLine.push({ word, isAccent });
+    });
+    if (currentLine.length) lines.push(currentLine);
+    
+    lines.forEach((line, lineIndex) => {
+      const lineText = line.map(w => w.word).join(" ").toUpperCase();
+      const lineWidth = ctx.measureText(lineText).width;
+      let currentX = x - lineWidth / 2;
+      
+      line.forEach((wordObj, wordIndex) => {
+        const wordText = wordObj.word.toUpperCase() + (wordIndex < line.length - 1 ? " " : "");
+        
+        if (wordObj.isAccent) {
+          ctx.fillStyle = "#ec4899"; // Pink accent
+        } else {
+          ctx.fillStyle = isLightMode ? "#1f2937" : "#ffffff";
+        }
+        
+        ctx.shadowColor = isLightMode ? "rgba(0, 0, 0, 0.1)" : "rgba(0, 0, 0, 0.3)";
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        
+        ctx.fillText(wordText, currentX + ctx.measureText(wordText).width / 2, y + lineIndex * 100);
+        currentX += ctx.measureText(wordText).width;
+      });
     });
     
     // Reset shadow
@@ -250,11 +353,97 @@ export const MarketingAdGenerator = () => {
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
+    
+    return lines.length;
+  };
+
+  // Generate downloadable image with style variants
+  const downloadAsImage = (ad: AdVariant, format: "story" | "feed", style: AdStyle = adStyle) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const isStory = format === "story";
+    canvas.width = isStory ? 1080 : 1080;
+    canvas.height = isStory ? 1920 : 1080;
+    
+    const isLightMode = style === "light" || style === "calendar";
+
+    // Background based on style
+    if (isLightMode) {
+      // Light mode - soft pink/white gradient
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, "#fdf2f8");
+      gradient.addColorStop(0.5, "#fce7f3");
+      gradient.addColorStop(1, "#fbcfe8");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else if (style === "timeline") {
+      // Dark gradient with red/pink tint
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, "#0f0f0f");
+      gradient.addColorStop(0.5, "#1a0a14");
+      gradient.addColorStop(1, "#2d0a1a");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else {
+      // Default dark mode
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, "#1a1a2e");
+      gradient.addColorStop(0.5, "#16213e");
+      gradient.addColorStop(1, "#0f0f23");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Style-specific graphics
+    if (style === "calendar") {
+      const calendarY = isStory ? 400 : 180;
+      drawCalendar(ctx, canvas.width / 2 - 280, calendarY, 560);
+    } else if (style === "timeline") {
+      const timelineY = isStory ? 350 : 150;
+      drawTimeline(ctx, 80, timelineY, canvas.width - 160);
+    } else {
+      // Heart icon for default styles
+      const iconY = isStory ? 500 : 220;
+      const gradient = ctx.createRadialGradient(canvas.width / 2, iconY, 0, canvas.width / 2, iconY, 60);
+      gradient.addColorStop(0, "#ec4899");
+      gradient.addColorStop(1, "#a855f7");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, iconY, 60, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillStyle = "#fff";
+      ctx.font = "900 48px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("♥", canvas.width / 2, iconY + 16);
+    }
+
+    // Headline with accent words
+    const headlineY = style === "calendar" ? (isStory ? 720 : 420) : 
+                      style === "timeline" ? (isStory ? 700 : 450) : 
+                      (isStory ? 700 : 380);
+    
+    ctx.textAlign = "center";
+    const accentWords = ad.accentWords || [];
+    const linesCount = drawAccentHeadline(
+      ctx, 
+      ad.headline, 
+      accentWords, 
+      canvas.width / 2, 
+      headlineY, 
+      canvas.width - 100,
+      isLightMode
+    );
 
     // Subheadline
-    const subY = headlineY + headlineLines.length * 100 + 50;
-    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-    ctx.font = "500 36px 'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+    const subY = headlineY + linesCount * 100 + 50;
+    ctx.fillStyle = isLightMode ? "rgba(107, 114, 128, 1)" : "rgba(255, 255, 255, 0.8)";
+    ctx.font = "500 36px 'Inter', -apple-system, sans-serif";
+    ctx.textAlign = "center";
     
     const subWords = ad.subheadline.split(" ");
     let subLine = "";
@@ -277,12 +466,11 @@ export const MarketingAdGenerator = () => {
 
     // CTA Button
     const ctaY = isStory ? 1500 : 850;
-    ctx.font = "800 32px 'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
-    const ctaWidth = ctx.measureText(ad.cta).width + 100;
+    ctx.font = "800 32px 'Inter', -apple-system, sans-serif";
+    const ctaWidth = ctx.measureText(ad.cta.toUpperCase()).width + 100;
     const ctaHeight = 80;
     const ctaX = (canvas.width - ctaWidth) / 2;
 
-    // Button background
     const btnGradient = ctx.createLinearGradient(ctaX, ctaY, ctaX + ctaWidth, ctaY + ctaHeight);
     btnGradient.addColorStop(0, "#ec4899");
     btnGradient.addColorStop(1, "#a855f7");
@@ -291,24 +479,35 @@ export const MarketingAdGenerator = () => {
     ctx.roundRect(ctaX, ctaY, ctaWidth, ctaHeight, 40);
     ctx.fill();
 
-    // Button text
     ctx.fillStyle = "#ffffff";
-    ctx.font = "800 32px 'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.font = "800 32px 'Inter', -apple-system, sans-serif";
     ctx.fillText(ad.cta.toUpperCase(), canvas.width / 2, ctaY + 52);
 
-    // Target badge
-    ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
-    ctx.font = "18px -apple-system, BlinkMacSystemFont, sans-serif";
-    const targetText = `${targetGender === "male" ? "♂" : targetGender === "female" ? "♀" : "⚧"} ${targetType === "couples" ? "Couples" : "Singles"}`;
-    ctx.fillText(targetText, canvas.width / 2, isStory ? 1800 : 980);
+    // Brand watermark
+    ctx.fillStyle = isLightMode ? "rgba(107, 114, 128, 0.5)" : "rgba(255, 255, 255, 0.3)";
+    ctx.font = "500 24px 'Inter', sans-serif";
+    ctx.fillText("Talks With Luna", canvas.width / 2, isStory ? 1800 : 1000);
 
     // Download
     const link = document.createElement("a");
-    link.download = `luna-ad-${format}-${Date.now()}.png`;
+    link.download = `luna-ad-${style}-${format}-${Date.now()}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
 
-    toast({ title: `${format === "story" ? "Story" : "Feed"} image downloaded!` });
+    toast({ title: `${style} ${format} image downloaded!` });
+  };
+
+  // Render headline with accent highlighting for preview
+  const renderAccentHeadline = (headline: string, accentWords: string[] = []) => {
+    const words = headline.split(" ");
+    return words.map((word, i) => {
+      const isAccent = accentWords.some(a => word.toLowerCase().includes(a.toLowerCase()));
+      return (
+        <span key={i} className={isAccent ? "text-pink-500" : ""}>
+          {word}{i < words.length - 1 ? " " : ""}
+        </span>
+      );
+    });
   };
 
   return (
@@ -322,7 +521,7 @@ export const MarketingAdGenerator = () => {
             AI Ad Generator
           </h2>
           <p className="text-muted-foreground">
-            Generate and download targeted ad creatives
+            Generate and download targeted ad creatives with multiple styles
           </p>
         </div>
         <Badge variant="outline" className="gap-1">
@@ -335,11 +534,11 @@ export const MarketingAdGenerator = () => {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Target className="w-4 h-4" />
-            Target Audience & AI Generation
+            Target Audience & Style
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-4 gap-4">
+          <div className="grid md:grid-cols-5 gap-4">
             <div className="space-y-2">
               <Label>Target Gender</Label>
               <Select value={targetGender} onValueChange={(v) => setTargetGender(v as typeof targetGender)}>
@@ -362,6 +561,20 @@ export const MarketingAdGenerator = () => {
                 <SelectContent>
                   <SelectItem value="singles">Luna (Singles)</SelectItem>
                   <SelectItem value="couples">Luna for Couples</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Ad Style</Label>
+              <Select value={adStyle} onValueChange={(v) => setAdStyle(v as AdStyle)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dark">Dark Mode</SelectItem>
+                  <SelectItem value="light">Light Mode</SelectItem>
+                  <SelectItem value="calendar">Calendar Style</SelectItem>
+                  <SelectItem value="timeline">Timeline Style</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -427,10 +640,24 @@ export const MarketingAdGenerator = () => {
                 }`}
                 onClick={() => setSelectedAd(ad)}
               >
-                <div className="bg-gradient-to-br from-primary/10 to-accent/10 p-6">
-                  <h3 className="text-xl font-bold tracking-tight mb-2">{ad.headline}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">{ad.subheadline}</p>
-                  <Button size="sm" className="w-full">{ad.cta}</Button>
+                <div className={`p-6 ${
+                  adStyle === "light" || adStyle === "calendar" 
+                    ? "bg-gradient-to-br from-pink-50 to-pink-100" 
+                    : "bg-gradient-to-br from-slate-900 to-slate-800"
+                }`}>
+                  <h3 className={`text-xl font-black tracking-tight mb-2 ${
+                    adStyle === "light" || adStyle === "calendar" ? "text-slate-900" : "text-white"
+                  }`}>
+                    {renderAccentHeadline(ad.headline, ad.accentWords)}
+                  </h3>
+                  <p className={`text-sm mb-4 ${
+                    adStyle === "light" || adStyle === "calendar" ? "text-slate-600" : "text-white/70"
+                  }`}>
+                    {ad.subheadline}
+                  </p>
+                  <Button size="sm" className="w-full bg-gradient-to-r from-pink-500 to-purple-500">
+                    {ad.cta}
+                  </Button>
                 </div>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
@@ -479,6 +706,23 @@ export const MarketingAdGenerator = () => {
         </TabsContent>
 
         <TabsContent value="preview" className="space-y-4">
+          {/* Style selector for preview */}
+          <div className="flex gap-2 flex-wrap">
+            {(["dark", "light", "calendar", "timeline"] as AdStyle[]).map((style) => (
+              <Button
+                key={style}
+                size="sm"
+                variant={adStyle === style ? "default" : "outline"}
+                onClick={() => setAdStyle(style)}
+                className="capitalize"
+              >
+                {style === "calendar" && <Calendar className="w-3 h-3 mr-1" />}
+                {style === "timeline" && <TrendingUp className="w-3 h-3 mr-1" />}
+                {style}
+              </Button>
+            ))}
+          </div>
+
           <div className="grid md:grid-cols-2 gap-6">
             {/* Story Preview */}
             <Card>
@@ -495,21 +739,57 @@ export const MarketingAdGenerator = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="aspect-[9/16] max-w-[280px] mx-auto bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23] rounded-xl overflow-hidden border shadow-lg">
+                <div className={`aspect-[9/16] max-w-[280px] mx-auto rounded-xl overflow-hidden border shadow-lg ${
+                  adStyle === "light" || adStyle === "calendar"
+                    ? "bg-gradient-to-br from-pink-50 via-pink-100 to-pink-200"
+                    : adStyle === "timeline"
+                    ? "bg-gradient-to-b from-[#0f0f0f] via-[#1a0a14] to-[#2d0a1a]"
+                    : "bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23]"
+                }`}>
                   <div className="h-full flex flex-col justify-center items-center p-6 text-center">
-                    <div className="w-16 h-16 rounded-full bg-primary/80 flex items-center justify-center mb-6">
-                      <Heart className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-lg font-bold tracking-tight mb-2 text-white">
-                      {selectedAd?.headline || currentTemplates[0]?.headline}
+                    {adStyle === "calendar" && (
+                      <div className="flex gap-1 mb-4">
+                        {["S", "M", "T", "W", "T", "F"].map((d, i) => (
+                          <div key={i} className={`w-8 h-10 rounded-lg flex items-center justify-center text-xs font-semibold ${
+                            i === 1 ? "bg-gradient-to-b from-pink-300 to-pink-500 text-white" : "bg-white/60 text-gray-500"
+                          }`}>
+                            {7 + i}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {adStyle === "timeline" && (
+                      <div className="flex items-center gap-2 mb-4">
+                        {["😢", "🤔", "✨"].map((emoji, i) => (
+                          <div key={i} className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
+                            i === 2 ? "bg-pink-500" : "bg-gray-700"
+                          }`}>
+                            {emoji}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {(adStyle === "dark" || adStyle === "light") && (
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center mb-4">
+                        <Heart className="w-6 h-6 text-white" />
+                      </div>
+                    )}
+                    <h3 className={`text-base font-black tracking-tight mb-2 ${
+                      adStyle === "light" || adStyle === "calendar" ? "text-slate-900" : "text-white"
+                    }`}>
+                      {renderAccentHeadline(
+                        selectedAd?.headline || currentTemplates[0]?.headline,
+                        selectedAd?.accentWords || currentTemplates[0]?.accentWords
+                      )}
                     </h3>
-                    <p className="text-xs text-white/70 mb-6">
+                    <p className={`text-xs mb-4 ${
+                      adStyle === "light" || adStyle === "calendar" ? "text-gray-600" : "text-white/70"
+                    }`}>
                       {selectedAd?.subheadline || currentTemplates[0]?.subheadline}
                     </p>
-                    <Button size="sm" className="w-full max-w-[200px] bg-gradient-to-r from-primary to-pink-500">
+                    <Button size="sm" className="w-full max-w-[180px] bg-gradient-to-r from-pink-500 to-purple-500 text-xs font-bold">
                       {selectedAd?.cta || currentTemplates[0]?.cta}
                     </Button>
-                    <p className="text-[10px] text-white/40 mt-4">Swipe Up</p>
                   </div>
                 </div>
               </CardContent>
@@ -530,18 +810,55 @@ export const MarketingAdGenerator = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="aspect-square max-w-[320px] mx-auto bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23] rounded-xl overflow-hidden border shadow-lg">
-                  <div className="h-full flex flex-col justify-center items-center p-8 text-center">
-                    <div className="w-20 h-20 rounded-full bg-primary/80 flex items-center justify-center mb-8">
-                      <MessageSquare className="w-10 h-10 text-white" />
-                    </div>
-                    <h3 className="text-2xl font-bold tracking-tight mb-3 text-white">
-                      {selectedAd?.headline || currentTemplates[0]?.headline}
+                <div className={`aspect-square max-w-[320px] mx-auto rounded-xl overflow-hidden border shadow-lg ${
+                  adStyle === "light" || adStyle === "calendar"
+                    ? "bg-gradient-to-br from-pink-50 via-pink-100 to-pink-200"
+                    : adStyle === "timeline"
+                    ? "bg-gradient-to-b from-[#0f0f0f] via-[#1a0a14] to-[#2d0a1a]"
+                    : "bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23]"
+                }`}>
+                  <div className="h-full flex flex-col justify-center items-center p-6 text-center">
+                    {adStyle === "calendar" && (
+                      <div className="flex gap-1 mb-6">
+                        {["S", "M", "T", "W", "T", "F"].map((d, i) => (
+                          <div key={i} className={`w-10 h-12 rounded-lg flex items-center justify-center text-sm font-semibold ${
+                            i === 1 ? "bg-gradient-to-b from-pink-300 to-pink-500 text-white" : "bg-white/60 text-gray-500"
+                          }`}>
+                            {7 + i}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {adStyle === "timeline" && (
+                      <div className="flex items-center gap-3 mb-6">
+                        {["😢", "🤔", "✨"].map((emoji, i) => (
+                          <div key={i} className={`w-12 h-12 rounded-full flex items-center justify-center text-xl ${
+                            i === 2 ? "bg-pink-500" : "bg-gray-700"
+                          }`}>
+                            {emoji}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {(adStyle === "dark" || adStyle === "light") && (
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center mb-6">
+                        <MessageSquare className="w-8 h-8 text-white" />
+                      </div>
+                    )}
+                    <h3 className={`text-xl font-black tracking-tight mb-3 ${
+                      adStyle === "light" || adStyle === "calendar" ? "text-slate-900" : "text-white"
+                    }`}>
+                      {renderAccentHeadline(
+                        selectedAd?.headline || currentTemplates[0]?.headline,
+                        selectedAd?.accentWords || currentTemplates[0]?.accentWords
+                      )}
                     </h3>
-                    <p className="text-sm text-white/70 mb-8">
+                    <p className={`text-sm mb-6 ${
+                      adStyle === "light" || adStyle === "calendar" ? "text-gray-600" : "text-white/70"
+                    }`}>
                       {selectedAd?.subheadline || currentTemplates[0]?.subheadline}
                     </p>
-                    <Button className="w-full max-w-[240px] bg-gradient-to-r from-primary to-pink-500">
+                    <Button className="w-full max-w-[220px] bg-gradient-to-r from-pink-500 to-purple-500 font-bold">
                       {selectedAd?.cta || currentTemplates[0]?.cta}
                     </Button>
                   </div>
