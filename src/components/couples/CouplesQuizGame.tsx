@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Check, X, Trophy, RefreshCw, Heart, Clock, Edit, History, Bell, TrendingUp } from "lucide-react";
+import { Brain, Check, X, Trophy, RefreshCw, Heart, Clock, Edit, History, Bell, TrendingUp, Crown, Medal, Flame, Award } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -185,7 +185,7 @@ const questions: Question[] = [
   },
 ];
 
-type GameMode = "loading" | "set_answers" | "waiting" | "play" | "playing" | "finished" | "history";
+type GameMode = "loading" | "set_answers" | "waiting" | "play" | "playing" | "finished" | "history" | "leaderboard";
 
 interface QuizSelfAnswers {
   id: string;
@@ -493,6 +493,35 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
   const bestScore = myHistory.length > 0 
     ? Math.max(...myHistory.map(h => h.score || 0))
     : 0;
+  
+  // Leaderboard calculations
+  const partnerAverageScore = partnerHistory.length > 0 
+    ? Math.round(partnerHistory.reduce((acc, h) => acc + (h.score || 0), 0) / partnerHistory.length)
+    : 0;
+  const partnerBestScore = partnerHistory.length > 0 
+    ? Math.max(...partnerHistory.map(h => h.score || 0))
+    : 0;
+  const myTotalGames = myHistory.length;
+  const partnerTotalGames = partnerHistory.length;
+  
+  // Determine leader
+  const scoreDiff = averageScore - partnerAverageScore;
+  const isMyLead = scoreDiff > 0;
+  const isTied = scoreDiff === 0 && myTotalGames > 0 && partnerTotalGames > 0;
+  
+  // Win streaks (consecutive games with 70%+ score)
+  const calculateWinStreak = (history: QuizHistoryEntry[]) => {
+    let streak = 0;
+    for (const entry of [...history].sort((a, b) => 
+      new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime()
+    )) {
+      if ((entry.score || 0) >= 70) streak++;
+      else break;
+    }
+    return streak;
+  };
+  const myStreak = calculateWinStreak(myHistory);
+  const partnerStreak = calculateWinStreak(partnerHistory);
 
   if (gameMode === "loading") {
     return (
@@ -520,94 +549,231 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
             <Brain className="w-5 h-5 text-purple-500" />
             How Well Do You Know Them?
           </CardTitle>
-          {quizHistory.length > 0 && gameMode !== "history" && gameMode !== "playing" && gameMode !== "set_answers" && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setGameMode("history")}
-              className="gap-1 text-xs"
-            >
-              <History className="w-4 h-4" />
-              History
-            </Button>
+          {quizHistory.length > 0 && gameMode !== "history" && gameMode !== "leaderboard" && gameMode !== "playing" && gameMode !== "set_answers" && (
+            <div className="flex gap-1">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setGameMode("leaderboard")}
+                className="gap-1 text-xs"
+              >
+                <Trophy className="w-4 h-4" />
+                Leaderboard
+              </Button>
+            </div>
           )}
         </div>
       </CardHeader>
       <CardContent className="pt-4">
         <AnimatePresence mode="wait">
-          {/* HISTORY VIEW */}
-          {gameMode === "history" && (
+          {/* LEADERBOARD VIEW */}
+          {gameMode === "leaderboard" && (
             <motion.div
-              key="history"
+              key="leaderboard"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="space-y-4"
             >
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Quiz History</h3>
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-yellow-500" />
+                  Leaderboard
+                </h3>
                 <Button variant="ghost" size="sm" onClick={() => setGameMode("play")}>
                   Back
                 </Button>
               </div>
-              
-              {/* Stats summary */}
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="bg-muted/50 rounded-lg p-3">
-                  <div className="text-lg font-bold">{myHistory.length}</div>
-                  <div className="text-xs text-muted-foreground">Games Played</div>
-                </div>
-                <div className="bg-muted/50 rounded-lg p-3">
-                  <div className="text-lg font-bold text-green-600">{bestScore}%</div>
-                  <div className="text-xs text-muted-foreground">Best Score</div>
-                </div>
-                <div className="bg-muted/50 rounded-lg p-3">
-                  <div className="text-lg font-bold">{averageScore}%</div>
-                  <div className="text-xs text-muted-foreground">Average</div>
-                </div>
+
+              {/* Competition banner */}
+              <div className={cn(
+                "rounded-lg p-4 text-center",
+                isTied ? "bg-gradient-to-r from-purple-500/10 to-blue-500/10" :
+                isMyLead ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10" :
+                "bg-gradient-to-r from-amber-500/10 to-orange-500/10"
+              )}>
+                {isTied ? (
+                  <>
+                    <div className="text-2xl mb-1">🤝</div>
+                    <p className="font-semibold">It's a tie!</p>
+                    <p className="text-xs text-muted-foreground">You know each other equally well</p>
+                  </>
+                ) : myTotalGames === 0 && partnerTotalGames === 0 ? (
+                  <>
+                    <div className="text-2xl mb-1">🎮</div>
+                    <p className="font-semibold">No games yet!</p>
+                    <p className="text-xs text-muted-foreground">Play the quiz to start the competition</p>
+                  </>
+                ) : (
+                  <>
+                    <Crown className={cn(
+                      "w-8 h-8 mx-auto mb-1",
+                      isMyLead ? "text-green-500" : "text-amber-500"
+                    )} />
+                    <p className="font-semibold">
+                      {isMyLead ? "You're in the lead!" : `${partnerName} is winning!`}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {Math.abs(scoreDiff)}% average score difference
+                    </p>
+                  </>
+                )}
               </div>
 
-              {/* History list */}
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {quizHistory.map((entry) => (
-                  <div 
-                    key={entry.id} 
-                    className="flex items-center justify-between p-2 bg-muted/30 rounded-lg text-sm"
-                  >
+              {/* Leaderboard cards */}
+              <div className="space-y-3">
+                {/* Your stats */}
+                <div className={cn(
+                  "rounded-lg p-3 border-2 transition-all",
+                  isMyLead && !isTied ? "border-green-500/50 bg-green-500/5" : "border-muted"
+                )}>
+                  <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className={cn(
-                        "w-2 h-2 rounded-full",
-                        entry.played_by === user?.id ? "bg-purple-500" : "bg-blue-500"
-                      )} />
-                      <span className="text-muted-foreground">
-                        {entry.played_by === user?.id ? "You" : partnerName}
-                      </span>
+                      {isMyLead && !isTied && <Medal className="w-5 h-5 text-yellow-500" />}
+                      <span className="font-semibold">You</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className={cn(
-                        "font-semibold",
-                        entry.score >= 80 ? "text-green-600" : 
-                        entry.score >= 50 ? "text-amber-600" : "text-red-500"
-                      )}>
-                        {entry.score}%
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {format(new Date(entry.completed_at), "MMM d")}
-                      </span>
+                    {myStreak > 0 && (
+                      <div className="flex items-center gap-1 text-orange-500 text-xs">
+                        <Flame className="w-4 h-4" />
+                        {myStreak} streak
+                      </div>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                    <div>
+                      <div className="font-bold text-lg">{averageScore}%</div>
+                      <div className="text-xs text-muted-foreground">Average</div>
+                    </div>
+                    <div>
+                      <div className="font-bold text-lg text-green-600">{bestScore}%</div>
+                      <div className="text-xs text-muted-foreground">Best</div>
+                    </div>
+                    <div>
+                      <div className="font-bold text-lg">{myTotalGames}</div>
+                      <div className="text-xs text-muted-foreground">Games</div>
                     </div>
                   </div>
-                ))}
+                </div>
+
+                {/* Partner stats */}
+                <div className={cn(
+                  "rounded-lg p-3 border-2 transition-all",
+                  !isMyLead && !isTied && partnerTotalGames > 0 ? "border-amber-500/50 bg-amber-500/5" : "border-muted"
+                )}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {!isMyLead && !isTied && partnerTotalGames > 0 && <Medal className="w-5 h-5 text-yellow-500" />}
+                      <span className="font-semibold">{partnerName}</span>
+                    </div>
+                    {partnerStreak > 0 && (
+                      <div className="flex items-center gap-1 text-orange-500 text-xs">
+                        <Flame className="w-4 h-4" />
+                        {partnerStreak} streak
+                      </div>
+                    )}
+                  </div>
+                  {partnerTotalGames > 0 ? (
+                    <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                      <div>
+                        <div className="font-bold text-lg">{partnerAverageScore}%</div>
+                        <div className="text-xs text-muted-foreground">Average</div>
+                      </div>
+                      <div>
+                        <div className="font-bold text-lg text-green-600">{partnerBestScore}%</div>
+                        <div className="text-xs text-muted-foreground">Best</div>
+                      </div>
+                      <div>
+                        <div className="font-bold text-lg">{partnerTotalGames}</div>
+                        <div className="text-xs text-muted-foreground">Games</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-2">
+                      Waiting for {partnerName} to play...
+                    </p>
+                  )}
+                </div>
               </div>
 
-              {partnerHistory.length > 0 && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground justify-center">
-                  <TrendingUp className="w-4 h-4" />
-                  {partnerName}'s best: {Math.max(...partnerHistory.map(h => h.score || 0))}%
+              {/* Achievements */}
+              {(myTotalGames > 0 || partnerTotalGames > 0) && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <Award className="w-4 h-4" />
+                    Achievements
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {bestScore >= 90 && (
+                      <span className="text-xs bg-yellow-500/20 text-yellow-700 px-2 py-1 rounded-full">
+                        🏆 Quiz Master (90%+)
+                      </span>
+                    )}
+                    {myStreak >= 3 && (
+                      <span className="text-xs bg-orange-500/20 text-orange-700 px-2 py-1 rounded-full">
+                        🔥 On Fire (3+ streak)
+                      </span>
+                    )}
+                    {myTotalGames >= 5 && (
+                      <span className="text-xs bg-blue-500/20 text-blue-700 px-2 py-1 rounded-full">
+                        🎯 Dedicated (5+ games)
+                      </span>
+                    )}
+                    {myTotalGames >= 10 && (
+                      <span className="text-xs bg-purple-500/20 text-purple-700 px-2 py-1 rounded-full">
+                        💫 Expert (10+ games)
+                      </span>
+                    )}
+                    {averageScore >= 75 && myTotalGames >= 3 && (
+                      <span className="text-xs bg-green-500/20 text-green-700 px-2 py-1 rounded-full">
+                        💕 Soulmate Material (75%+ avg)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Recent games */}
+              {quizHistory.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <History className="w-4 h-4" />
+                    Recent Games
+                  </h4>
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {quizHistory.slice(0, 5).map((entry) => (
+                      <div 
+                        key={entry.id} 
+                        className="flex items-center justify-between p-2 bg-muted/30 rounded text-sm"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className={cn(
+                            "w-2 h-2 rounded-full",
+                            entry.played_by === user?.id ? "bg-purple-500" : "bg-blue-500"
+                          )} />
+                          <span className="text-muted-foreground text-xs">
+                            {entry.played_by === user?.id ? "You" : partnerName}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            "font-semibold text-xs",
+                            entry.score >= 80 ? "text-green-600" : 
+                            entry.score >= 50 ? "text-amber-600" : "text-muted-foreground"
+                          )}>
+                            {entry.score}%
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {format(new Date(entry.completed_at), "MMM d")}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
               <Button onClick={handleStartQuiz} className="w-full">
-                Play Again
+                Play to Improve Your Score
               </Button>
             </motion.div>
           )}
