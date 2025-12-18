@@ -28,6 +28,8 @@ import { GameStatsCard } from "@/components/couples/GameStatsCard";
 import { FinishMySentence } from "@/components/couples/FinishMySentence";
 import { RateTheFantasy } from "@/components/couples/RateTheFantasy";
 import { TonightsPlans } from "@/components/couples/TonightsPlans";
+import { ThisOrThat } from "@/components/couples/ThisOrThat";
+import { LoveLetterGenerator } from "@/components/couples/LoveLetterGenerator";
 import { PhoneNumberPrompt, usePhonePrompt } from "@/components/PhoneNumberPrompt";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -303,6 +305,22 @@ const Couples = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.52 }}
+            >
+              <ThisOrThat partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.53 }}
+            >
+              <LoveLetterGenerator partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.54 }}
             >
               <ConversationStarters partnerLinkId={partnerLink?.id} />
             </motion.div>

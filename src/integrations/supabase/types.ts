@@ -785,6 +785,7 @@ export type Database = {
           revealed: boolean
           started_by: string
           updated_at: string
+          voice_messages: Json | null
         }
         Insert: {
           created_at?: string
@@ -796,6 +797,7 @@ export type Database = {
           revealed?: boolean
           started_by: string
           updated_at?: string
+          voice_messages?: Json | null
         }
         Update: {
           created_at?: string
@@ -807,6 +809,7 @@ export type Database = {
           revealed?: boolean
           started_by?: string
           updated_at?: string
+          voice_messages?: Json | null
         }
         Relationships: [
           {
@@ -1779,6 +1782,47 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      this_or_that_sessions: {
+        Row: {
+          created_at: string | null
+          current_question_index: number | null
+          id: string
+          partner_link_id: string
+          player_answers: Json | null
+          started_by: string
+          total_questions: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_question_index?: number | null
+          id?: string
+          partner_link_id: string
+          player_answers?: Json | null
+          started_by: string
+          total_questions?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_question_index?: number | null
+          id?: string
+          partner_link_id?: string
+          player_answers?: Json | null
+          started_by?: string
+          total_questions?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "this_or_that_sessions_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       truth_or_dare_sessions: {
         Row: {
