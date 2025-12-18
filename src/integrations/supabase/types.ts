@@ -774,6 +774,50 @@ export type Database = {
         }
         Relationships: []
       }
+      intimate_game_sessions: {
+        Row: {
+          created_at: string
+          current_prompt_index: number
+          game_type: string
+          id: string
+          partner_link_id: string
+          player_responses: Json
+          revealed: boolean
+          started_by: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_prompt_index?: number
+          game_type: string
+          id?: string
+          partner_link_id: string
+          player_responses?: Json
+          revealed?: boolean
+          started_by: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_prompt_index?: number
+          game_type?: string
+          id?: string
+          partner_link_id?: string
+          player_responses?: Json
+          revealed?: boolean
+          started_by?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intimate_game_sessions_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       journal_entries: {
         Row: {
           content: string
