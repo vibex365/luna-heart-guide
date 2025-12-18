@@ -1112,6 +1112,50 @@ export type Database = {
         }
         Relationships: []
       }
+      never_have_i_ever_sessions: {
+        Row: {
+          answers: Json | null
+          created_at: string | null
+          current_statement: string | null
+          id: string
+          is_spicy: boolean | null
+          partner_link_id: string
+          started_by: string
+          statement_index: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          answers?: Json | null
+          created_at?: string | null
+          current_statement?: string | null
+          id?: string
+          is_spicy?: boolean | null
+          partner_link_id: string
+          started_by: string
+          statement_index?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          answers?: Json | null
+          created_at?: string | null
+          current_statement?: string | null
+          id?: string
+          is_spicy?: boolean | null
+          partner_link_id?: string
+          started_by?: string
+          statement_index?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "never_have_i_ever_sessions_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_links: {
         Row: {
           accepted_at: string | null
@@ -1691,6 +1735,53 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      truth_or_dare_sessions: {
+        Row: {
+          created_at: string | null
+          current_card_index: number | null
+          current_prompt: string | null
+          id: string
+          is_spicy: boolean | null
+          mode: string | null
+          partner_link_id: string
+          player_ready: Json | null
+          started_by: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_card_index?: number | null
+          current_prompt?: string | null
+          id?: string
+          is_spicy?: boolean | null
+          mode?: string | null
+          partner_link_id: string
+          player_ready?: Json | null
+          started_by: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_card_index?: number | null
+          current_prompt?: string | null
+          id?: string
+          is_spicy?: boolean | null
+          mode?: string | null
+          partner_link_id?: string
+          player_ready?: Json | null
+          started_by?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "truth_or_dare_sessions_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {
