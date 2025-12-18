@@ -1,6 +1,7 @@
 // Spicy/Intimate content for couples games
 
 export const spicyTruths = [
+  // Original intimate truths
   "What's your favorite thing I do in the bedroom?",
   "Describe your ultimate fantasy with me",
   "What's the most attractive thing about me physically?",
@@ -16,9 +17,24 @@ export const spicyTruths = [
   "What's your favorite way to be kissed?",
   "What sound or voice of mine do you find most attractive?",
   "What's something flirty you've always wanted me to say to you?",
+  
+  // Role-play themed truths
+  "If we could role-play any scenario, what would you choose?",
+  "What character or persona would you want me to play for you?",
+  "What's a role-play fantasy you've never told anyone about?",
+  "If we met as strangers in a bar, how would you want me to approach you?",
+  "What costume or outfit would you love to see me in for a special night?",
+  
+  // Adventure themed truths
+  "What's the riskiest place you'd want to sneak a kiss with me?",
+  "If we could escape somewhere for a secret rendezvous, where would it be?",
+  "What's an adventurous date you've always wanted to try?",
+  "What would you do if we had an entire hotel to ourselves?",
+  "What's the most spontaneous romantic thing you've imagined doing with me?",
 ];
 
 export const spicyDares = [
+  // Original intimate dares
   "Give your partner a sensual neck massage for 2 minutes",
   "Whisper something flirty in your partner's ear",
   "Give your partner a slow, passionate kiss",
@@ -34,6 +50,20 @@ export const spicyDares = [
   "Plan what you'd do if you had the house to yourselves tonight",
   "Give your partner butterfly kisses all over their face",
   "Tell your partner a secret fantasy you've never shared",
+  
+  // Role-play themed dares
+  "Pretend you're meeting your partner for the first time and introduce yourself seductively",
+  "Act out a 'boss and employee' scenario for 2 minutes",
+  "Give your partner a 'room service' experience - serve them something with flair",
+  "Play the role of a mysterious stranger complimenting your partner",
+  "Text your partner a flirty message as if you're someone they just met",
+  
+  // Adventure themed dares
+  "Plan a surprise 'adventure date' right now and share the details",
+  "Describe a spontaneous road trip you'd take with your partner",
+  "Create a 'bucket list' of 3 adventurous things you want to do together",
+  "Challenge your partner to a flirty staring contest - first to blink does a forfeit",
+  "Send your partner a voice message describing your dream adventure together",
 ];
 
 export const regularTruths = [
@@ -73,6 +103,7 @@ export const regularDares = [
 ];
 
 export const spicyNeverHaveIEver = [
+  // Original spicy statements
   "Never have I ever sent a spicy photo",
   "Never have I ever had a dream about my partner that made me blush",
   "Never have I ever wanted to sneak away during an event for some alone time",
@@ -88,6 +119,18 @@ export const spicyNeverHaveIEver = [
   "Never have I ever gotten jealous seeing someone flirt with my partner",
   "Never have I ever wanted to dance intimately without any music",
   "Never have I ever wished we could press pause on time during a perfect moment together",
+  
+  // Role-play themed
+  "Never have I ever imagined role-playing a fantasy with my partner",
+  "Never have I ever wanted to dress up for my partner in a special way",
+  "Never have I ever wished we could act out a scene from a movie together",
+  "Never have I ever thought about a 'strangers meeting' scenario with my partner",
+  
+  // Adventure themed
+  "Never have I ever wanted to be spontaneously romantic in an unexpected place",
+  "Never have I ever dreamed about a surprise trip with my partner",
+  "Never have I ever wanted to try something adventurous with my partner",
+  "Never have I ever wished we could escape reality for a romantic adventure",
 ];
 
 export const regularNeverHaveIEver = [
