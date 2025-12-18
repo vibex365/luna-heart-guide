@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Check, X, Trophy, RefreshCw, Heart, Clock, Send, Edit } from "lucide-react";
+import { Brain, Check, X, Trophy, RefreshCw, Heart, Clock, Edit, History, Bell, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -9,26 +9,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
+import { notifyPartner } from "@/utils/smsNotifications";
+import { format } from "date-fns";
 
 interface Question {
   question: string;
-  selfQuestion: string; // Question phrased for answering about yourself
+  selfQuestion: string;
   options: string[];
-  category: "about_them" | "preferences" | "memories" | "dreams";
+  category: "preferences" | "about_them" | "communication" | "goals" | "daily" | "intimacy" | "dreams";
 }
 
 const questions: Question[] = [
+  // Preferences
   { 
     question: "What's their favorite way to relax?", 
     selfQuestion: "What's YOUR favorite way to relax?",
     options: ["Reading/Netflix", "Outdoors/Exercise", "Gaming/Hobbies", "Sleeping/Napping"], 
     category: "preferences" 
-  },
-  { 
-    question: "What's their biggest pet peeve?", 
-    selfQuestion: "What's YOUR biggest pet peeve?",
-    options: ["Being late", "Messiness", "Loud noises", "Interruptions"], 
-    category: "about_them" 
   },
   { 
     question: "What would they choose for a perfect meal?", 
@@ -37,33 +34,28 @@ const questions: Question[] = [
     category: "preferences" 
   },
   { 
-    question: "How do they prefer to receive love?", 
-    selfQuestion: "How do YOU prefer to receive love?",
-    options: ["Words of affirmation", "Physical touch", "Quality time", "Acts of service"], 
-    category: "about_them" 
-  },
-  { 
-    question: "What's their dream vacation?", 
-    selfQuestion: "What's YOUR dream vacation?",
-    options: ["Beach resort", "Mountain adventure", "City exploration", "Road trip"], 
-    category: "dreams" 
-  },
-  { 
-    question: "What stresses them out the most?", 
-    selfQuestion: "What stresses YOU out the most?",
-    options: ["Work deadlines", "Social situations", "Money worries", "Health concerns"], 
-    category: "about_them" 
-  },
-  { 
     question: "What's their go-to comfort activity?", 
     selfQuestion: "What's YOUR go-to comfort activity?",
     options: ["Watching movies", "Cooking/Eating", "Talking to friends", "Being alone"], 
     category: "preferences" 
   },
   { 
-    question: "How do they handle conflict?", 
-    selfQuestion: "How do YOU handle conflict?",
-    options: ["Talk it out", "Need space first", "Avoid it", "Write it down"], 
+    question: "What type of music do they enjoy most?", 
+    selfQuestion: "What type of music do YOU enjoy most?",
+    options: ["Pop/Top 40", "Rock/Alternative", "Hip-hop/R&B", "Classical/Jazz"], 
+    category: "preferences" 
+  },
+  // About them
+  { 
+    question: "What's their biggest pet peeve?", 
+    selfQuestion: "What's YOUR biggest pet peeve?",
+    options: ["Being late", "Messiness", "Loud noises", "Interruptions"], 
+    category: "about_them" 
+  },
+  { 
+    question: "What stresses them out the most?", 
+    selfQuestion: "What stresses YOU out the most?",
+    options: ["Work deadlines", "Social situations", "Money worries", "Health concerns"], 
     category: "about_them" 
   },
   { 
@@ -76,11 +68,124 @@ const questions: Question[] = [
     question: "What makes them feel most appreciated?", 
     selfQuestion: "What makes YOU feel most appreciated?",
     options: ["Verbal praise", "Small surprises", "Helping out", "Spending time"], 
-    category: "preferences" 
+    category: "about_them" 
+  },
+  { 
+    question: "What's their love language?", 
+    selfQuestion: "What's YOUR love language?",
+    options: ["Words of affirmation", "Physical touch", "Quality time", "Acts of service"], 
+    category: "about_them" 
+  },
+  // Communication
+  { 
+    question: "How do they prefer to resolve conflicts?", 
+    selfQuestion: "How do YOU prefer to resolve conflicts?",
+    options: ["Talk it out immediately", "Need time to cool down first", "Write down thoughts", "Seek compromise quickly"], 
+    category: "communication" 
+  },
+  { 
+    question: "How do they prefer to receive bad news?", 
+    selfQuestion: "How do YOU prefer to receive bad news?",
+    options: ["Directly and honestly", "Gently and gradually", "In writing first", "In person with support"], 
+    category: "communication" 
+  },
+  { 
+    question: "When upset, what do they need most?", 
+    selfQuestion: "When upset, what do YOU need most?",
+    options: ["Space and quiet", "Physical comfort", "Someone to listen", "Practical solutions"], 
+    category: "communication" 
+  },
+  { 
+    question: "How do they show affection?", 
+    selfQuestion: "How do YOU show affection?",
+    options: ["Words and compliments", "Hugs and kisses", "Thoughtful gestures", "Quality time together"], 
+    category: "communication" 
+  },
+  // Future Goals
+  { 
+    question: "What's their dream vacation?", 
+    selfQuestion: "What's YOUR dream vacation?",
+    options: ["Beach resort", "Mountain adventure", "City exploration", "Road trip"], 
+    category: "goals" 
+  },
+  { 
+    question: "Where do they see themselves in 5 years?", 
+    selfQuestion: "Where do YOU see yourself in 5 years?",
+    options: ["Career focused", "Family focused", "Adventure seeking", "Balanced lifestyle"], 
+    category: "goals" 
+  },
+  { 
+    question: "What's their biggest life goal?", 
+    selfQuestion: "What's YOUR biggest life goal?",
+    options: ["Financial freedom", "Happy family", "Career success", "Personal fulfillment"], 
+    category: "goals" 
+  },
+  { 
+    question: "Ideal retirement activity?", 
+    selfQuestion: "What's YOUR ideal retirement activity?",
+    options: ["Traveling the world", "Spending time with family", "Pursuing hobbies", "Volunteering"], 
+    category: "goals" 
+  },
+  // Daily Life
+  { 
+    question: "Are they a morning person or night owl?", 
+    selfQuestion: "Are YOU a morning person or night owl?",
+    options: ["Early bird", "Night owl", "Neither - midday person", "Depends on the day"], 
+    category: "daily" 
+  },
+  { 
+    question: "How do they like their coffee/tea?", 
+    selfQuestion: "How do YOU like your coffee/tea?",
+    options: ["Black/plain", "With milk/cream", "Sweet and creamy", "Don't drink it"], 
+    category: "daily" 
+  },
+  { 
+    question: "What's their ideal weekend?", 
+    selfQuestion: "What's YOUR ideal weekend?",
+    options: ["Lazy at home", "Active and outdoors", "Social with friends", "Mix of everything"], 
+    category: "daily" 
+  },
+  { 
+    question: "How do they unwind after work?", 
+    selfQuestion: "How do YOU unwind after work?",
+    options: ["Screen time", "Exercise", "Socializing", "Quiet time alone"], 
+    category: "daily" 
+  },
+  // Intimacy
+  { 
+    question: "What makes them feel most connected to you?", 
+    selfQuestion: "What makes YOU feel most connected to your partner?",
+    options: ["Deep conversations", "Physical closeness", "Shared activities", "Acts of care"], 
+    category: "intimacy" 
+  },
+  { 
+    question: "How important is alone time to them?", 
+    selfQuestion: "How important is alone time to YOU?",
+    options: ["Very important daily", "Occasional need", "Rarely needed", "Prefer always together"], 
+    category: "intimacy" 
+  },
+  { 
+    question: "What's their ideal date night?", 
+    selfQuestion: "What's YOUR ideal date night?",
+    options: ["Romantic dinner", "Adventure activity", "Cozy movie night", "New experience"], 
+    category: "intimacy" 
+  },
+  // Dreams
+  { 
+    question: "If money wasn't an issue, what would they do?", 
+    selfQuestion: "If money wasn't an issue, what would YOU do?",
+    options: ["Travel endlessly", "Start a business", "Help others", "Pursue creative passions"], 
+    category: "dreams" 
+  },
+  { 
+    question: "What's their secret dream?", 
+    selfQuestion: "What's YOUR secret dream?",
+    options: ["Write a book", "Learn an instrument", "Live abroad", "Build something"], 
+    category: "dreams" 
   },
 ];
 
-type GameMode = "loading" | "set_answers" | "waiting" | "play" | "playing" | "finished";
+type GameMode = "loading" | "set_answers" | "waiting" | "play" | "playing" | "finished" | "history";
 
 interface QuizSelfAnswers {
   id: string;
@@ -88,6 +193,13 @@ interface QuizSelfAnswers {
   user_id: string;
   answers: Record<string, number>;
   completed_at: string;
+}
+
+interface QuizHistoryEntry {
+  id: string;
+  score: number;
+  completed_at: string;
+  played_by: string;
 }
 
 interface CouplesQuizGameProps {
@@ -137,12 +249,29 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
     enabled: !!partnerLinkId && !!user?.id,
   });
 
-  // Fetch partner's name
-  const { data: partnerProfile } = useQuery({
-    queryKey: ["partner-profile-quiz", partnerLinkId, user?.id],
+  // Fetch quiz history
+  const { data: quizHistory = [] } = useQuery({
+    queryKey: ["quiz-history", partnerLinkId],
+    queryFn: async () => {
+      if (!partnerLinkId) return [];
+      const { data, error } = await supabase
+        .from("couples_game_history")
+        .select("id, score, completed_at, played_by")
+        .eq("partner_link_id", partnerLinkId)
+        .eq("game_type", "quiz")
+        .order("completed_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data as QuizHistoryEntry[];
+    },
+    enabled: !!partnerLinkId,
+  });
+
+  // Fetch partner's name and ID
+  const { data: partnerInfo } = useQuery({
+    queryKey: ["partner-info-quiz", partnerLinkId, user?.id],
     queryFn: async () => {
       if (!partnerLinkId || !user?.id) return null;
-      // Get partner link to find partner id
       const { data: link } = await supabase
         .from("partner_links")
         .select("user_id, partner_id")
@@ -159,12 +288,29 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
         .eq("user_id", partnerId)
         .single();
       
-      return profile;
+      return { partnerId, partnerName: profile?.display_name || "Your partner" };
     },
     enabled: !!partnerLinkId && !!user?.id,
   });
 
-  const partnerName = partnerProfile?.display_name || "Your partner";
+  // Fetch current user's name
+  const { data: myProfile } = useQuery({
+    queryKey: ["my-profile-quiz", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const partnerName = partnerInfo?.partnerName || "Your partner";
+  const partnerId = partnerInfo?.partnerId;
+  const myName = myProfile?.display_name || "Your partner";
 
   // Save self-answers mutation
   const saveAnswersMutation = useMutation({
@@ -191,6 +337,43 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
     },
   });
 
+  // Save quiz result mutation
+  const saveResultMutation = useMutation({
+    mutationFn: async (score: number) => {
+      if (!partnerLinkId || !user?.id) throw new Error("Missing data");
+      
+      const { error } = await supabase
+        .from("couples_game_history")
+        .insert({
+          partner_link_id: partnerLinkId,
+          game_type: "quiz",
+          score,
+          played_by: user.id,
+          total_questions: questions.length,
+          matches: Math.round((score / 100) * questions.length),
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quiz-history"] });
+    },
+  });
+
+  // Remind partner mutation
+  const remindPartnerMutation = useMutation({
+    mutationFn: async () => {
+      if (!partnerId) throw new Error("No partner");
+      await notifyPartner.quizReminder(partnerId, myName);
+    },
+    onSuccess: () => {
+      toast({ title: "Reminder sent!", description: `${partnerName} will receive an SMS reminder.` });
+    },
+    onError: () => {
+      toast({ title: "Couldn't send reminder", description: "Partner may not have SMS notifications enabled.", variant: "destructive" });
+    },
+  });
+
   // Determine game mode based on data
   useEffect(() => {
     if (loadingMyAnswers || loadingPartnerAnswers) {
@@ -198,19 +381,16 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
       return;
     }
 
-    // If user hasn't set their answers yet, show set_answers mode
     if (!myAnswers) {
       setGameMode("set_answers");
       return;
     }
 
-    // If user has answered but partner hasn't, show waiting
     if (!partnerAnswersData) {
       setGameMode("waiting");
       return;
     }
 
-    // Both have answered, ready to play
     setGameMode("play");
   }, [myAnswers, partnerAnswersData, loadingMyAnswers, loadingPartnerAnswers]);
 
@@ -255,7 +435,6 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
         setCurrentQuestion(currentQuestion + 1);
       }, 300);
     } else {
-      // Convert to object and save
       const answersObject: Record<string, number> = {};
       newAnswers.forEach((answer, index) => {
         answersObject[index.toString()] = answer;
@@ -281,6 +460,8 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
       if (currentQuestion < questions.length - 1) {
         setCurrentQuestion(currentQuestion + 1);
       } else {
+        const finalScore = calculateScoreFromAnswers(newAnswers);
+        saveResultMutation.mutate(finalScore);
         setGameMode("finished");
       }
     }, 1500);
@@ -291,15 +472,27 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
     return partnerAnswersData.answers[questionIndex.toString()] ?? -1;
   };
 
-  const calculateScore = () => {
+  const calculateScoreFromAnswers = (answers: number[]) => {
     let matches = 0;
-    selectedAnswers.forEach((answer, index) => {
+    answers.forEach((answer, index) => {
       if (answer === getPartnerAnswer(index)) matches++;
     });
     return Math.round((matches / questions.length) * 100);
   };
 
+  const calculateScore = () => calculateScoreFromAnswers(selectedAnswers);
+
   const progress = ((currentQuestion + 1) / questions.length) * 100;
+
+  // Calculate stats from history
+  const myHistory = quizHistory.filter(h => h.played_by === user?.id);
+  const partnerHistory = quizHistory.filter(h => h.played_by !== user?.id);
+  const averageScore = myHistory.length > 0 
+    ? Math.round(myHistory.reduce((acc, h) => acc + (h.score || 0), 0) / myHistory.length)
+    : 0;
+  const bestScore = myHistory.length > 0 
+    ? Math.max(...myHistory.map(h => h.score || 0))
+    : 0;
 
   if (gameMode === "loading") {
     return (
@@ -322,15 +515,105 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Brain className="w-5 h-5 text-purple-500" />
-          How Well Do You Know Them?
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Brain className="w-5 h-5 text-purple-500" />
+            How Well Do You Know Them?
+          </CardTitle>
+          {quizHistory.length > 0 && gameMode !== "history" && gameMode !== "playing" && gameMode !== "set_answers" && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setGameMode("history")}
+              className="gap-1 text-xs"
+            >
+              <History className="w-4 h-4" />
+              History
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="pt-4">
         <AnimatePresence mode="wait">
+          {/* HISTORY VIEW */}
+          {gameMode === "history" && (
+            <motion.div
+              key="history"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Quiz History</h3>
+                <Button variant="ghost" size="sm" onClick={() => setGameMode("play")}>
+                  Back
+                </Button>
+              </div>
+              
+              {/* Stats summary */}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <div className="text-lg font-bold">{myHistory.length}</div>
+                  <div className="text-xs text-muted-foreground">Games Played</div>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <div className="text-lg font-bold text-green-600">{bestScore}%</div>
+                  <div className="text-xs text-muted-foreground">Best Score</div>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <div className="text-lg font-bold">{averageScore}%</div>
+                  <div className="text-xs text-muted-foreground">Average</div>
+                </div>
+              </div>
+
+              {/* History list */}
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {quizHistory.map((entry) => (
+                  <div 
+                    key={entry.id} 
+                    className="flex items-center justify-between p-2 bg-muted/30 rounded-lg text-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        entry.played_by === user?.id ? "bg-purple-500" : "bg-blue-500"
+                      )} />
+                      <span className="text-muted-foreground">
+                        {entry.played_by === user?.id ? "You" : partnerName}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={cn(
+                        "font-semibold",
+                        entry.score >= 80 ? "text-green-600" : 
+                        entry.score >= 50 ? "text-amber-600" : "text-red-500"
+                      )}>
+                        {entry.score}%
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(entry.completed_at), "MMM d")}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {partnerHistory.length > 0 && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground justify-center">
+                  <TrendingUp className="w-4 h-4" />
+                  {partnerName}'s best: {Math.max(...partnerHistory.map(h => h.score || 0))}%
+                </div>
+              )}
+
+              <Button onClick={handleStartQuiz} className="w-full">
+                Play Again
+              </Button>
+            </motion.div>
+          )}
+
           {/* SET YOUR ANSWERS MODE */}
-          {gameMode === "set_answers" && currentQuestion === 0 && selfAnswers.length === 0 && (
+          {gameMode === "set_answers" && selfAnswers.length === 0 && (
             <motion.div
               key="set-start"
               initial={{ opacity: 0 }}
@@ -343,15 +626,15 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
               </div>
               <h3 className="font-semibold">Set Your Answers First!</h3>
               <p className="text-sm text-muted-foreground">
-                Answer questions about yourself so your partner can try to guess them.
+                Answer {questions.length} questions about yourself so your partner can try to guess them.
               </p>
-              <Button onClick={() => setCurrentQuestion(0)} className="w-full">
+              <Button onClick={() => setSelfAnswers([])} className="w-full">
                 Set My Answers
               </Button>
             </motion.div>
           )}
 
-          {gameMode === "set_answers" && (currentQuestion > 0 || selfAnswers.length > 0 || currentQuestion === 0) && selfAnswers.length < questions.length && (
+          {gameMode === "set_answers" && selfAnswers.length < questions.length && selfAnswers.length >= 0 && (
             <motion.div
               key={`self-question-${currentQuestion}`}
               initial={{ opacity: 0, x: 50 }}
@@ -360,14 +643,14 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
               className="space-y-4"
             >
               <div className="text-center mb-2">
-                <span className="text-xs bg-purple-500/10 text-purple-600 px-2 py-1 rounded-full">
-                  Setting Your Answers
+                <span className="text-xs bg-purple-500/10 text-purple-600 px-2 py-1 rounded-full capitalize">
+                  {questions[currentQuestion].category.replace("_", " ")}
                 </span>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>Question {currentQuestion + 1} of {questions.length}</span>
-                  <span className="capitalize">{questions[currentQuestion].category.replace("_", " ")}</span>
+                  <span>Setting Your Answers</span>
                 </div>
                 <Progress value={progress} className="h-2" />
               </div>
@@ -410,6 +693,14 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
               </p>
               <div className="flex flex-col gap-2">
                 <Button 
+                  onClick={() => remindPartnerMutation.mutate()}
+                  disabled={remindPartnerMutation.isPending}
+                  className="gap-2"
+                >
+                  <Bell className="w-4 h-4" />
+                  {remindPartnerMutation.isPending ? "Sending..." : "Remind Partner"}
+                </Button>
+                <Button 
                   variant="outline" 
                   onClick={handleStartSetAnswers}
                   className="gap-2"
@@ -435,8 +726,16 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
               </div>
               <h3 className="font-semibold">Ready to Play!</h3>
               <p className="text-sm text-muted-foreground">
-                Both of you have set your answers. Try to guess what {partnerName} answered!
+                {questions.length} questions about {partnerName}. How well do you really know them?
               </p>
+              
+              {myHistory.length > 0 && (
+                <div className="flex justify-center gap-4 text-sm">
+                  <span className="text-muted-foreground">Best: <span className="text-green-600 font-semibold">{bestScore}%</span></span>
+                  <span className="text-muted-foreground">Avg: <span className="font-semibold">{averageScore}%</span></span>
+                </div>
+              )}
+
               <div className="flex flex-col gap-2">
                 <Button onClick={handleStartQuiz} className="w-full">
                   Start Quiz
@@ -463,14 +762,14 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
               className="space-y-4"
             >
               <div className="text-center mb-2">
-                <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-1 rounded-full">
-                  Guessing {partnerName}'s Answers
+                <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-1 rounded-full capitalize">
+                  {questions[currentQuestion].category.replace("_", " ")}
                 </span>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>Question {currentQuestion + 1} of {questions.length}</span>
-                  <span className="capitalize">{questions[currentQuestion].category.replace("_", " ")}</span>
+                  <span>Guessing {partnerName}'s Answers</span>
                 </div>
                 <Progress value={progress} className="h-2" />
               </div>
@@ -537,19 +836,28 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
                     : "Time for some quality conversations! 💬"}
                 </p>
               </div>
+              
+              {bestScore > 0 && calculateScore() > bestScore && (
+                <div className="text-green-600 text-sm font-medium">
+                  🎉 New personal best!
+                </div>
+              )}
+
               <div className="flex flex-col gap-2">
                 <Button onClick={handleStartQuiz} variant="outline" className="gap-2">
                   <RefreshCw className="w-4 h-4" />
                   Play Again
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  onClick={handleStartSetAnswers}
-                  className="gap-2 text-sm"
-                >
-                  <Edit className="w-4 h-4" />
-                  Update My Answers
-                </Button>
+                {quizHistory.length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setGameMode("history")}
+                    className="gap-2 text-sm"
+                  >
+                    <History className="w-4 h-4" />
+                    View History
+                  </Button>
+                )}
               </div>
             </motion.div>
           )}

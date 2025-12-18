@@ -8,7 +8,8 @@ type NotificationType =
   | "goalCompleted"
   | "milestoneReminder"
   | "partnerLinked"
-  | "gameStarted";
+  | "gameStarted"
+  | "quizReminder";
 
 /**
  * Check if a user has a specific notification type enabled
@@ -108,6 +109,9 @@ export const smsTemplates = {
 
   gameStarted: (partnerName: string, gameType: string) =>
     `💜 Luna: ${partnerName} just started a "${gameType}" game! 🎮 Join now to play together!`,
+
+  quizReminder: (partnerName: string) =>
+    `💜 Luna: ${partnerName} is waiting to play the "How Well Do You Know Me" quiz! 🧠 Set your answers so they can play!`,
 };
 
 /**
@@ -134,4 +138,7 @@ export const notifyPartner = {
 
   gameStarted: (partnerId: string, partnerName: string, gameType: string) =>
     sendSmsNotification(partnerId, smsTemplates.gameStarted(partnerName, gameType), "gameStarted"),
+
+  quizReminder: (partnerId: string, partnerName: string) =>
+    sendSmsNotification(partnerId, smsTemplates.quizReminder(partnerName), "quizReminder"),
 };
