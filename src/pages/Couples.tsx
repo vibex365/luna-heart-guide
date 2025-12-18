@@ -27,6 +27,7 @@ import { ConversationStarters } from "@/components/couples/ConversationStarters"
 import { GameStatsCard } from "@/components/couples/GameStatsCard";
 import { FinishMySentence } from "@/components/couples/FinishMySentence";
 import { RateTheFantasy } from "@/components/couples/RateTheFantasy";
+import { TonightsPlans } from "@/components/couples/TonightsPlans";
 import { PhoneNumberPrompt, usePhonePrompt } from "@/components/PhoneNumberPrompt";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -288,6 +289,14 @@ const Couples = () => {
               transition={{ delay: 0.50 }}
             >
               <RateTheFantasy partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.51 }}
+            >
+              <TonightsPlans partnerLinkId={partnerLink?.id} />
             </motion.div>
 
             <motion.div
