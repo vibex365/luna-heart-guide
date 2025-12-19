@@ -10,6 +10,7 @@ type NotificationType =
   | "partnerLinked"
   | "gameStarted"
   | "quizReminder"
+  | "quizAnswersReady"
   | "newMessage";
 
 /**
@@ -114,6 +115,11 @@ export const smsTemplates = {
   quizReminder: (partnerName: string) =>
     `💜 Luna: ${partnerName} is waiting to play the "How Well Do You Know Me" quiz! 🧠 Set your answers so they can play!`,
 
+  quizAnswersReady: (partnerName: string, partnerHasAnswers: boolean) =>
+    partnerHasAnswers
+      ? `💜 Luna: ${partnerName} updated their quiz answers! 🧠 You can now play "How Well Do You Know Me" - see how well you really know each other!`
+      : `💜 Luna: ${partnerName} just set their quiz answers! 🧠 Set your answers so they can play "How Well Do You Know Me"!`,
+
   newMessage: (partnerName: string, messageType: "text" | "voice" | "video" | "image") => {
     const typeLabels = {
       text: "message",
@@ -152,6 +158,9 @@ export const notifyPartner = {
 
   quizReminder: (partnerId: string, partnerName: string) =>
     sendSmsNotification(partnerId, smsTemplates.quizReminder(partnerName), "quizReminder"),
+
+  quizAnswersReady: (partnerId: string, partnerName: string, partnerHasAnswers: boolean) =>
+    sendSmsNotification(partnerId, smsTemplates.quizAnswersReady(partnerName, partnerHasAnswers), "quizAnswersReady"),
 
   newMessage: (partnerId: string, senderName: string, messageType: "text" | "voice" | "video" | "image") =>
     sendSmsNotification(partnerId, smsTemplates.newMessage(senderName, messageType), "newMessage"),
