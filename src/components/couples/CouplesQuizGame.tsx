@@ -516,15 +516,17 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
 
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
-  // Calculate stats from history
+  // Calculate stats from history - filter by user ID for reliability
   const myHistory = quizHistory.filter(h => h.played_by === user?.id);
-  const partnerHistory = quizHistory.filter(h => partnerId && h.played_by === partnerId);
+  // Use "not current user" approach instead of partnerId for more reliable filtering
+  const partnerHistory = quizHistory.filter(h => user?.id && h.played_by !== user.id);
   
   // Debug logging for history
   console.log('Quiz History Debug:', {
     totalHistory: quizHistory.length,
     myHistoryCount: myHistory.length,
     partnerHistoryCount: partnerHistory.length,
+    userId: user?.id,
     partnerId,
     quizHistoryPlayedBy: quizHistory.map(h => h.played_by),
   });
