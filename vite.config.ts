@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "icons/*.png"],
       manifest: {
-        name: "Luna - AI Relationship Therapist",
+        name: "Luna Ai Relationship Therapist",
         short_name: "Luna",
         description: "Your private AI relationship therapist. Get compassionate, judgment-free guidance 24/7.",
         start_url: "/",
