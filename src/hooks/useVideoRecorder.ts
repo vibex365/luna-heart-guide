@@ -52,6 +52,28 @@ export const useVideoRecorder = (options: UseVideoRecorderOptions = {}) => {
     }
   }, [stream]);
 
+  const getSupportedMimeType = useCallback(() => {
+    // Check for supported MIME types in order of preference
+    const mimeTypes = [
+      "video/webm;codecs=vp9",
+      "video/webm;codecs=vp8",
+      "video/webm",
+      "video/mp4;codecs=avc1",
+      "video/mp4",
+    ];
+
+    for (const mimeType of mimeTypes) {
+      if (MediaRecorder.isTypeSupported(mimeType)) {
+        console.log("Using MIME type:", mimeType);
+        return mimeType;
+      }
+    }
+
+    // Fallback - let browser choose
+    console.log("No preferred MIME type supported, using default");
+    return undefined;
+  }, []);
+
   const startRecording = useCallback(async () => {
     let mediaStream = stream;
     if (!mediaStream) {
@@ -60,13 +82,11 @@ export const useVideoRecorder = (options: UseVideoRecorderOptions = {}) => {
     }
 
     try {
-      const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
-        ? "video/webm;codecs=vp9"
-        : MediaRecorder.isTypeSupported("video/webm")
-        ? "video/webm"
-        : "video/mp4";
+      const mimeType = getSupportedMimeType();
+      const options: MediaRecorderOptions = mimeType ? { mimeType } : {};
 
-      const mediaRecorder = new MediaRecorder(mediaStream, { mimeType });
+      console.log("Creating MediaRecorder with options:", options);
+      const mediaRecorder = new MediaRecorder(mediaStream, options);
       mediaRecorderRef.current = mediaRecorder;
       videoChunksRef.current = [];
 
@@ -76,9 +96,16 @@ export const useVideoRecorder = (options: UseVideoRecorderOptions = {}) => {
         }
       };
 
+      mediaRecorder.onerror = (event) => {
+        console.error("MediaRecorder error:", event);
+        toast.error("Recording error occurred");
+        cancelRecording();
+      };
+
       mediaRecorder.start(100);
       setIsRecording(true);
       startTimeRef.current = Date.now();
+      console.log("Recording started");
 
       timerRef.current = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
@@ -90,9 +117,9 @@ export const useVideoRecorder = (options: UseVideoRecorderOptions = {}) => {
       }, 100);
     } catch (error) {
       console.error("Error starting recording:", error);
-      toast.error("Could not start recording");
+      toast.error("Could not start recording. Your browser may not support video recording.");
     }
-  }, [stream, startCamera, maxDuration]);
+  }, [stream, startCamera, maxDuration, getSupportedMimeType]);
 
   const stopRecording = useCallback(async () => {
     if (!mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive") return;
