@@ -360,9 +360,15 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
         });
       
       if (error) throw error;
+      return score;
     },
-    onSuccess: () => {
+    onSuccess: (score) => {
       queryClient.invalidateQueries({ queryKey: ["quiz-history"] });
+      // Notify partner of quiz completion with score
+      if (partnerId) {
+        const correctAnswers = Math.round((score / 100) * questions.length);
+        notifyPartner.quizCompleted(partnerId, myName, correctAnswers, questions.length);
+      }
     },
   });
 
