@@ -498,7 +498,7 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
 
   // Calculate stats from history
   const myHistory = quizHistory.filter(h => h.played_by === user?.id);
-  const partnerHistory = quizHistory.filter(h => h.played_by !== user?.id);
+  const partnerHistory = quizHistory.filter(h => partnerId && h.played_by === partnerId);
   const averageScore = myHistory.length > 0 
     ? Math.round(myHistory.reduce((acc, h) => acc + (h.score || 0), 0) / myHistory.length)
     : 0;
