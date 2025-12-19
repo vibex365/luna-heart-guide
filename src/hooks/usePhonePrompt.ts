@@ -1,7 +1,9 @@
-import { useState } from "react";
+import * as React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+
+const { useState } = React;
 
 // Hook to check if user should be prompted for phone number
 export const usePhonePrompt = () => {
