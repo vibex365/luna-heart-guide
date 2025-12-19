@@ -268,7 +268,7 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
   });
 
   // Fetch partner's name and ID
-  const { data: partnerInfo } = useQuery({
+  const { data: partnerInfo, isLoading: loadingPartnerInfo } = useQuery({
     queryKey: ["partner-info-quiz", partnerLinkId, user?.id],
     queryFn: async () => {
       if (!partnerLinkId || !user?.id) return null;
@@ -364,10 +364,23 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
     },
     onSuccess: (score) => {
       queryClient.invalidateQueries({ queryKey: ["quiz-history"] });
+      // Get partnerId fresh from partnerInfo to avoid stale closure
+      const currentPartnerId = partnerInfo?.partnerId;
+      const currentMyName = myProfile?.display_name || "Your partner";
+      
+      console.log('Quiz completed - SMS notification attempt:', {
+        currentPartnerId,
+        currentMyName,
+        score,
+      });
+      
       // Notify partner of quiz completion with score
-      if (partnerId) {
+      if (currentPartnerId) {
         const correctAnswers = Math.round((score / 100) * questions.length);
-        notifyPartner.quizCompleted(partnerId, myName, correctAnswers, questions.length);
+        notifyPartner.quizCompleted(currentPartnerId, currentMyName, correctAnswers, questions.length);
+        console.log('SMS notification sent for quiz completion');
+      } else {
+        console.log('SMS skipped - partnerId not available');
       }
     },
   });
@@ -388,10 +401,17 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
 
   // Determine game mode based on data
   useEffect(() => {
-    if (loadingMyAnswers || loadingPartnerAnswers) {
+    if (loadingMyAnswers || loadingPartnerAnswers || loadingPartnerInfo) {
       setGameMode("loading");
       return;
     }
+
+    // Log for debugging
+    console.log('Quiz Game State:', {
+      partnerId: partnerInfo?.partnerId,
+      myAnswers: !!myAnswers,
+      partnerAnswersData: !!partnerAnswersData,
+    });
 
     if (!myAnswers) {
       setGameMode("set_answers");
@@ -404,7 +424,7 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
     }
 
     setGameMode("play");
-  }, [myAnswers, partnerAnswersData, loadingMyAnswers, loadingPartnerAnswers]);
+  }, [myAnswers, partnerAnswersData, loadingMyAnswers, loadingPartnerAnswers, loadingPartnerInfo, partnerInfo]);
 
   // Real-time subscription for partner's answers
   useEffect(() => {
@@ -499,7 +519,17 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
   // Calculate stats from history
   const myHistory = quizHistory.filter(h => h.played_by === user?.id);
   const partnerHistory = quizHistory.filter(h => partnerId && h.played_by === partnerId);
-  const averageScore = myHistory.length > 0 
+  
+  // Debug logging for history
+  console.log('Quiz History Debug:', {
+    totalHistory: quizHistory.length,
+    myHistoryCount: myHistory.length,
+    partnerHistoryCount: partnerHistory.length,
+    partnerId,
+    quizHistoryPlayedBy: quizHistory.map(h => h.played_by),
+  });
+  
+  const averageScore = myHistory.length > 0
     ? Math.round(myHistory.reduce((acc, h) => acc + (h.score || 0), 0) / myHistory.length)
     : 0;
   const bestScore = myHistory.length > 0 
