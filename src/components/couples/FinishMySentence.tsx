@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Send, Eye, Shuffle, Heart, Bell, Loader2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { MessageSquare, Send, Eye, Shuffle, Heart, Bell, Loader2, Mic } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +14,9 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { finishSentencePrompts } from "@/data/intimateGameContent";
 import { notifyPartner } from "@/utils/smsNotifications";
+import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
+import { VoiceRecorderButton } from "./VoiceRecorderButton";
+import { VoiceMessagePlayer } from "./VoiceMessagePlayer";
 
 interface FinishMySentenceProps {
   partnerLinkId?: string;
@@ -27,6 +32,14 @@ export const FinishMySentence = ({ partnerLinkId }: FinishMySentenceProps) => {
   const [isRevealed, setIsRevealed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [useVoice, setUseVoice] = useState(false);
+  const [myVoiceUrl, setMyVoiceUrl] = useState<string | null>(null);
+  const [partnerVoiceUrl, setPartnerVoiceUrl] = useState<string | null>(null);
+
+  const voiceRecorder = useVoiceRecorder({
+    maxDuration: 30,
+    onRecordingComplete: (url) => setMyVoiceUrl(url),
+  });
 
   // Fetch partner name
   const { data: partnerProfile } = useQuery({
@@ -68,6 +81,12 @@ export const FinishMySentence = ({ partnerLinkId }: FinishMySentenceProps) => {
             setPartnerResponse(responses[partnerId]);
           }
           
+          // Update partner voice message
+          const voiceMessages = newData.voice_messages || {};
+          if (partnerId && voiceMessages[partnerId]) {
+            setPartnerVoiceUrl(voiceMessages[partnerId]);
+          }
+          
           // Update revealed state
           if (newData.revealed) {
             setIsRevealed(true);
@@ -78,6 +97,8 @@ export const FinishMySentence = ({ partnerLinkId }: FinishMySentenceProps) => {
             setCurrentPromptIndex(newData.current_prompt_index);
             setMyResponse("");
             setPartnerResponse(null);
+            setMyVoiceUrl(null);
+            setPartnerVoiceUrl(null);
             setIsRevealed(false);
           }
         }
@@ -122,6 +143,8 @@ export const FinishMySentence = ({ partnerLinkId }: FinishMySentenceProps) => {
       setIsPlaying(true);
       setMyResponse("");
       setPartnerResponse(null);
+      setMyVoiceUrl(null);
+      setPartnerVoiceUrl(null);
       setIsRevealed(false);
 
       // Notify partner - get current user's name for notification
@@ -143,26 +166,35 @@ export const FinishMySentence = ({ partnerLinkId }: FinishMySentenceProps) => {
   };
 
   const submitResponse = async () => {
-    if (!sessionId || !user || !myResponse.trim()) return;
+    if (!sessionId || !user || (!myResponse.trim() && !myVoiceUrl)) return;
 
     setIsSubmitting(true);
     try {
-      // Get current responses
+      // Get current session data
       const { data: session } = await supabase
         .from("intimate_game_sessions")
-        .select("player_responses")
+        .select("player_responses, voice_messages")
         .eq("id", sessionId)
         .single();
 
       const currentResponses = (session?.player_responses as Record<string, string>) || {};
+      const currentVoice = (session?.voice_messages as Record<string, string>) || {};
+      
       const updatedResponses = {
         ...currentResponses,
-        [user.id]: myResponse.trim(),
+        [user.id]: myResponse.trim() || "[Voice Message]",
       };
+
+      const updatedVoice = myVoiceUrl 
+        ? { ...currentVoice, [user.id]: myVoiceUrl }
+        : currentVoice;
 
       await supabase
         .from("intimate_game_sessions")
-        .update({ player_responses: updatedResponses })
+        .update({ 
+          player_responses: updatedResponses,
+          voice_messages: updatedVoice,
+        })
         .eq("id", sessionId);
 
       toast.success("Response submitted!");
@@ -171,6 +203,16 @@ export const FinishMySentence = ({ partnerLinkId }: FinishMySentenceProps) => {
       toast.error("Failed to submit response");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleVoiceRecord = async () => {
+    if (voiceRecorder.isRecording) {
+      if (sessionId && user) {
+        await voiceRecorder.uploadAudio(user.id, sessionId);
+      }
+    } else {
+      voiceRecorder.startRecording();
     }
   };
 
@@ -207,6 +249,9 @@ export const FinishMySentence = ({ partnerLinkId }: FinishMySentenceProps) => {
       setCurrentPromptIndex(newIndex);
       setMyResponse("");
       setPartnerResponse(null);
+      setMyVoiceUrl(null);
+      setPartnerVoiceUrl(null);
+      voiceRecorder.clearAudio();
       setIsRevealed(false);
     } catch (error) {
       console.error("Error going to next prompt:", error);
@@ -226,8 +271,8 @@ export const FinishMySentence = ({ partnerLinkId }: FinishMySentenceProps) => {
   };
 
   // Check if I've submitted
-  const hasSubmitted = myResponse.trim().length > 0 && !isRevealed;
-  const bothSubmitted = partnerResponse !== null && myResponse.trim().length > 0;
+  const hasSubmitted = (myResponse.trim().length > 0 || myVoiceUrl) && !isRevealed;
+  const bothSubmitted = partnerResponse !== null && (myResponse.trim().length > 0 || myVoiceUrl);
 
   if (!isPlaying) {
     return (
@@ -293,18 +338,52 @@ export const FinishMySentence = ({ partnerLinkId }: FinishMySentenceProps) => {
               exit={{ opacity: 0 }}
               className="space-y-4"
             >
+              {/* Voice/Text Toggle */}
+              <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg">
+                <Label htmlFor="voice-mode" className="flex items-center gap-2 text-sm">
+                  <Mic className="w-4 h-4" />
+                  Voice Mode
+                </Label>
+                <Switch
+                  id="voice-mode"
+                  checked={useVoice}
+                  onCheckedChange={setUseVoice}
+                />
+              </div>
+
               {/* My Response Input */}
               <div className="space-y-2">
                 <label className="text-sm text-muted-foreground">Your completion:</label>
-                <Textarea
-                  value={myResponse}
-                  onChange={(e) => setMyResponse(e.target.value)}
-                  placeholder="Type how you'd finish this sentence..."
-                  className="min-h-[80px] bg-background/50"
-                />
+                
+                {useVoice ? (
+                  <div className="space-y-3">
+                    <VoiceRecorderButton
+                      isRecording={voiceRecorder.isRecording}
+                      isUploading={voiceRecorder.isUploading}
+                      duration={voiceRecorder.duration}
+                      onStartRecording={voiceRecorder.startRecording}
+                      onStopRecording={handleVoiceRecord}
+                      className="w-full"
+                    />
+                    {myVoiceUrl && (
+                      <VoiceMessagePlayer 
+                        audioUrl={myVoiceUrl} 
+                        label="Your voice message"
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <Textarea
+                    value={myResponse}
+                    onChange={(e) => setMyResponse(e.target.value)}
+                    placeholder="Type how you'd finish this sentence..."
+                    className="min-h-[80px] bg-background/50"
+                  />
+                )}
+                
                 <Button
                   onClick={submitResponse}
-                  disabled={!myResponse.trim() || isSubmitting}
+                  disabled={(!myResponse.trim() && !myVoiceUrl) || isSubmitting}
                   className="w-full"
                   variant="secondary"
                 >
@@ -359,13 +438,21 @@ export const FinishMySentence = ({ partnerLinkId }: FinishMySentenceProps) => {
             >
               {/* Revealed Responses */}
               <div className="grid gap-3">
-                <div className="p-3 bg-pink-500/10 rounded-lg border border-pink-500/20">
-                  <p className="text-xs text-pink-300 mb-1">Your response:</p>
-                  <p className="text-sm">"{myResponse}"</p>
+                <div className="p-3 bg-pink-500/10 rounded-lg border border-pink-500/20 space-y-2">
+                  <p className="text-xs text-pink-300">Your response:</p>
+                  {myVoiceUrl ? (
+                    <VoiceMessagePlayer audioUrl={myVoiceUrl} />
+                  ) : (
+                    <p className="text-sm">"{myResponse}"</p>
+                  )}
                 </div>
-                <div className="p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                  <p className="text-xs text-purple-300 mb-1">{partnerName}'s response:</p>
-                  <p className="text-sm">"{partnerResponse || "No response yet"}"</p>
+                <div className="p-3 bg-purple-500/10 rounded-lg border border-purple-500/20 space-y-2">
+                  <p className="text-xs text-purple-300">{partnerName}'s response:</p>
+                  {partnerVoiceUrl ? (
+                    <VoiceMessagePlayer audioUrl={partnerVoiceUrl} />
+                  ) : (
+                    <p className="text-sm">"{partnerResponse || "No response yet"}"</p>
+                  )}
                 </div>
               </div>
 
