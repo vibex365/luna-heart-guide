@@ -2060,6 +2060,16 @@ export type Database = {
     }
     Functions: {
       generate_invite_code: { Args: never; Returns: string }
+      get_pending_invite_by_code: {
+        Args: { p_invite_code: string }
+        Returns: {
+          created_at: string
+          id: string
+          invite_code: string
+          status: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

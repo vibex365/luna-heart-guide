@@ -158,22 +158,19 @@ export const useCouplesAccount = () => {
     },
   });
 
-  // Accept invite mutation
+  // Accept invite mutation - uses secure RPC to prevent enumeration of all pending invites
   const acceptInviteMutation = useMutation({
     mutationFn: async (inviteCode: string) => {
       if (!user) throw new Error("Not authenticated");
 
-      // Find the invite
-      const { data: invite, error: findError } = await supabase
-        .from("partner_links")
-        .select("*")
-        .eq("invite_code", inviteCode.toUpperCase())
-        .eq("status", "pending")
-        .maybeSingle();
+      // Find the invite using secure RPC function (prevents viewing all pending invites)
+      const { data: invites, error: findError } = await supabase
+        .rpc("get_pending_invite_by_code", { p_invite_code: inviteCode.toUpperCase() });
 
       if (findError) throw findError;
+      
+      const invite = invites?.[0];
       if (!invite) throw new Error("Invalid or expired invite code");
-      if (invite.user_id === user.id) throw new Error("You cannot accept your own invite");
 
       // Accept the invite
       const { data, error } = await supabase
