@@ -8,6 +8,8 @@ import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import PWAInstallInstructions from "@/components/PWAInstallInstructions";
+import DesktopLanding from "@/components/DesktopLanding";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Tooltip,
   TooltipContent,
@@ -130,6 +132,7 @@ const slides: ReelSlide[] = [
 const Landing = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -141,6 +144,11 @@ const Landing = () => {
       navigate("/chat");
     }
   }, [user, navigate]);
+
+  // Show desktop landing for non-mobile users
+  if (!isMobile) {
+    return <DesktopLanding />;
+  }
 
   const goToSlide = useCallback((index: number, withHaptic = true) => {
     if (index >= 0 && index < slides.length && index !== currentSlide) {
