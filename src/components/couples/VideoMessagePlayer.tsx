@@ -92,11 +92,13 @@ export const VideoMessagePlayer = ({
           ref={videoRef}
           src={videoUrl}
           poster={thumbnailUrl}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
           playsInline
           muted={isMuted}
           onTimeUpdate={handleTimeUpdate}
           onEnded={handleEnded}
+          // @ts-ignore - webkit-playsinline for older iOS
+          webkit-playsinline="true"
         />
 
         {/* Play/Pause overlay */}
@@ -185,6 +187,8 @@ export const VideoMessagePlayer = ({
                 toggleFullscreenPlay();
               }}
               onEnded={() => setIsPlaying(false)}
+              // @ts-ignore - webkit-playsinline for older iOS
+              webkit-playsinline="true"
             />
 
             {/* Play/pause overlay */}
