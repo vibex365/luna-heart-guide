@@ -15,7 +15,8 @@ type NotificationType =
   | "quizReminder"
   | "quizAnswersReady"
   | "quizCompleted"
-  | "newMessage";
+  | "newMessage"
+  | "loveLetter";
 
 /**
  * Check if a user has a specific notification type enabled
@@ -142,6 +143,15 @@ export const smsTemplates = {
     };
     return `💌 ${partnerName} sent you a ${typeLabels[messageType]}! Open Luna to see it.`;
   },
+
+  loveLetter: (senderName: string, letterContent: string) => {
+    // Truncate long letters for SMS (max ~160 chars for preview)
+    const maxLength = 400;
+    const truncatedContent = letterContent.length > maxLength 
+      ? letterContent.substring(0, maxLength) + "..."
+      : letterContent;
+    return `💕 ${senderName} wrote you a love letter:\n\n${truncatedContent}`;
+  },
 };
 
 /**
@@ -186,4 +196,7 @@ export const notifyPartner = {
 
   newMessage: (partnerId: string, senderName: string, messageType: "text" | "voice" | "video" | "image") =>
     sendSmsNotification(partnerId, smsTemplates.newMessage(senderName, messageType), "newMessage"),
+
+  loveLetter: (partnerId: string, senderName: string, letterContent: string) =>
+    sendSmsNotification(partnerId, smsTemplates.loveLetter(senderName, letterContent), "loveLetter"),
 };
