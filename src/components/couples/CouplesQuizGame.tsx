@@ -331,6 +331,12 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quiz-self-answers"] });
       toast({ title: "Your answers have been saved!" });
+      
+      // Send automatic SMS notification to partner
+      if (partnerId && myName) {
+        const partnerHasAnswers = !!partnerAnswersData;
+        notifyPartner.quizAnswersReady(partnerId, myName, partnerHasAnswers);
+      }
     },
     onError: () => {
       toast({ title: "Failed to save answers", variant: "destructive" });
