@@ -9,6 +9,7 @@ type NotificationType =
   | "milestoneReminder"
   | "partnerLinked"
   | "gameStarted"
+  | "gameModeSelected"
   | "quizReminder"
   | "quizAnswersReady"
   | "newMessage";
@@ -112,6 +113,9 @@ export const smsTemplates = {
   gameStarted: (partnerName: string, gameType: string) =>
     `💜 Luna: ${partnerName} just started a "${gameType}" game! 🎮 Join now to play together!`,
 
+  gameModeSelected: (partnerName: string, mode: "truth" | "dare") =>
+    `💜 Luna: ${partnerName} chose ${mode === "truth" ? "Truth" : "Dare"}! 🎯 Open Luna to type your answer!`,
+
   quizReminder: (partnerName: string) =>
     `💜 Luna: ${partnerName} is waiting to play the "How Well Do You Know Me" quiz! 🧠 Set your answers so they can play!`,
 
@@ -155,6 +159,9 @@ export const notifyPartner = {
 
   gameStarted: (partnerId: string, partnerName: string, gameType: string) =>
     sendSmsNotification(partnerId, smsTemplates.gameStarted(partnerName, gameType), "gameStarted"),
+
+  gameModeSelected: (partnerId: string, partnerName: string, mode: "truth" | "dare") =>
+    sendSmsNotification(partnerId, smsTemplates.gameModeSelected(partnerName, mode), "gameModeSelected"),
 
   quizReminder: (partnerId: string, partnerName: string) =>
     sendSmsNotification(partnerId, smsTemplates.quizReminder(partnerName), "quizReminder"),
