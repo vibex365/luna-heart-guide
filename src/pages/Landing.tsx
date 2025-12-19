@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles, HelpCircle, LogIn, Rocket, Crown, Check, Download } from "lucide-react";
+import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles, HelpCircle, LogIn, Rocket, Crown, Check, Download, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import { useNavigate } from "react-router-dom";
@@ -50,7 +50,7 @@ const pricingPlans = [
     name: "Couples",
     price: "$19",
     period: "/month",
-    features: ["Everything in Pro", "2 linked accounts", "Relationship tools"],
+    features: ["Private couples chat", "Relationship games", "Shared mood tracking"],
     highlight: false,
     priceId: "price_1SdhytAsrgxssNTVvlvnqvZr",
     popular: false,
@@ -109,6 +109,14 @@ const slides: ReelSlide[] = [
   },
   {
     id: 6,
+    gradient: "from-rose-500/20 via-background to-background",
+    icon: Users,
+    title: "Couples Mode",
+    subtitle: "Strengthen Your Bond",
+    description: "Play relationship games, send private messages, track shared moods, and grow together with your partner.",
+  },
+  {
+    id: 7,
     gradient: "from-primary/25 via-background to-background",
     icon: Crown,
     title: "Simple Pricing",

@@ -1,12 +1,10 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BreathingExercisesCMS } from "@/components/admin/cms/BreathingExercisesCMS";
 import { MoodPromptsCMS } from "@/components/admin/cms/MoodPromptsCMS";
 import { JournalTemplatesCMS } from "@/components/admin/cms/JournalTemplatesCMS";
-import { Wind, Heart, BookOpen, FileText } from "lucide-react";
+import { CouplesGameCMS } from "@/components/admin/cms/CouplesGameCMS";
+import { Wind, Heart, BookOpen, FileText, Gamepad2 } from "lucide-react";
 
 const AdminContent = () => {
   return (
@@ -25,7 +23,7 @@ const AdminContent = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="breathing" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList className="grid w-full max-w-xl grid-cols-4">
             <TabsTrigger value="breathing" className="gap-2">
               <Wind className="h-4 w-4" />
               Breathing
@@ -37,6 +35,10 @@ const AdminContent = () => {
             <TabsTrigger value="journals" className="gap-2">
               <BookOpen className="h-4 w-4" />
               Journals
+            </TabsTrigger>
+            <TabsTrigger value="couples" className="gap-2">
+              <Gamepad2 className="h-4 w-4" />
+              Couples
             </TabsTrigger>
           </TabsList>
 
@@ -50,6 +52,10 @@ const AdminContent = () => {
 
           <TabsContent value="journals">
             <JournalTemplatesCMS />
+          </TabsContent>
+
+          <TabsContent value="couples">
+            <CouplesGameCMS />
           </TabsContent>
         </Tabs>
       </div>

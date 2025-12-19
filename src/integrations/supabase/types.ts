@@ -460,6 +460,54 @@ export type Database = {
           },
         ]
       }
+      couples_game_questions: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          depth: number | null
+          difficulty: string | null
+          game_type: string
+          id: string
+          is_active: boolean | null
+          is_premium: boolean | null
+          option_a: string | null
+          option_b: string | null
+          question_text: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          depth?: number | null
+          difficulty?: string | null
+          game_type: string
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          option_a?: string | null
+          option_b?: string | null
+          question_text: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          depth?: number | null
+          difficulty?: string | null
+          game_type?: string
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          option_a?: string | null
+          option_b?: string | null
+          question_text?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       couples_game_sessions: {
         Row: {
           created_at: string
