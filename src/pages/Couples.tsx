@@ -72,6 +72,21 @@ const Couples = () => {
     enabled: !!partnerId,
   });
 
+  // Get current user's display name
+  const { data: myProfile } = useQuery({
+    queryKey: ["my-profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user,
+  });
+
   // Get unread message count
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ["unread-messages", partnerLink?.id],
@@ -463,10 +478,12 @@ const Couples = () => {
 
       {/* Chat Modal */}
       <AnimatePresence>
-        {showChat && partnerLink?.id && (
+        {showChat && partnerLink?.id && partnerId && (
           <CouplesChat
             partnerLinkId={partnerLink.id}
             partnerName={partnerName}
+            partnerId={partnerId}
+            senderName={myProfile?.display_name || "Your partner"}
             onClose={() => setShowChat(false)}
           />
         )}

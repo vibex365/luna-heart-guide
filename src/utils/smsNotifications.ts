@@ -9,7 +9,8 @@ type NotificationType =
   | "milestoneReminder"
   | "partnerLinked"
   | "gameStarted"
-  | "quizReminder";
+  | "quizReminder"
+  | "newMessage";
 
 /**
  * Check if a user has a specific notification type enabled
@@ -112,6 +113,16 @@ export const smsTemplates = {
 
   quizReminder: (partnerName: string) =>
     `💜 Luna: ${partnerName} is waiting to play the "How Well Do You Know Me" quiz! 🧠 Set your answers so they can play!`,
+
+  newMessage: (partnerName: string, messageType: "text" | "voice" | "video" | "image") => {
+    const typeLabels = {
+      text: "message",
+      voice: "voice message 🎤",
+      video: "video message 🎬",
+      image: "photo 📷",
+    };
+    return `💌 ${partnerName} sent you a ${typeLabels[messageType]}! Open Luna to see it.`;
+  },
 };
 
 /**
@@ -141,4 +152,7 @@ export const notifyPartner = {
 
   quizReminder: (partnerId: string, partnerName: string) =>
     sendSmsNotification(partnerId, smsTemplates.quizReminder(partnerName), "quizReminder"),
+
+  newMessage: (partnerId: string, senderName: string, messageType: "text" | "voice" | "video" | "image") =>
+    sendSmsNotification(partnerId, smsTemplates.newMessage(senderName, messageType), "newMessage"),
 };
