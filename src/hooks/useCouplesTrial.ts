@@ -64,22 +64,47 @@ export const useCouplesTrial = () => {
   // Start trial mutation
   const startTrialMutation = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error("Must be logged in");
+      // Detailed auth check
+      if (!user) {
+        console.error("[CouplesTrial] No user found in auth context");
+        throw new Error("NOT_AUTHENTICATED");
+      }
+
+      if (!user.id) {
+        console.error("[CouplesTrial] User exists but has no ID", user);
+        throw new Error("INVALID_USER");
+      }
+
+      console.log("[CouplesTrial] Starting trial for user:", user.id);
 
       const endsAt = new Date();
       endsAt.setDate(endsAt.getDate() + TRIAL_DURATION_DAYS);
 
+      const insertData = {
+        user_id: user.id,
+        ends_at: endsAt.toISOString(),
+        status: "active",
+      };
+
+      console.log("[CouplesTrial] Insert data:", insertData);
+
       const { data, error } = await supabase
         .from("couples_trials")
-        .insert({
-          user_id: user.id,
-          ends_at: endsAt.toISOString(),
-          status: "active",
-        })
+        .insert(insertData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("[CouplesTrial] Supabase error:", {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+        });
+        throw error;
+      }
+
+      console.log("[CouplesTrial] Trial created successfully:", data);
       return data;
     },
     onSuccess: () => {
@@ -90,11 +115,42 @@ export const useCouplesTrial = () => {
       });
     },
     onError: (error: any) => {
+      console.error("[CouplesTrial] Mutation error:", error);
+
+      // Handle specific error types
+      if (error.message === "NOT_AUTHENTICATED") {
+        toast.error("Please sign in to start your trial");
+        return;
+      }
+
+      if (error.message === "INVALID_USER") {
+        toast.error("Session error - please log out and back in");
+        return;
+      }
+
       if (error.code === "23505") {
         toast.error("You've already used your free trial");
-      } else {
-        toast.error("Failed to start trial");
+        return;
       }
+
+      if (error.code === "42501") {
+        toast.error("Access denied - please log out and back in");
+        return;
+      }
+
+      if (error.code === "PGRST301") {
+        toast.error("Database connection issue - please try again");
+        return;
+      }
+
+      // Network errors
+      if (error.message?.includes("fetch") || error.message?.includes("network")) {
+        toast.error("Connection issue - please check your internet");
+        return;
+      }
+
+      // Fallback with error details for debugging
+      toast.error(`Failed to start trial: ${error.message || error.code || "Unknown error"}`);
     },
   });
 
