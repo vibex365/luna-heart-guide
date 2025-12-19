@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Heart, Sparkles, RefreshCw, Users, Bell, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { notifyPartner } from "@/utils/smsNotifications";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { useQuery } from "@tanstack/react-query";
+import { useGameQuestions, useAgeGateEnabled } from "@/hooks/useGameQuestions";
+import { AgeGateModal, useAgeGateConfirmed } from "./AgeGateModal";
 import {
   regularTruths,
   regularDares,
@@ -60,9 +62,31 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
   const [isSpicy, setIsSpicy] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [showAgeGate, setShowAgeGate] = useState(false);
   
-  const truths = isSpicy ? spicyTruths : regularTruths;
-  const dares = isSpicy ? spicyDares : regularDares;
+  // Check if age gate is enabled and confirmed
+  const { data: ageGateEnabled } = useAgeGateEnabled();
+  const ageGateConfirmed = useAgeGateConfirmed();
+  
+  // Fetch questions from database
+  const { data: dbTruths } = useGameQuestions("truth_or_dare");
+  
+  // Merge DB questions with fallback hardcoded questions
+  const truths = useMemo(() => {
+    const dbTruthQuestions = dbTruths?.filter(q => q.category === "truth" && (isSpicy ? q.difficulty === "spicy" : q.difficulty === "regular"));
+    if (dbTruthQuestions && dbTruthQuestions.length > 0) {
+      return dbTruthQuestions.map(q => q.question_text);
+    }
+    return isSpicy ? spicyTruths : regularTruths;
+  }, [dbTruths, isSpicy]);
+  
+  const dares = useMemo(() => {
+    const dbDareQuestions = dbTruths?.filter(q => q.category === "dare" && (isSpicy ? q.difficulty === "spicy" : q.difficulty === "regular"));
+    if (dbDareQuestions && dbDareQuestions.length > 0) {
+      return dbDareQuestions.map(q => q.question_text);
+    }
+    return isSpicy ? spicyDares : regularDares;
+  }, [dbTruths, isSpicy]);
 
   // Fetch active session
   useEffect(() => {
@@ -261,7 +285,16 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
   }
 
   return (
-    <Card className="overflow-hidden">
+    <>
+      <AgeGateModal
+        open={showAgeGate}
+        onConfirm={() => {
+          setShowAgeGate(false);
+          setIsSpicy(true);
+        }}
+        onCancel={() => setShowAgeGate(false)}
+      />
+      <Card className="overflow-hidden">
       <CardHeader className="pb-2 bg-gradient-to-r from-pink-500/10 to-orange-500/10">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -281,7 +314,14 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
               <Switch
                 id="spicy-mode"
                 checked={isSpicy}
-                onCheckedChange={setIsSpicy}
+                onCheckedChange={(checked) => {
+                  // Show age gate if enabling spicy mode and age gate is enabled and not confirmed
+                  if (checked && ageGateEnabled && !ageGateConfirmed) {
+                    setShowAgeGate(true);
+                  } else {
+                    setIsSpicy(checked);
+                  }
+                }}
               />
             </div>
           )}
@@ -466,5 +506,6 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
         </AnimatePresence>
       </CardContent>
     </Card>
+    </>
   );
 };

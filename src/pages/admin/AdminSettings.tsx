@@ -18,7 +18,8 @@ import {
   Shield, 
   Globe,
   Save,
-  RotateCcw
+  RotateCcw,
+  Heart
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
@@ -43,7 +44,8 @@ export default function AdminSettings() {
           "app_general",
           "email_settings",
           "notification_settings",
-          "security_settings"
+          "security_settings",
+          "couples_settings"
         ]);
       if (error) throw error;
       return data as AppSettings[];
@@ -132,6 +134,15 @@ export default function AdminSettings() {
     logSensitiveActions: true,
   });
 
+  // Couples Settings State
+  const [couplesSettings, setCouplesSettings] = useState({
+    ageGateEnabled: true,
+    enableVoiceMessages: true,
+    enableVideoMessages: true,
+    enableSpicyContent: true,
+    enableIntimateContent: true,
+  });
+
   // Initialize settings from database
   useEffect(() => {
     if (settings) {
@@ -153,6 +164,11 @@ export default function AdminSettings() {
       const security = getSettingValue("security_settings");
       if (Object.keys(security).length > 0) {
         setSecuritySettings((prev) => ({ ...prev, ...security }));
+      }
+
+      const couples = getSettingValue("couples_settings");
+      if (Object.keys(couples).length > 0) {
+        setCouplesSettings((prev) => ({ ...prev, ...couples }));
       }
     }
   }, [settings]);
@@ -185,6 +201,13 @@ export default function AdminSettings() {
     });
   };
 
+  const handleSaveCouples = () => {
+    updateSettingMutation.mutate({
+      key: "couples_settings",
+      value: couplesSettings,
+    });
+  };
+
   if (isLoading) {
     return (
       <AdminLayout>
@@ -214,7 +237,7 @@ export default function AdminSettings() {
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="general" className="flex items-center gap-2">
               <Globe className="h-4 w-4" />
               General
@@ -225,11 +248,15 @@ export default function AdminSettings() {
             </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
-              Notifications
+              Notify
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Security
+            </TabsTrigger>
+            <TabsTrigger value="couples" className="flex items-center gap-2">
+              <Heart className="h-4 w-4" />
+              Couples
             </TabsTrigger>
           </TabsList>
 
@@ -681,6 +708,137 @@ export default function AdminSettings() {
                   <Button onClick={handleSaveSecurity} disabled={updateSettingMutation.isPending}>
                     <Save className="h-4 w-4 mr-2" />
                     Save Security Settings
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Couples Settings */}
+          <TabsContent value="couples">
+            <Card>
+              <CardHeader>
+                <CardTitle>Couples Mode Settings</CardTitle>
+                <CardDescription>
+                  Configure couples features and content controls
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Age Gate for Intimate Content</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Require confirmation before accessing spicy/intimate games
+                      </p>
+                    </div>
+                    <Switch
+                      checked={couplesSettings.ageGateEnabled}
+                      onCheckedChange={(checked) =>
+                        setCouplesSettings({
+                          ...couplesSettings,
+                          ageGateEnabled: checked,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Enable Voice Messages</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Allow couples to send voice messages
+                      </p>
+                    </div>
+                    <Switch
+                      checked={couplesSettings.enableVoiceMessages}
+                      onCheckedChange={(checked) =>
+                        setCouplesSettings({
+                          ...couplesSettings,
+                          enableVoiceMessages: checked,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Enable Video Messages</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Allow couples to send video messages
+                      </p>
+                    </div>
+                    <Switch
+                      checked={couplesSettings.enableVideoMessages}
+                      onCheckedChange={(checked) =>
+                        setCouplesSettings({
+                          ...couplesSettings,
+                          enableVideoMessages: checked,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Enable Spicy Content</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Allow access to spicy game modes (🔥)
+                      </p>
+                    </div>
+                    <Switch
+                      checked={couplesSettings.enableSpicyContent}
+                      onCheckedChange={(checked) =>
+                        setCouplesSettings({
+                          ...couplesSettings,
+                          enableSpicyContent: checked,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Enable Intimate Content</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Allow access to intimate game categories
+                      </p>
+                    </div>
+                    <Switch
+                      checked={couplesSettings.enableIntimateContent}
+                      onCheckedChange={(checked) =>
+                        setCouplesSettings({
+                          ...couplesSettings,
+                          enableIntimateContent: checked,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      setCouplesSettings({
+                        ageGateEnabled: true,
+                        enableVoiceMessages: true,
+                        enableVideoMessages: true,
+                        enableSpicyContent: true,
+                        enableIntimateContent: true,
+                      })
+                    }
+                  >
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Reset
+                  </Button>
+                  <Button onClick={handleSaveCouples} disabled={updateSettingMutation.isPending}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Couples Settings
                   </Button>
                 </div>
               </CardContent>
