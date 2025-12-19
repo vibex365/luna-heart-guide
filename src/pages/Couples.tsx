@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ArrowLeft, Crown, MessageCircle } from "lucide-react";
+import { Heart, ArrowLeft, MessageCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
+import { useCouplesTrial } from "@/hooks/useCouplesTrial";
 import { PartnerInviteCard } from "@/components/couples/PartnerInviteCard";
 import { CouplesLinkedStatus } from "@/components/couples/CouplesLinkedStatus";
 import { RelationshipHealthCard } from "@/components/couples/RelationshipHealthCard";
@@ -31,8 +32,11 @@ import { TonightsPlans } from "@/components/couples/TonightsPlans";
 import { ThisOrThat } from "@/components/couples/ThisOrThat";
 import { LoveLetterGenerator } from "@/components/couples/LoveLetterGenerator";
 import { CouplesChat } from "@/components/couples/CouplesChat";
+import { CouplesTrialBanner } from "@/components/couples/CouplesTrialBanner";
+import { CouplesFeaturePreviews } from "@/components/couples/CouplesFeaturesPreviews";
+import { TrialExpiredCard } from "@/components/couples/TrialExpiredCard";
 import { PhoneNumberPrompt } from "@/components/PhoneNumberPrompt";
-import { usePhonePrompt } from "@/hooks/usePhonePrompt"; // Phone prompt hook
+import { usePhonePrompt } from "@/hooks/usePhonePrompt";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -47,16 +51,30 @@ const Couples = () => {
   const [showPhonePrompt, setShowPhonePrompt] = useState(false);
   const [showChat, setShowChat] = useState(false);
   
+  // Trial hook
+  const {
+    hasCouplesAccess,
+    hasCouplesSubscription,
+    isTrialActive,
+    isTrialExpired,
+    canStartTrial,
+    trialDaysLeft,
+    trialHoursLeft,
+    startTrial,
+    isStartingTrial,
+    trial,
+  } = useCouplesTrial();
+
   // Enable real-time partner notifications
   usePartnerNotifications();
 
   // Show phone prompt after a short delay when user is linked but has no phone
   useEffect(() => {
-    if (isLinked && shouldPrompt) {
+    if (isLinked && shouldPrompt && hasCouplesAccess) {
       const timer = setTimeout(() => setShowPhonePrompt(true), 2000);
       return () => clearTimeout(timer);
     }
-  }, [isLinked, shouldPrompt]);
+  }, [isLinked, shouldPrompt, hasCouplesAccess]);
 
   // Get partner's display name
   const { data: partnerProfile } = useQuery({
@@ -101,34 +119,11 @@ const Couples = () => {
         .eq("is_read", false);
       return count || 0;
     },
-    enabled: !!partnerLink?.id && !!user,
+    enabled: !!partnerLink?.id && !!user && hasCouplesAccess,
     refetchInterval: 10000,
   });
 
-  // Check if user has couples subscription
-  const { data: hasCouplesAccess, isLoading: isLoadingAccess } = useQuery({
-    queryKey: ["couples-access", user?.id],
-    queryFn: async () => {
-      if (!user) return false;
-      
-      // Check subscription tier
-      const { data: subscription } = await supabase
-        .from("user_subscriptions")
-        .select(`
-          tier_id,
-          subscription_tiers!inner(slug)
-        `)
-        .eq("user_id", user.id)
-        .eq("status", "active")
-        .maybeSingle();
-
-      // Allow if couples tier
-      return subscription?.subscription_tiers?.slug === "couples";
-    },
-    enabled: !!user,
-  });
-
-  if (isLoading || isLoadingAccess) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse">
@@ -138,47 +133,49 @@ const Couples = () => {
     );
   }
 
+  const partnerName = partnerProfile?.display_name || "Your Partner";
+
+  // If user doesn't have access (no subscription and no active trial)
   if (!hasCouplesAccess) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pb-24">
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
           <div className="flex items-center justify-between p-4">
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-lg font-semibold">Couples</h1>
+            <h1 className="text-lg font-semibold flex items-center gap-2">
+              <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
+              Couples
+            </h1>
             <div className="w-10" />
           </div>
         </header>
 
-        <div className="p-6 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center">
-              <Crown className="w-10 h-10 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold">Couples Plan Required</h2>
-              <p className="text-muted-foreground mt-2">
-                Upgrade to the Couples plan to unlock shared features with your partner.
-              </p>
-            </div>
-            <Link to="/subscription">
-              <Button className="bg-gradient-to-r from-pink-500 to-purple-500">
-                Upgrade Now
-              </Button>
-            </Link>
-          </motion.div>
+        <div className="p-4 space-y-4">
+          {/* Show trial expired card if applicable */}
+          {isTrialExpired && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <TrialExpiredCard featuresUsed={trial?.features_used || []} />
+            </motion.div>
+          )}
+
+          {/* Show feature previews */}
+          <CouplesFeaturePreviews
+            onStartTrial={startTrial}
+            onUpgrade={() => navigate("/subscription")}
+            canStartTrial={canStartTrial}
+            isStartingTrial={isStartingTrial}
+          />
         </div>
       </div>
     );
   }
 
-  const partnerName = partnerProfile?.display_name || "Your Partner";
-
+  // User has access (via subscription or active trial)
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
@@ -214,6 +211,19 @@ const Couples = () => {
       </header>
 
       <div className="p-4 space-y-4">
+        {/* Trial Banner - only show if on trial (not subscription) */}
+        {isTrialActive && !hasCouplesSubscription && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <CouplesTrialBanner
+              daysLeft={trialDaysLeft}
+              hoursLeft={trialHoursLeft}
+            />
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -643,6 +643,42 @@ export type Database = {
           },
         ]
       }
+      couples_trials: {
+        Row: {
+          converted_at: string | null
+          created_at: string | null
+          ends_at: string
+          features_used: Json | null
+          id: string
+          started_at: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          converted_at?: string | null
+          created_at?: string | null
+          ends_at: string
+          features_used?: Json | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          converted_at?: string | null
+          created_at?: string | null
+          ends_at?: string
+          features_used?: Json | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_affirmation_templates: {
         Row: {
           account_type: string
