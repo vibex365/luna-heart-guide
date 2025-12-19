@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Heart, ArrowLeft, Crown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Heart, ArrowLeft, Crown, MessageCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
@@ -30,18 +30,21 @@ import { RateTheFantasy } from "@/components/couples/RateTheFantasy";
 import { TonightsPlans } from "@/components/couples/TonightsPlans";
 import { ThisOrThat } from "@/components/couples/ThisOrThat";
 import { LoveLetterGenerator } from "@/components/couples/LoveLetterGenerator";
+import { CouplesChat } from "@/components/couples/CouplesChat";
 import { PhoneNumberPrompt, usePhonePrompt } from "@/components/PhoneNumberPrompt";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePartnerNotifications } from "@/hooks/usePartnerNotifications";
+import { Badge } from "@/components/ui/badge";
 
 const Couples = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isLinked, isLoading, partnerLink } = useCouplesAccount();
+  const { isLinked, isLoading, partnerLink, partnerId } = useCouplesAccount();
   const { shouldPrompt, dismiss } = usePhonePrompt();
   const [showPhonePrompt, setShowPhonePrompt] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   
   // Enable real-time partner notifications
   usePartnerNotifications();
@@ -53,6 +56,38 @@ const Couples = () => {
       return () => clearTimeout(timer);
     }
   }, [isLinked, shouldPrompt]);
+
+  // Get partner's display name
+  const { data: partnerProfile } = useQuery({
+    queryKey: ["partner-profile", partnerId],
+    queryFn: async () => {
+      if (!partnerId) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", partnerId)
+        .single();
+      return data;
+    },
+    enabled: !!partnerId,
+  });
+
+  // Get unread message count
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["unread-messages", partnerLink?.id],
+    queryFn: async () => {
+      if (!partnerLink?.id || !user) return 0;
+      const { count } = await supabase
+        .from("couples_messages")
+        .select("*", { count: "exact", head: true })
+        .eq("partner_link_id", partnerLink.id)
+        .neq("sender_id", user.id)
+        .eq("is_read", false);
+      return count || 0;
+    },
+    enabled: !!partnerLink?.id && !!user,
+    refetchInterval: 10000,
+  });
 
   // Check if user has couples subscription
   const { data: hasCouplesAccess, isLoading: isLoadingAccess } = useQuery({
@@ -126,6 +161,8 @@ const Couples = () => {
     );
   }
 
+  const partnerName = partnerProfile?.display_name || "Your Partner";
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
@@ -138,7 +175,25 @@ const Couples = () => {
             <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
             Couples
           </h1>
-          <div className="w-10" />
+          {isLinked && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowChat(true)}
+              className="relative"
+            >
+              <MessageCircle className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-[10px]"
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </Badge>
+              )}
+            </Button>
+          )}
+          {!isLinked && <div className="w-10" />}
         </div>
       </header>
 
@@ -157,6 +212,37 @@ const Couples = () => {
 
         {isLinked && (
           <>
+            {/* Chat CTA Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+            >
+              <button
+                onClick={() => setShowChat(true)}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20 hover:border-pink-500/40 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
+                    <MessageCircle className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      Private Chat
+                      {unreadCount > 0 && (
+                        <Badge variant="destructive" className="text-[10px] px-1.5">
+                          {unreadCount} new
+                        </Badge>
+                      )}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Send text, voice & video messages
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </motion.div>
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -374,6 +460,17 @@ const Couples = () => {
           if (!open) dismiss();
         }}
       />
+
+      {/* Chat Modal */}
+      <AnimatePresence>
+        {showChat && partnerLink?.id && (
+          <CouplesChat
+            partnerLinkId={partnerLink.id}
+            partnerName={partnerName}
+            onClose={() => setShowChat(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
