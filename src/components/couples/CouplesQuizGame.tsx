@@ -1023,7 +1023,10 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
                       </p>
                     </>
                   ) : (
-                    <p className="text-sm text-muted-foreground">Not played yet</p>
+                    <div className="py-1">
+                      <p className="text-lg font-semibold text-muted-foreground">—</p>
+                      <p className="text-xs text-muted-foreground">Hasn't played yet</p>
+                    </div>
                   )}
                 </div>
               </div>
