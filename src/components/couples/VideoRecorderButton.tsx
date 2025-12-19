@@ -1,4 +1,5 @@
 import { useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Video, Square, Loader2, X, Send, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -77,15 +78,15 @@ export const VideoRecorderButton = ({
     );
   }
 
-  // Show camera/recording/preview modal
+  // Show camera/recording/preview modal - use Portal to escape parent stacking contexts
   if (stream || isPreviewing) {
-    return (
+    return createPortal(
       <AnimatePresence>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black flex flex-col"
+          className="fixed inset-0 z-[100] bg-black flex flex-col"
         >
           {/* Close button */}
           <div className="absolute top-4 left-4 z-10">
@@ -183,7 +184,8 @@ export const VideoRecorderButton = ({
             )}
           </div>
         </motion.div>
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
     );
   }
 
