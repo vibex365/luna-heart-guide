@@ -212,6 +212,12 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
         player_answers: {},
       })
       .eq("id", session.id);
+
+    // Notify partner that mode was selected
+    if (partnerId) {
+      const myName = user.user_metadata?.display_name || "Your partner";
+      notifyPartner.gameModeSelected(partnerId, myName, type);
+    }
   };
 
   const submitAnswer = async () => {
