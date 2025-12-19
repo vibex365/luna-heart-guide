@@ -93,6 +93,3 @@ export const PhoneNumberPrompt = ({ open, onOpenChange }: PhoneNumberPromptProps
     </Dialog>
   );
 };
-
-// Re-export from dedicated hook file for backwards compatibility
-export { usePhonePrompt } from "@/hooks/usePhonePrompt";
