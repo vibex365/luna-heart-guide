@@ -118,7 +118,12 @@ export const VideoRecorderButton = ({
               <video
                 ref={previewVideoRef}
                 src={previewUrl}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
+                style={{
+                  // Fix iOS video orientation - rotate if needed
+                  transform: 'rotate(0deg)',
+                  WebkitTransform: 'rotate(0deg)',
+                }}
                 autoPlay
                 loop
                 playsInline
@@ -134,7 +139,12 @@ export const VideoRecorderButton = ({
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover transform scale-x-[-1]"
+                className="w-full h-full object-cover"
+                style={{
+                  // Mirror front camera and ensure correct orientation
+                  transform: 'scaleX(-1)',
+                  WebkitTransform: 'scaleX(-1)',
+                }}
                 // @ts-ignore - webkit-playsinline for older iOS
                 webkit-playsinline="true"
               />
