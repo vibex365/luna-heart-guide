@@ -7,6 +7,7 @@ import { useCouplesTrial } from "@/hooks/useCouplesTrial";
 import LunaAvatar from "./LunaAvatar";
 import DesktopBanner from "./DesktopBanner";
 import OfflineIndicator from "./OfflineIndicator";
+import SocialLinks from "./SocialLinks";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -102,6 +103,12 @@ const DesktopLayout = ({ children }: DesktopLayoutProps) => {
               </NavLink>
             )}
           </nav>
+
+          {/* Social Links Footer */}
+          <div className="p-4 border-t border-border mt-auto">
+            <p className="text-xs text-muted-foreground mb-2">Follow Luna</p>
+            <SocialLinks className="flex-wrap" />
+          </div>
         </aside>
 
         {/* Top Navigation for smaller screens */}

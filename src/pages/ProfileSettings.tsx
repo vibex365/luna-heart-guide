@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Camera, User, Save, Heart, Users, Sparkles, MessageCircle, LogOut, Crown, Link2, UserPlus, Download, Lock, Unlink, UserCircle2 } from "lucide-react";
+import SocialLinks from "@/components/SocialLinks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -966,6 +967,11 @@ const ProfileSettings = () => {
             <LogOut className="w-4 h-4 mr-2" />
             Sign Out
           </Button>
+
+          <div className="pt-4 border-t border-border">
+            <p className="text-center text-sm text-muted-foreground mb-3">Follow Luna</p>
+            <SocialLinks className="justify-center" />
+          </div>
 
           <p className="text-center text-xs text-muted-foreground">
             Your data is private and secure. 💜
