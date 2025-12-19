@@ -10,12 +10,14 @@ import {
   Bell, 
   Trophy,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  TrendingUp,
+  Calendar
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { 
   thisOrThatQuestions, 
@@ -24,6 +26,7 @@ import {
   ThisOrThatQuestion 
 } from "@/data/thisOrThatQuestions";
 import { notifyPartner } from "@/utils/smsNotifications";
+import { format } from "date-fns";
 
 interface ThisOrThatProps {
   partnerLinkId?: string;
@@ -43,7 +46,9 @@ export const ThisOrThat = ({ partnerLinkId }: ThisOrThatProps) => {
   const [partnerAnswers, setPartnerAnswers] = useState<PlayerAnswers>({});
   const [shuffledQuestions, setShuffledQuestions] = useState<ThisOrThatQuestion[]>([]);
   const [isComplete, setIsComplete] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const totalQuestions = 20;
+  const queryClient = useQueryClient();
 
   // Fetch partner name
   const { data: partnerProfile } = useQuery({
@@ -61,6 +66,45 @@ export const ThisOrThat = ({ partnerLinkId }: ThisOrThatProps) => {
   });
 
   const partnerName = partnerProfile?.display_name || "Partner";
+
+  // Fetch compatibility history
+  const { data: compatibilityHistory } = useQuery({
+    queryKey: ["this-or-that-history", partnerLinkId],
+    queryFn: async () => {
+      if (!partnerLinkId) return [];
+      const { data, error } = await supabase
+        .from("couples_game_history")
+        .select("*")
+        .eq("partner_link_id", partnerLinkId)
+        .eq("game_type", "this_or_that")
+        .order("completed_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!partnerLinkId,
+  });
+
+  // Save game result to history
+  const saveHistoryMutation = useMutation({
+    mutationFn: async (score: number) => {
+      if (!partnerLinkId || !user) return;
+      await supabase
+        .from("couples_game_history")
+        .insert({
+          partner_link_id: partnerLinkId,
+          played_by: user.id,
+          game_type: "this_or_that",
+          score: score,
+          total_questions: totalQuestions,
+          matches: Math.round((score / 100) * totalQuestions),
+          details: JSON.parse(JSON.stringify({ answers: myAnswers })),
+        });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["this-or-that-history", partnerLinkId] });
+    },
+  });
 
   // Subscribe to session updates
   useEffect(() => {
@@ -226,26 +270,93 @@ export const ThisOrThat = ({ partnerLinkId }: ThisOrThatProps) => {
   const currentQuestion = shuffledQuestions[currentIndex];
   const progress = ((currentIndex + 1) / totalQuestions) * 100;
 
+  // Save to history when we get a compatibility score
+  useEffect(() => {
+    if (isComplete && compatibility !== null) {
+      saveHistoryMutation.mutate(compatibility);
+    }
+  }, [isComplete, compatibility]);
+
   if (!isPlaying) {
     return (
       <Card className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-amber-400" />
-            This or That
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-amber-400" />
+              This or That
+            </div>
+            {compatibilityHistory && compatibilityHistory.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHistory(!showHistory)}
+                className="text-amber-300"
+              >
+                <TrendingUp className="w-4 h-4 mr-1" />
+                History
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-muted-foreground text-sm">
-            Quick-fire choices! Pick between two options and discover how 
-            compatible your preferences are with your partner. ⚡
-          </p>
+          {showHistory && compatibilityHistory && compatibilityHistory.length > 0 ? (
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Compatibility History
+              </h4>
+              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                {compatibilityHistory.map((entry, index) => (
+                  <motion.div
+                    key={entry.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex items-center justify-between p-3 bg-background/50 rounded-lg"
+                  >
+                    <span className="text-sm text-muted-foreground">
+                      {format(new Date(entry.completed_at), "MMM d, yyyy")}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-lg font-bold ${
+                        (entry.score || 0) >= 80 ? "text-green-400" :
+                        (entry.score || 0) >= 60 ? "text-amber-400" :
+                        "text-rose-400"
+                      }`}>
+                        {entry.score}%
+                      </span>
+                      {index === 0 && (
+                        <Badge variant="outline" className="text-xs">Latest</Badge>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              <div className="pt-2 border-t border-border/50">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Average:</span>
+                  <span className="font-medium text-amber-300">
+                    {Math.round(
+                      compatibilityHistory.reduce((sum, e) => sum + (e.score || 0), 0) / 
+                      compatibilityHistory.length
+                    )}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              Quick-fire choices! Pick between two options and discover how 
+              compatible your preferences are with your partner. ⚡
+            </p>
+          )}
           <Button
             onClick={startGame}
             className="w-full bg-gradient-to-r from-amber-500 to-orange-500"
           >
             <Zap className="w-4 h-4 mr-2" />
-            Start Game
+            {showHistory ? "Play Again" : "Start Game"}
           </Button>
         </CardContent>
       </Card>
