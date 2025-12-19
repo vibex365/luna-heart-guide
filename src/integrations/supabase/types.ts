@@ -501,6 +501,56 @@ export type Database = {
           },
         ]
       }
+      couples_messages: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          media_duration: number | null
+          media_url: string | null
+          message_type: string
+          partner_link_id: string
+          sender_id: string
+          thumbnail_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          media_duration?: number | null
+          media_url?: string | null
+          message_type: string
+          partner_link_id: string
+          sender_id: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          media_duration?: number | null
+          media_url?: string | null
+          message_type?: string
+          partner_link_id?: string
+          sender_id?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "couples_messages_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       couples_streaks: {
         Row: {
           badges_earned: string[]
