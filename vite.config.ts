@@ -67,5 +67,6 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: ["react", "react-dom"],
+    force: true, // Force rebuild deps to fix React context issues
   },
 }));
