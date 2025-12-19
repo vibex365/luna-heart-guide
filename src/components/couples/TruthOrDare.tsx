@@ -233,6 +233,12 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
         player_answers: newAnswers 
       })
       .eq("id", session.id);
+
+    // Notify partner that answer was submitted
+    if (partnerId) {
+      const myName = user.user_metadata?.display_name || "Your partner";
+      notifyPartner.answerSubmitted(partnerId, myName);
+    }
   };
 
   const markReady = async () => {

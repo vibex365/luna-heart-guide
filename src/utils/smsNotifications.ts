@@ -10,6 +10,8 @@ type NotificationType =
   | "partnerLinked"
   | "gameStarted"
   | "gameModeSelected"
+  | "answerSubmitted"
+  | "gameModeSelected"
   | "quizReminder"
   | "quizAnswersReady"
   | "newMessage";
@@ -116,6 +118,9 @@ export const smsTemplates = {
   gameModeSelected: (partnerName: string, mode: "truth" | "dare") =>
     `💜 Luna: ${partnerName} chose ${mode === "truth" ? "Truth" : "Dare"}! 🎯 Open Luna to type your answer!`,
 
+  answerSubmitted: (partnerName: string) =>
+    `💜 Luna: ${partnerName} just submitted their answer! 📝 Open Luna to see it and share yours!`,
+
   quizReminder: (partnerName: string) =>
     `💜 Luna: ${partnerName} is waiting to play the "How Well Do You Know Me" quiz! 🧠 Set your answers so they can play!`,
 
@@ -162,6 +167,9 @@ export const notifyPartner = {
 
   gameModeSelected: (partnerId: string, partnerName: string, mode: "truth" | "dare") =>
     sendSmsNotification(partnerId, smsTemplates.gameModeSelected(partnerName, mode), "gameModeSelected"),
+
+  answerSubmitted: (partnerId: string, partnerName: string) =>
+    sendSmsNotification(partnerId, smsTemplates.answerSubmitted(partnerName), "answerSubmitted"),
 
   quizReminder: (partnerId: string, partnerName: string) =>
     sendSmsNotification(partnerId, smsTemplates.quizReminder(partnerName), "quizReminder"),
