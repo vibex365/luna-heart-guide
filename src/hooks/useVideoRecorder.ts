@@ -25,17 +25,26 @@ export const useVideoRecorder = (options: UseVideoRecorderOptions = {}) => {
 
   const startCamera = useCallback(async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "user",
-          width: { ideal: 720 },
-          height: { ideal: 1280 },
-        },
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-        },
-      });
+      // iOS Safari requires simpler constraints
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      
+      const constraints: MediaStreamConstraints = {
+        video: isIOS 
+          ? { facingMode: "user" } // Simpler constraints for iOS
+          : {
+              facingMode: "user",
+              width: { ideal: 720 },
+              height: { ideal: 1280 },
+            },
+        audio: isIOS
+          ? true // Simple audio for iOS
+          : {
+              echoCancellation: true,
+              noiseSuppression: true,
+            },
+      };
+      
+      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       setStream(mediaStream);
       return mediaStream;
     } catch (error) {
@@ -53,7 +62,27 @@ export const useVideoRecorder = (options: UseVideoRecorderOptions = {}) => {
   }, [stream]);
 
   const getSupportedMimeType = useCallback(() => {
-    // Check for supported MIME types in order of preference
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    // iOS Safari only supports MP4
+    if (isIOS) {
+      const iosMimeTypes = [
+        "video/mp4",
+        "video/mp4;codecs=avc1",
+      ];
+      
+      for (const mimeType of iosMimeTypes) {
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+          console.log("iOS: Using MIME type:", mimeType);
+          return mimeType;
+        }
+      }
+      // On iOS, if nothing is supported, return undefined to let browser choose
+      console.log("iOS: No preferred MIME type, using default");
+      return undefined;
+    }
+    
+    // Non-iOS browsers prefer WebM
     const mimeTypes = [
       "video/webm;codecs=vp9",
       "video/webm;codecs=vp8",
@@ -69,7 +98,6 @@ export const useVideoRecorder = (options: UseVideoRecorderOptions = {}) => {
       }
     }
 
-    // Fallback - let browser choose
     console.log("No preferred MIME type supported, using default");
     return undefined;
   }, []);
@@ -195,7 +223,9 @@ export const useVideoRecorder = (options: UseVideoRecorderOptions = {}) => {
 
       try {
         const timestamp = Date.now();
-        const videoFileName = `${partnerLinkId}/${userId}/${timestamp}.webm`;
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const extension = isIOS ? "mp4" : "webm";
+        const videoFileName = `${partnerLinkId}/${userId}/${timestamp}.${extension}`;
 
         // Upload video
         const { data: videoData, error: videoError } = await supabase.storage
