@@ -998,16 +998,43 @@ export const CouplesQuizGame = ({ partnerLinkId }: CouplesQuizGameProps) => {
               <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center">
                 <Trophy className="w-10 h-10 text-yellow-500" />
               </div>
-              <div>
-                <h3 className="text-2xl font-bold">{calculateScore()}%</h3>
-                <p className="text-muted-foreground">
-                  {calculateScore() >= 80
-                    ? "Amazing! You really know your partner! 💕"
-                    : calculateScore() >= 50
-                    ? "Good job! Keep learning about each other!"
-                    : "Time for some quality conversations! 💬"}
-                </p>
+              
+              {/* Both partners' scores */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Your score */}
+                <div className="rounded-lg p-3 bg-purple-500/10 border border-purple-500/20">
+                  <p className="text-xs text-muted-foreground mb-1">Your Score</p>
+                  <h3 className="text-2xl font-bold text-purple-600">{calculateScore()}%</h3>
+                  {bestScore > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Best: {bestScore}%
+                    </p>
+                  )}
+                </div>
+                
+                {/* Partner's score */}
+                <div className="rounded-lg p-3 bg-blue-500/10 border border-blue-500/20">
+                  <p className="text-xs text-muted-foreground mb-1">{partnerName}'s Score</p>
+                  {partnerHistory.length > 0 ? (
+                    <>
+                      <h3 className="text-2xl font-bold text-blue-600">{partnerHistory[0]?.score || 0}%</h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Best: {partnerBestScore}%
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Not played yet</p>
+                  )}
+                </div>
               </div>
+
+              <p className="text-muted-foreground text-sm">
+                {calculateScore() >= 80
+                  ? "Amazing! You really know your partner! 💕"
+                  : calculateScore() >= 50
+                  ? "Good job! Keep learning about each other!"
+                  : "Time for some quality conversations! 💬"}
+              </p>
               
               {bestScore > 0 && calculateScore() > bestScore && (
                 <div className="text-green-600 text-sm font-medium">
