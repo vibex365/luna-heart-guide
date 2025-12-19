@@ -208,7 +208,8 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
       .update({
         mode: type,
         current_prompt: prompt,
-        player_ready: { [user.id]: true },
+        player_ready: {},
+        player_answers: {},
       })
       .eq("id", session.id);
   };
@@ -252,7 +253,7 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
       .update({
         current_prompt: prompt,
         current_card_index: session.current_card_index + 1,
-        player_ready: { [user.id]: true },
+        player_ready: {},
         player_answers: {},
       })
       .eq("id", session.id);
