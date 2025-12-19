@@ -62,11 +62,14 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Ensure single React instance
+      "react": path.resolve(__dirname, "./node_modules/react"),
+      "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
     },
-    dedupe: ["react", "react-dom"],
+    dedupe: ["react", "react-dom", "@tanstack/react-query"],
   },
   optimizeDeps: {
-    include: ["react", "react-dom"],
-    force: true, // Force rebuild deps to fix React context issues
+    include: ["react", "react-dom", "@tanstack/react-query"],
+    exclude: [],
   },
 }));
