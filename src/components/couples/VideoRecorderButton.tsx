@@ -122,9 +122,11 @@ export const VideoRecorderButton = ({
                 autoPlay
                 loop
                 playsInline
-                muted={false}
+                muted
+                controls={false}
                 // @ts-ignore - webkit-playsinline for older iOS
                 webkit-playsinline="true"
+                x-webkit-airplay="allow"
               />
             ) : (
               <video
