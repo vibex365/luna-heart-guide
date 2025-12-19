@@ -47,10 +47,26 @@ export const VideoRecorderButton = ({
   };
 
   useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
+    const video = videoRef.current;
+    if (video && stream) {
+      video.srcObject = stream;
+      // Explicit play call for iOS Safari
+      video.play().catch((error) => {
+        console.error("Error playing video stream:", error);
+      });
     }
   }, [stream]);
+
+  // Handle preview video playback for iOS
+  useEffect(() => {
+    const previewVideo = previewVideoRef.current;
+    if (previewVideo && previewUrl && isPreviewing) {
+      previewVideo.load();
+      previewVideo.play().catch((error) => {
+        console.error("Error playing preview video:", error);
+      });
+    }
+  }, [previewUrl, isPreviewing]);
 
   if (isUploading) {
     return (
@@ -106,6 +122,8 @@ export const VideoRecorderButton = ({
                 loop
                 playsInline
                 muted={false}
+                // @ts-ignore - webkit-playsinline for older iOS
+                webkit-playsinline="true"
               />
             ) : (
               <video
@@ -114,6 +132,8 @@ export const VideoRecorderButton = ({
                 playsInline
                 muted
                 className="w-full h-full object-cover transform scale-x-[-1]"
+                // @ts-ignore - webkit-playsinline for older iOS
+                webkit-playsinline="true"
               />
             )}
           </div>
