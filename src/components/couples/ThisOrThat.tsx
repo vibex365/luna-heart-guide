@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import {
   Heart, 
   Bell, 
   Trophy,
-  Loader2,
   RefreshCw,
   TrendingUp,
   Calendar
@@ -25,6 +24,7 @@ import {
   categoryIcons,
   ThisOrThatQuestion 
 } from "@/data/thisOrThatQuestions";
+import { useGameQuestions } from "@/hooks/useGameQuestions";
 import { notifyPartner } from "@/utils/smsNotifications";
 import { format } from "date-fns";
 
@@ -49,6 +49,21 @@ export const ThisOrThat = ({ partnerLinkId }: ThisOrThatProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const totalQuestions = 20;
   const queryClient = useQueryClient();
+
+  // Fetch questions from database
+  const { data: dbQuestions } = useGameQuestions("this_or_that");
+
+  // Merge DB questions with fallback hardcoded questions
+  const allQuestions = useMemo(() => {
+    if (dbQuestions && dbQuestions.length > 0) {
+      return dbQuestions.map(q => ({
+        optionA: q.option_a || "",
+        optionB: q.option_b || "",
+        category: q.category as ThisOrThatQuestion["category"],
+      }));
+    }
+    return thisOrThatQuestions;
+  }, [dbQuestions]);
 
   // Fetch partner name
   const { data: partnerProfile } = useQuery({
@@ -137,12 +152,12 @@ export const ThisOrThat = ({ partnerLinkId }: ThisOrThatProps) => {
   }, [sessionId, user, partnerId]);
 
   const shuffleQuestions = useCallback(() => {
-    const shuffled = [...thisOrThatQuestions]
+    const shuffled = [...allQuestions]
       .sort(() => Math.random() - 0.5)
       .slice(0, totalQuestions);
     setShuffledQuestions(shuffled);
     return shuffled;
-  }, []);
+  }, [allQuestions]);
 
   const startGame = async () => {
     if (!partnerLinkId || !user) return;

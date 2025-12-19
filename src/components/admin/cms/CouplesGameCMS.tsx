@@ -285,6 +285,35 @@ export const CouplesGameCMS = () => {
         });
       });
 
+      // Conversation Starters
+      const conversationStarters = [
+        { text: "What's something you've never told anyone before?", category: "deep", depth: 3 },
+        { text: "When do you feel most loved by me?", category: "deep", depth: 2 },
+        { text: "If we could teleport anywhere right now, where would you go?", category: "fun", depth: 1 },
+        { text: "Where do you see us in 10 years?", category: "dreams", depth: 2 },
+        { text: "What's your favorite memory of us together?", category: "memories", depth: 1 },
+        { text: "How have I helped you become a better person?", category: "growth", depth: 2 },
+        { text: "What does 'home' mean to you?", category: "deep", depth: 2 },
+        { text: "What's on your bucket list that you want us to do together?", category: "dreams", depth: 2 },
+        { text: "When did you first realize you loved me?", category: "memories", depth: 2 },
+        { text: "What's something you want us to work on together?", category: "growth", depth: 2 },
+      ];
+      
+      conversationStarters.forEach((q) => {
+        questionsToInsert.push({
+          game_type: "conversation_starters",
+          question_text: q.text,
+          option_a: null,
+          option_b: null,
+          category: q.category,
+          difficulty: "regular",
+          depth: q.depth,
+          is_active: true,
+          is_premium: false,
+          sort_order: sortOrder++,
+        });
+      });
+
       const { error } = await supabase.from("couples_game_questions").insert(questionsToInsert);
       if (error) throw error;
 

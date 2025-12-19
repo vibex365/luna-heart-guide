@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Hand, Shuffle, SkipForward, Heart, Users, Bell, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { notifyPartner } from "@/utils/smsNotifications";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { useQuery } from "@tanstack/react-query";
+import { useGameQuestions, useAgeGateEnabled } from "@/hooks/useGameQuestions";
+import { AgeGateModal, useAgeGateConfirmed } from "./AgeGateModal";
 import {
   regularNeverHaveIEver,
   spicyNeverHaveIEver,
@@ -58,8 +60,23 @@ export const NeverHaveIEver = ({ partnerLinkId }: NeverHaveIEverProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [usedStatements, setUsedStatements] = useState<string[]>([]);
+  const [showAgeGate, setShowAgeGate] = useState(false);
   
-  const statements = isSpicy ? spicyNeverHaveIEver : regularNeverHaveIEver;
+  // Check if age gate is enabled and confirmed
+  const { data: ageGateEnabled } = useAgeGateEnabled();
+  const ageGateConfirmed = useAgeGateConfirmed();
+  
+  // Fetch questions from database
+  const { data: dbStatements } = useGameQuestions("never_have_i_ever");
+  
+  // Merge DB questions with fallback hardcoded questions
+  const statements = useMemo(() => {
+    const dbFiltered = dbStatements?.filter(q => isSpicy ? q.difficulty === "spicy" : q.difficulty === "regular");
+    if (dbFiltered && dbFiltered.length > 0) {
+      return dbFiltered.map(q => q.question_text);
+    }
+    return isSpicy ? spicyNeverHaveIEver : regularNeverHaveIEver;
+  }, [dbStatements, isSpicy]);
 
   // Fetch active session
   useEffect(() => {
@@ -114,7 +131,7 @@ export const NeverHaveIEver = ({ partnerLinkId }: NeverHaveIEverProps) => {
   }, [partnerLinkId]);
 
   const getRandomStatement = () => {
-    const currentStatements = isSpicy ? spicyNeverHaveIEver : regularNeverHaveIEver;
+    const currentStatements = statements;
     const available = currentStatements.filter(s => !usedStatements.includes(s));
     if (available.length === 0) {
       setUsedStatements([]);
@@ -240,32 +257,47 @@ export const NeverHaveIEver = ({ partnerLinkId }: NeverHaveIEverProps) => {
   }
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-2 bg-gradient-to-r from-indigo-500/10 to-pink-500/10">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Hand className="w-5 h-5 text-indigo-500" />
-            Never Have I Ever
-            {session && (
-              <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Users className="w-3 h-3" /> Live
-              </span>
+    <>
+      <AgeGateModal
+        open={showAgeGate}
+        onConfirm={() => {
+          setShowAgeGate(false);
+          setIsSpicy(true);
+        }}
+        onCancel={() => setShowAgeGate(false)}
+      />
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-2 bg-gradient-to-r from-indigo-500/10 to-pink-500/10">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Hand className="w-5 h-5 text-indigo-500" />
+              Never Have I Ever
+              {session && (
+                <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <Users className="w-3 h-3" /> Live
+                </span>
+              )}
+            </CardTitle>
+            {!session && (
+              <div className="flex items-center gap-2">
+                <Label htmlFor="spicy-nhie" className="text-xs text-muted-foreground">
+                  🔥 Spicy
+                </Label>
+                <Switch
+                  id="spicy-nhie"
+                  checked={isSpicy}
+                  onCheckedChange={(checked) => {
+                    if (checked && ageGateEnabled && !ageGateConfirmed) {
+                      setShowAgeGate(true);
+                    } else {
+                      setIsSpicy(checked);
+                    }
+                  }}
+                />
+              </div>
             )}
-          </CardTitle>
-          {!session && (
-            <div className="flex items-center gap-2">
-              <Label htmlFor="spicy-nhie" className="text-xs text-muted-foreground">
-                🔥 Spicy
-              </Label>
-              <Switch
-                id="spicy-nhie"
-                checked={isSpicy}
-                onCheckedChange={setIsSpicy}
-              />
-            </div>
-          )}
-        </div>
-      </CardHeader>
+          </div>
+        </CardHeader>
       <CardContent className="pt-4">
         <AnimatePresence mode="wait">
           {!session ? (
@@ -427,5 +459,6 @@ export const NeverHaveIEver = ({ partnerLinkId }: NeverHaveIEverProps) => {
         </AnimatePresence>
       </CardContent>
     </Card>
+    </>
   );
 };
