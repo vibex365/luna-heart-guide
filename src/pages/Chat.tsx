@@ -321,13 +321,24 @@ const Chat = () => {
     onDelta: (deltaText: string) => void,
     onDone: () => void
   ) => {
+    // Get user's JWT token for proper authentication
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to chat with Luna.",
+        variant: "destructive",
+      });
+      throw new Error("Not authenticated");
+    }
+
     const resp = await fetch(CHAT_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        Authorization: `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ messages: messagesToSend, userId: user?.id, conversationId: currentConversationId }),
+      body: JSON.stringify({ messages: messagesToSend, conversationId: currentConversationId }),
     });
 
     if (!resp.ok) {

@@ -870,8 +870,51 @@ serve(async (req) => {
   }
 
   try {
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+
+    // Verify JWT and extract user ID
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.error("Missing or invalid Authorization header");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized: Missing or invalid token" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    
+    // Create a Supabase client with the user's token to verify it
+    const supabaseAuth = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
+      global: {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    });
+
+    const { data: { user: authUser }, error: authError } = await supabaseAuth.auth.getUser();
+    
+    if (authError || !authUser) {
+      console.error("Token verification failed:", authError?.message);
+      return new Response(
+        JSON.stringify({ error: "Unauthorized: Invalid token" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Use the verified user ID from the token, not from the request body
+    const userId = authUser.id;
+    console.log("Authenticated user:", userId);
+
     const body = await req.json();
-    const { messages, userId, conversationId } = body;
+    const { messages, conversationId } = body;
     
     // Validate input
     const validation = validateMessages(messages);
@@ -887,11 +930,9 @@ serve(async (req) => {
     }
     
     const sanitizedMessages = validation.sanitized!;
-    console.log(`Processing ${sanitizedMessages.length} validated messages`);
+    console.log(`Processing ${sanitizedMessages.length} validated messages for user ${userId}`);
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
     if (!LOVABLE_API_KEY) {
       console.error("LOVABLE_API_KEY is not configured");
