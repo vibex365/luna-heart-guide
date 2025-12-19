@@ -1,12 +1,12 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { MessageCircle, SmilePlus, BookOpen, Wind, User, Heart, Shield } from "lucide-react";
+import { MessageCircle, SmilePlus, BookOpen, Wind, User, Heart, Shield, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import LunaAvatar from "./LunaAvatar";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useCouplesTrial } from "@/hooks/useCouplesTrial";
+import { Badge } from "@/components/ui/badge";
 
 const baseTabs: { to: string; icon: any; label: string; isLuna?: boolean; isCouples?: boolean; isAdmin?: boolean }[] = [
   { to: "/chat", icon: MessageCircle, label: "Chat", isLuna: true },
@@ -21,31 +21,10 @@ export const BottomTabBar = () => {
   const { trigger } = useHapticFeedback();
   const { user } = useAuth();
   const { isAdmin } = useUserRole();
+  const { hasCouplesAccess, isTrialActive, canStartTrial, trialDaysLeft } = useCouplesTrial();
 
-  // Check if user has couples subscription
-  const { data: hasCouplesAccess } = useQuery({
-    queryKey: ["couples-access-nav", user?.id],
-    queryFn: async () => {
-      if (!user) return false;
-      
-      const { data: subscription } = await supabase
-        .from("user_subscriptions")
-        .select(`
-          tier_id,
-          subscription_tiers!inner(slug)
-        `)
-        .eq("user_id", user.id)
-        .eq("status", "active")
-        .maybeSingle();
-
-      return subscription?.subscription_tiers?.slug === "couples";
-    },
-    enabled: !!user,
-    staleTime: 60000, // Cache for 1 minute
-  });
-
-  // Build tabs based on access
-  let tabs = hasCouplesAccess
+  // Always show Couples tab for all logged-in users
+  let tabs = user
     ? [
         baseTabs[0], // Chat
         baseTabs[1], // Mood
@@ -65,6 +44,31 @@ export const BottomTabBar = () => {
 
   const handleTabPress = () => {
     trigger("selection");
+  };
+
+  // Get badge for couples tab
+  const getCouplesBadge = () => {
+    if (isTrialActive && trialDaysLeft <= 2) {
+      return (
+        <Badge 
+          variant="outline" 
+          className="absolute -top-1.5 -right-0.5 px-1 py-0 text-[8px] bg-orange-500/20 text-orange-500 border-orange-500/50"
+        >
+          {trialDaysLeft}d
+        </Badge>
+      );
+    }
+    if (canStartTrial && !hasCouplesAccess) {
+      return (
+        <Badge 
+          variant="outline" 
+          className="absolute -top-1.5 -right-0.5 px-1 py-0 text-[8px] bg-pink-500/20 text-pink-500 border-pink-500/50 flex items-center gap-0.5"
+        >
+          <Sparkles className="w-2 h-2" />
+        </Badge>
+      );
+    }
+    return null;
   };
 
   return (
@@ -118,9 +122,12 @@ export const BottomTabBar = () => {
                         )}
                       </div>
                     ) : (
-                      <Icon className={`w-5 h-5 ${routeActive ? "stroke-[2.5]" : ""} ${
-                        isCouples && routeActive ? "fill-pink-500/20" : ""
-                      }`} />
+                      <div className="relative">
+                        <Icon className={`w-5 h-5 ${routeActive ? "stroke-[2.5]" : ""} ${
+                          isCouples && routeActive ? "fill-pink-500/20" : ""
+                        }`} />
+                        {isCouples && getCouplesBadge()}
+                      </div>
                     )}
                     <span className={`text-[10px] font-medium ${routeActive ? "font-semibold" : ""}`}>
                       {tab.label}
