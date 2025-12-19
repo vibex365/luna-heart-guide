@@ -173,7 +173,7 @@ export const VideoRecorderButton = ({
       onClick={onStartCamera}
       variant="ghost"
       size="icon"
-      className={cn("text-primary", className)}
+      className={cn("text-pink-500", className)}
       disabled={disabled}
     >
       <Video className="w-5 h-5" />

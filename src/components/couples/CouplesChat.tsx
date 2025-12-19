@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Send, Mic, MessageCircle, Heart } from "lucide-react";
+import { ArrowLeft, Send, Mic, MessageCircle, Heart, Video } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage } from "./ChatMessage";
@@ -13,11 +13,14 @@ import { VoiceRecorderButton } from "./VoiceRecorderButton";
 import { VideoRecorderButton } from "./VideoRecorderButton";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { useVideoRecorder } from "@/hooks/useVideoRecorder";
+import { notifyPartner } from "@/utils/smsNotifications";
 import { cn } from "@/lib/utils";
 
 interface CouplesChatProps {
   partnerLinkId: string;
   partnerName: string;
+  partnerId: string;
+  senderName: string;
   onClose: () => void;
 }
 
@@ -34,7 +37,7 @@ interface Message {
   created_at: string;
 }
 
-export const CouplesChat = ({ partnerLinkId, partnerName, onClose }: CouplesChatProps) => {
+export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName, onClose }: CouplesChatProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
@@ -143,6 +146,11 @@ export const CouplesChat = ({ partnerLinkId, partnerName, onClose }: CouplesChat
       });
 
       if (error) throw error;
+
+      // Send SMS notification to partner
+      if (partnerId) {
+        notifyPartner.newMessage(partnerId, senderName, data.messageType);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["couples-messages", partnerLinkId] });
@@ -297,6 +305,7 @@ export const CouplesChat = ({ partnerLinkId, partnerName, onClose }: CouplesChat
                 onSend={handleSendVideo}
                 onRetake={videoRecorder.retakeVideo}
                 onCancel={videoRecorder.cancelRecording}
+                className="h-10 w-10 rounded-full bg-pink-500/10 text-pink-500 hover:bg-pink-500/20"
               />
 
               {/* Voice button */}
@@ -304,7 +313,7 @@ export const CouplesChat = ({ partnerLinkId, partnerName, onClose }: CouplesChat
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsVoiceMode(true)}
-                className="text-primary"
+                className="h-10 w-10 rounded-full bg-purple-500/10 text-purple-500 hover:bg-purple-500/20"
               >
                 <Mic className="w-5 h-5" />
               </Button>
@@ -330,7 +339,7 @@ export const CouplesChat = ({ partnerLinkId, partnerName, onClose }: CouplesChat
                 onClick={handleSendText}
                 disabled={!message.trim() || sendMessageMutation.isPending}
                 className={cn(
-                  "rounded-full transition-all",
+                  "rounded-full h-10 w-10 transition-all",
                   message.trim() ? "bg-primary" : "bg-muted"
                 )}
               >
