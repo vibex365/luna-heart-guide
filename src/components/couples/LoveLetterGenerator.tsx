@@ -14,7 +14,8 @@ import {
   Sparkles,
   ChevronRight,
   ChevronLeft,
-  Check
+  Check,
+  MessageSquare
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -24,8 +25,10 @@ import {
   LetterTemplate 
 } from "@/data/loveLetterTemplates";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { notifyPartner } from "@/utils/smsNotifications";
 
 interface LoveLetterGeneratorProps {
   partnerLinkId?: string;
@@ -35,6 +38,7 @@ type Step = "category" | "template" | "compose" | "preview";
 
 export const LoveLetterGenerator = ({ partnerLinkId }: LoveLetterGeneratorProps) => {
   const { partnerId } = useCouplesAccount();
+  const { user } = useAuth();
   const [step, setStep] = useState<Step>("category");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<LetterTemplate | null>(null);
@@ -42,6 +46,7 @@ export const LoveLetterGenerator = ({ partnerLinkId }: LoveLetterGeneratorProps)
   const [body, setBody] = useState("");
   const [closing, setClosing] = useState("");
   const [copied, setCopied] = useState(false);
+  const [smsSent, setSmsSent] = useState(false);
 
   // Fetch partner name
   const { data: partnerProfile } = useQuery({
@@ -58,7 +63,46 @@ export const LoveLetterGenerator = ({ partnerLinkId }: LoveLetterGeneratorProps)
     enabled: !!partnerId,
   });
 
+  // Fetch current user's name
+  const { data: myProfile } = useQuery({
+    queryKey: ["my-profile-letter", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const myName = myProfile?.display_name || "Your love";
   const partnerName = partnerProfile?.display_name || "Love";
+
+  // Send SMS mutation
+  const sendSmsMutation = useMutation({
+    mutationFn: async () => {
+      if (!partnerId) throw new Error("No partner linked");
+      const letterContent = getFullLetter();
+      const success = await notifyPartner.loveLetter(partnerId, myName, letterContent);
+      if (!success) throw new Error("SMS not sent - partner may not have SMS enabled");
+      return success;
+    },
+    onSuccess: () => {
+      setSmsSent(true);
+      toast.success("Love letter sent via SMS! 💕", {
+        description: `${partnerName} will receive your letter on their phone.`,
+      });
+      setTimeout(() => setSmsSent(false), 3000);
+    },
+    onError: (error) => {
+      toast.error("Couldn't send SMS", {
+        description: error instanceof Error ? error.message : "Partner may not have SMS notifications enabled.",
+      });
+    },
+  });
 
   const categories = [...new Set(loveLetterTemplates.map(t => t.category))];
   const templatesInCategory = loveLetterTemplates.filter(t => t.category === selectedCategory);
@@ -330,12 +374,38 @@ export const LoveLetterGenerator = ({ partnerLinkId }: LoveLetterGeneratorProps)
                 </Button>
                 <Button
                   onClick={shareLetter}
-                  className="flex-1 bg-gradient-to-r from-rose-500 to-pink-500"
+                  variant="outline"
+                  className="flex-1"
                 >
                   <Send className="w-4 h-4 mr-2" />
                   Share
                 </Button>
               </div>
+
+              {partnerId && (
+                <Button
+                  onClick={() => sendSmsMutation.mutate()}
+                  disabled={sendSmsMutation.isPending || smsSent}
+                  className="w-full bg-gradient-to-r from-rose-500 to-pink-500"
+                >
+                  {smsSent ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2" />
+                      Sent to {partnerName}!
+                    </>
+                  ) : sendSmsMutation.isPending ? (
+                    <>
+                      <MessageSquare className="w-4 h-4 mr-2 animate-pulse" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Send via SMS to {partnerName}
+                    </>
+                  )}
+                </Button>
+              )}
 
               <Button
                 onClick={resetGenerator}
