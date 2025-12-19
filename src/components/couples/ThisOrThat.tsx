@@ -56,7 +56,7 @@ export const ThisOrThat = ({ partnerLinkId }: ThisOrThatProps) => {
   // Merge DB questions with fallback hardcoded questions
   const allQuestions = useMemo(() => {
     if (dbQuestions && dbQuestions.length > 0) {
-      return dbQuestions.map(q => ({
+      return dbQuestions.map((q) => ({
         optionA: q.option_a || "",
         optionB: q.option_b || "",
         category: q.category as ThisOrThatQuestion["category"],
