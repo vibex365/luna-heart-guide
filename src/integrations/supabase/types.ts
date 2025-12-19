@@ -1967,6 +1967,7 @@ export type Database = {
           is_spicy: boolean | null
           mode: string | null
           partner_link_id: string
+          player_answers: Json | null
           player_ready: Json | null
           started_by: string
           updated_at: string | null
@@ -1979,6 +1980,7 @@ export type Database = {
           is_spicy?: boolean | null
           mode?: string | null
           partner_link_id: string
+          player_answers?: Json | null
           player_ready?: Json | null
           started_by: string
           updated_at?: string | null
@@ -1991,6 +1993,7 @@ export type Database = {
           is_spicy?: boolean | null
           mode?: string | null
           partner_link_id?: string
+          player_answers?: Json | null
           player_ready?: Json | null
           started_by?: string
           updated_at?: string | null

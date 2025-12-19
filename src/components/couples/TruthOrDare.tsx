@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Flame, Heart, Sparkles, RefreshCw, Users, Bell, Loader2 } from "lucide-react";
+import { Flame, Heart, Sparkles, RefreshCw, Users, Bell, Loader2, Send } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,6 +35,7 @@ interface GameSession {
   current_card_index: number;
   current_prompt: string | null;
   player_ready: Record<string, boolean>;
+  player_answers: Record<string, string>;
 }
 
 export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
@@ -63,6 +65,7 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [showAgeGate, setShowAgeGate] = useState(false);
+  const [myAnswer, setMyAnswer] = useState("");
   
   // Check if age gate is enabled and confirmed
   const { data: ageGateEnabled } = useAgeGateEnabled();
@@ -128,8 +131,13 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
           if (payload.eventType === "DELETE") {
             setSession(null);
           } else {
-            setSession(payload.new as GameSession);
-            setIsSpicy((payload.new as GameSession).is_spicy);
+            const newSession = payload.new as GameSession;
+            // Reset answer when card changes
+            if (session && newSession.current_card_index !== session.current_card_index) {
+              setMyAnswer("");
+            }
+            setSession(newSession);
+            setIsSpicy(newSession.is_spicy);
           }
         }
       )
@@ -164,6 +172,7 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
         mode: null,
         current_prompt: null,
         player_ready: {},
+        player_answers: {},
       })
       .select()
       .single();
@@ -204,6 +213,21 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
       .eq("id", session.id);
   };
 
+  const submitAnswer = async () => {
+    if (!session || !user || !myAnswer.trim()) return;
+
+    const newReady = { ...session.player_ready, [user.id]: true };
+    const newAnswers = { ...session.player_answers, [user.id]: myAnswer.trim() };
+    
+    await supabase
+      .from("truth_or_dare_sessions")
+      .update({ 
+        player_ready: newReady,
+        player_answers: newAnswers 
+      })
+      .eq("id", session.id);
+  };
+
   const markReady = async () => {
     if (!session || !user) return;
 
@@ -220,12 +244,16 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
 
     const prompt = getRandomPrompt(session.mode as "truth" | "dare");
     
+    // Reset local answer state
+    setMyAnswer("");
+    
     await supabase
       .from("truth_or_dare_sessions")
       .update({
         current_prompt: prompt,
         current_card_index: session.current_card_index + 1,
         player_ready: { [user.id]: true },
+        player_answers: {},
       })
       .eq("id", session.id);
   };
@@ -233,12 +261,15 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
   const switchMode = async () => {
     if (!session) return;
 
+    setMyAnswer("");
+    
     await supabase
       .from("truth_or_dare_sessions")
       .update({
         mode: null,
         current_prompt: null,
         player_ready: {},
+        player_answers: {},
       })
       .eq("id", session.id);
   };
@@ -273,6 +304,8 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
   const amIReady = session?.player_ready?.[user?.id || ""] || false;
   const isPartnerReady = partnerId ? session?.player_ready?.[partnerId] || false : false;
   const bothReady = amIReady && isPartnerReady;
+  const mySubmittedAnswer = session?.player_answers?.[user?.id || ""] || "";
+  const partnerAnswer = partnerId ? session?.player_answers?.[partnerId] || "" : "";
 
   if (isLoading) {
     return (
@@ -435,6 +468,30 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
                 <p className="text-lg font-medium">{session.current_prompt}</p>
               </div>
 
+              {/* Answer input area - show when not ready yet */}
+              {!amIReady && (
+                <div className="space-y-3">
+                  <Label htmlFor="answer" className="text-sm text-muted-foreground">
+                    Type your answer:
+                  </Label>
+                  <Textarea
+                    id="answer"
+                    placeholder={session.mode === "truth" ? "Share your truth..." : "Describe how you'll do this dare..."}
+                    value={myAnswer}
+                    onChange={(e) => setMyAnswer(e.target.value)}
+                    className="min-h-[80px] resize-none"
+                  />
+                  <Button 
+                    onClick={submitAnswer} 
+                    disabled={!myAnswer.trim()}
+                    className="w-full gap-2"
+                  >
+                    <Send className="w-4 h-4" />
+                    Submit Answer
+                  </Button>
+                </div>
+              )}
+
               {/* Ready status */}
               <div className="flex items-center justify-center gap-4 text-sm">
                 <div className={cn(
@@ -445,7 +502,7 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
                     "w-2 h-2 rounded-full",
                     amIReady ? "bg-green-500" : "bg-muted-foreground"
                   )} />
-                  You {amIReady ? "Ready" : ""}
+                  You {amIReady ? "Answered" : ""}
                 </div>
                 <div className={cn(
                   "flex items-center gap-2 px-3 py-1 rounded-full",
@@ -455,20 +512,23 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
                     "w-2 h-2 rounded-full",
                     isPartnerReady ? "bg-green-500" : "bg-muted-foreground"
                   )} />
-                  {partnerName || "Partner"} {isPartnerReady ? "Ready" : ""}
+                  {partnerName || "Partner"} {isPartnerReady ? "Answered" : ""}
                 </div>
               </div>
 
-              {!amIReady && (
-                <Button onClick={markReady} className="w-full">
-                  I'm Ready ✓
-                </Button>
+              {/* Show my answer after submitting */}
+              {amIReady && mySubmittedAnswer && (
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <p className="text-xs text-muted-foreground mb-1">Your answer:</p>
+                  <p className="text-sm">{mySubmittedAnswer}</p>
+                </div>
               )}
 
+              {/* Waiting for partner */}
               {amIReady && !isPartnerReady && (
                 <div className="text-center space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Waiting for {partnerName || "partner"}...
+                    Waiting for {partnerName || "partner"} to answer...
                   </p>
                   <Button
                     variant="outline"
@@ -479,6 +539,14 @@ export const TruthOrDare = ({ partnerLinkId }: TruthOrDareProps) => {
                     <Bell className="w-4 h-4" />
                     Remind Partner
                   </Button>
+                </div>
+              )}
+
+              {/* Show partner's answer when both are ready */}
+              {bothReady && partnerAnswer && (
+                <div className="p-3 rounded-lg bg-pink-500/10 border border-pink-500/20">
+                  <p className="text-xs text-muted-foreground mb-1">{partnerName}'s answer:</p>
+                  <p className="text-sm">{partnerAnswer}</p>
                 </div>
               )}
 
