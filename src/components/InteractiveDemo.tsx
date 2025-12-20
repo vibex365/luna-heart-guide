@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   MessageCircle, 
@@ -18,6 +18,46 @@ import { Slider } from "@/components/ui/slider";
 import LunaAvatar from "./LunaAvatar";
 
 type DemoTab = "chat" | "mood" | "breathe" | "journal" | "transform";
+
+// Animated counter component
+const AnimatedCounter = ({ value, duration = 500 }: { value: number; duration?: number }) => {
+  const [displayValue, setDisplayValue] = useState(value);
+  const previousValueRef = useRef(value);
+  const animationRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const startValue = previousValueRef.current;
+    const endValue = value;
+    const startTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      const current = Math.round(startValue + (endValue - startValue) * easeOutQuart);
+      
+      setDisplayValue(current);
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        previousValueRef.current = endValue;
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [value, duration]);
+
+  return <span>{displayValue}</span>;
+};
 
 const demoMessages = [
   { role: "user", content: "I have been feeling really anxious about my relationship lately..." },
@@ -427,12 +467,21 @@ const InteractiveDemo = () => {
                         <div key={stat.label}>
                           <div className="flex justify-between mb-1">
                             <span className="text-sm text-foreground">{stat.label}</span>
-                            <span className="text-sm font-medium text-accent">{currentValue}%</span>
+                            <motion.span 
+                              className="text-sm font-bold text-accent tabular-nums"
+                              animate={{ 
+                                scale: [1, 1.1, 1],
+                              }}
+                              transition={{ duration: 0.3 }}
+                              key={currentValue}
+                            >
+                              <AnimatedCounter value={currentValue} duration={300} />%
+                            </motion.span>
                           </div>
                           <div className="h-3 bg-muted rounded-full overflow-hidden">
                             <motion.div
                               animate={{ width: `${currentValue}%` }}
-                              transition={{ duration: 0.3 }}
+                              transition={{ duration: 0.3, ease: "easeOut" }}
                               className="h-full bg-gradient-to-r from-accent to-primary rounded-full"
                             />
                           </div>
