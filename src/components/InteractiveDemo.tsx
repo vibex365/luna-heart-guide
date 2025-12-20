@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   MessageCircle, 
@@ -9,18 +9,27 @@ import {
   Heart,
   Play,
   Pause,
-  RotateCcw
+  RotateCcw,
+  ArrowRight,
+  TrendingUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import LunaAvatar from "./LunaAvatar";
 
-type DemoTab = "chat" | "mood" | "breathe" | "journal";
+type DemoTab = "chat" | "mood" | "breathe" | "journal" | "transform";
 
 const demoMessages = [
-  { role: "user", content: "I've been feeling really anxious about my relationship lately..." },
-  { role: "assistant", content: "I hear you, and it takes courage to share that. Can you tell me more about what's been making you feel anxious? Is it something specific that happened, or a general feeling?" },
+  { role: "user", content: "I have been feeling really anxious about my relationship lately..." },
+  { role: "assistant", content: "I hear you, and it takes courage to share that. Can you tell me more about what has been making you feel anxious? Is it something specific that happened, or a general feeling?" },
   { role: "user", content: "My partner and I keep having the same argument over and over." },
-  { role: "assistant", content: "Repetitive conflicts can be exhausting. Often, they signal an underlying need that isn't being met. Let's explore this together — when these arguments happen, what's the core issue you're trying to communicate? I can help you find the right words." },
+  { role: "assistant", content: "Repetitive conflicts can be exhausting. Often, they signal an underlying need that is not being met. Let us explore this together — when these arguments happen, what is the core issue you are trying to communicate?" },
+  { role: "user", content: "I feel like they do not listen to me when I share my feelings." },
+  { role: "assistant", content: "Feeling unheard is incredibly painful. It sounds like you need validation and active listening from your partner. Would you like me to help you craft a way to express this need that feels authentic to you?" },
+  { role: "user", content: "Yes, I would really appreciate that." },
+  { role: "assistant", content: "Try saying: \"When I share my feelings with you, I need you to acknowledge them before offering solutions. It helps me feel connected to you.\" This uses \"I\" statements and focuses on your needs rather than blame. How does that feel?" },
+  { role: "user", content: "That sounds really helpful. Thank you, Luna." },
+  { role: "assistant", content: "You are doing important work by reflecting on this. Remember, healthy communication is a skill that takes practice. I am here whenever you need to talk through these moments. You have got this! 💜" },
 ];
 
 const moodEmojis = [
@@ -38,34 +47,79 @@ const journalPrompts = [
   "What are you grateful for right now?",
 ];
 
+const beforeAfterStates = {
+  before: {
+    title: "Before Luna",
+    emoji: "😔",
+    stats: [
+      { label: "Communication", value: 25 },
+      { label: "Self-Awareness", value: 30 },
+      { label: "Emotional Balance", value: 20 },
+      { label: "Relationship Health", value: 35 },
+    ],
+    feelings: ["Overwhelmed", "Anxious", "Disconnected", "Confused"],
+    color: "from-blue-500/20 to-indigo-500/20",
+  },
+  after: {
+    title: "After 30 Days with Luna",
+    emoji: "😊",
+    stats: [
+      { label: "Communication", value: 85 },
+      { label: "Self-Awareness", value: 90 },
+      { label: "Emotional Balance", value: 80 },
+      { label: "Relationship Health", value: 88 },
+    ],
+    feelings: ["Confident", "Calm", "Connected", "Clear"],
+    color: "from-accent/20 to-primary/20",
+  },
+};
+
 const InteractiveDemo = () => {
   const [activeTab, setActiveTab] = useState<DemoTab>("chat");
   const [chatIndex, setChatIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [breathPhase, setBreathPhase] = useState<"inhale" | "hold" | "exhale" | "rest">("rest");
   const [breathCount, setBreathCount] = useState(0);
   const [isBreathing, setIsBreathing] = useState(false);
   const [journalText, setJournalText] = useState("");
   const [currentPrompt, setCurrentPrompt] = useState(0);
+  const [transformSlider, setTransformSlider] = useState([50]);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-play chat demo
+  // Auto-play chat demo with looping
   useEffect(() => {
-    if (activeTab === "chat" && chatIndex < demoMessages.length) {
-      const timer = setTimeout(() => {
-        if (demoMessages[chatIndex].role === "assistant") {
-          setIsTyping(true);
-          setTimeout(() => {
-            setIsTyping(false);
-            setChatIndex((prev) => prev + 1);
-          }, 1500);
-        } else {
-          setChatIndex((prev) => prev + 1);
-        }
-      }, 2000);
-      return () => clearTimeout(timer);
+    if (activeTab !== "chat" || isPaused) return;
+
+    if (chatIndex >= demoMessages.length) {
+      // Wait 3 seconds then restart
+      const restartTimer = setTimeout(() => {
+        setChatIndex(0);
+      }, 3000);
+      return () => clearTimeout(restartTimer);
     }
-  }, [activeTab, chatIndex]);
+
+    const timer = setTimeout(() => {
+      if (demoMessages[chatIndex].role === "assistant") {
+        setIsTyping(true);
+        setTimeout(() => {
+          setIsTyping(false);
+          setChatIndex((prev) => prev + 1);
+        }, 1200);
+      } else {
+        setChatIndex((prev) => prev + 1);
+      }
+    }, 1800);
+    return () => clearTimeout(timer);
+  }, [activeTab, chatIndex, isPaused]);
+
+  // Auto-scroll chat
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatIndex, isTyping]);
 
   // Breathing exercise timer
   useEffect(() => {
@@ -101,14 +155,22 @@ const InteractiveDemo = () => {
   const resetChat = () => {
     setChatIndex(0);
     setIsTyping(false);
+    setIsPaused(false);
   };
 
   const tabs: { id: DemoTab; label: string; icon: typeof MessageCircle }[] = [
     { id: "chat", label: "AI Chat", icon: MessageCircle },
+    { id: "transform", label: "Your Growth", icon: TrendingUp },
     { id: "mood", label: "Mood Tracker", icon: Sparkles },
     { id: "breathe", label: "Breathe", icon: Wind },
     { id: "journal", label: "Journal", icon: BookOpen },
   ];
+
+  // Calculate interpolated values for the slider
+  const sliderValue = transformSlider[0];
+  const interpolate = (before: number, after: number) => {
+    return Math.round(before + (after - before) * (sliderValue / 100));
+  };
 
   return (
     <section id="demo" className="py-24 bg-muted/20">
@@ -178,13 +240,35 @@ const InteractiveDemo = () => {
                         <p className="text-xs text-accent">Online • Ready to listen</p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={resetChat}>
-                      <RotateCcw className="w-4 h-4 mr-2" />
-                      Replay
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setIsPaused(!isPaused)}
+                      >
+                        {isPaused ? (
+                          <>
+                            <Play className="w-4 h-4 mr-2" />
+                            Resume
+                          </>
+                        ) : (
+                          <>
+                            <Pause className="w-4 h-4 mr-2" />
+                            Pause
+                          </>
+                        )}
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={resetChat}>
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Restart
+                      </Button>
+                    </div>
                   </div>
 
-                  <div className="space-y-4 min-h-[320px]">
+                  <div 
+                    ref={chatContainerRef}
+                    className="space-y-4 min-h-[320px] max-h-[320px] overflow-y-auto pr-2 scrollbar-thin"
+                  >
                     {demoMessages.slice(0, chatIndex).map((msg, idx) => (
                       <motion.div
                         key={idx}
@@ -219,18 +303,160 @@ const InteractiveDemo = () => {
                         </div>
                       </motion.div>
                     )}
+
+                    {chatIndex >= demoMessages.length && !isTyping && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-center py-4"
+                      >
+                        <p className="text-muted-foreground text-sm">
+                          Conversation complete • Restarting...
+                        </p>
+                      </motion.div>
+                    )}
                   </div>
 
-                  <div className="mt-6 flex gap-3">
-                    <input
-                      type="text"
-                      placeholder="Type a message..."
-                      className="flex-1 bg-muted rounded-full px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50"
-                      disabled
+                  <div className="mt-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-muted-foreground">
+                        Message {Math.min(chatIndex, demoMessages.length)} of {demoMessages.length}
+                      </span>
+                      <div className="flex gap-1">
+                        {demoMessages.map((_, idx) => (
+                          <div
+                            key={idx}
+                            className={`w-2 h-2 rounded-full transition-colors ${
+                              idx < chatIndex ? "bg-accent" : "bg-muted"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        placeholder="Type a message..."
+                        className="flex-1 bg-muted rounded-full px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50"
+                        disabled
+                      />
+                      <Button size="icon" className="rounded-full w-12 h-12" disabled>
+                        <Send className="w-5 h-5" />
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Transformation Comparison Demo */}
+              {activeTab === "transform" && (
+                <motion.div
+                  key="transform"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="p-8"
+                >
+                  <div className="text-center mb-8">
+                    <h3 className="font-heading text-2xl font-bold text-foreground mb-2">
+                      See Your Transformation
+                    </h3>
+                    <p className="text-muted-foreground">
+                      Drag the slider to see how Luna helps you grow
+                    </p>
+                  </div>
+
+                  {/* Slider */}
+                  <div className="mb-8 px-4">
+                    <div className="flex justify-between mb-3 text-sm">
+                      <span className="text-muted-foreground">Day 1</span>
+                      <span className="text-accent font-medium">Day {Math.round(sliderValue * 0.3)}</span>
+                      <span className="text-muted-foreground">Day 30</span>
+                    </div>
+                    <Slider
+                      value={transformSlider}
+                      onValueChange={setTransformSlider}
+                      max={100}
+                      step={1}
+                      className="w-full"
                     />
-                    <Button size="icon" className="rounded-full w-12 h-12" disabled>
-                      <Send className="w-5 h-5" />
-                    </Button>
+                  </div>
+
+                  {/* Emotional State Display */}
+                  <div className="relative mb-8">
+                    <motion.div
+                      animate={{
+                        background: `linear-gradient(135deg, ${
+                          sliderValue < 50 
+                            ? "hsl(var(--muted))" 
+                            : "hsl(var(--accent) / 0.2)"
+                        } 0%, ${
+                          sliderValue < 50 
+                            ? "hsl(var(--muted))" 
+                            : "hsl(var(--primary) / 0.2)"
+                        } 100%)`,
+                      }}
+                      className="rounded-2xl p-6 text-center"
+                    >
+                      <motion.span
+                        key={sliderValue > 50 ? "happy" : "sad"}
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="text-6xl block mb-4"
+                      >
+                        {sliderValue < 25 ? "😢" : sliderValue < 50 ? "😔" : sliderValue < 75 ? "🙂" : "😊"}
+                      </motion.span>
+                      <p className="font-heading text-xl font-bold text-foreground">
+                        {sliderValue < 25 
+                          ? "Struggling" 
+                          : sliderValue < 50 
+                          ? "Starting the Journey" 
+                          : sliderValue < 75 
+                          ? "Making Progress" 
+                          : "Thriving"}
+                      </p>
+                    </motion.div>
+                  </div>
+
+                  {/* Stats Comparison */}
+                  <div className="space-y-4">
+                    {beforeAfterStates.before.stats.map((stat, idx) => {
+                      const afterStat = beforeAfterStates.after.stats[idx];
+                      const currentValue = interpolate(stat.value, afterStat.value);
+                      return (
+                        <div key={stat.label}>
+                          <div className="flex justify-between mb-1">
+                            <span className="text-sm text-foreground">{stat.label}</span>
+                            <span className="text-sm font-medium text-accent">{currentValue}%</span>
+                          </div>
+                          <div className="h-3 bg-muted rounded-full overflow-hidden">
+                            <motion.div
+                              animate={{ width: `${currentValue}%` }}
+                              transition={{ duration: 0.3 }}
+                              className="h-full bg-gradient-to-r from-accent to-primary rounded-full"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Feelings Tags */}
+                  <div className="mt-6 flex flex-wrap justify-center gap-2">
+                    {(sliderValue < 50 ? beforeAfterStates.before.feelings : beforeAfterStates.after.feelings).map((feeling) => (
+                      <motion.span
+                        key={feeling}
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className={`px-3 py-1 rounded-full text-sm ${
+                          sliderValue < 50 
+                            ? "bg-muted text-muted-foreground" 
+                            : "bg-accent/20 text-accent"
+                        }`}
+                      >
+                        {feeling}
+                      </motion.span>
+                    ))}
                   </div>
                 </motion.div>
               )}
@@ -377,7 +603,7 @@ const InteractiveDemo = () => {
                 >
                   <div className="text-center mb-6">
                     <h3 className="font-heading text-2xl font-bold text-foreground mb-2">
-                      Today's Prompt
+                      Todays Prompt
                     </h3>
                     <motion.p
                       key={currentPrompt}
@@ -385,7 +611,7 @@ const InteractiveDemo = () => {
                       animate={{ opacity: 1, y: 0 }}
                       className="text-accent font-medium text-lg"
                     >
-                      "{journalPrompts[currentPrompt]}"
+                      &quot;{journalPrompts[currentPrompt]}&quot;
                     </motion.p>
                   </div>
 
