@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
 import { 
   MessageCircle, 
   Send, 
@@ -11,7 +12,8 @@ import {
   Pause,
   RotateCcw,
   ArrowRight,
-  TrendingUp
+  TrendingUp,
+  PartyPopper
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -126,7 +128,51 @@ const InteractiveDemo = () => {
   const [journalText, setJournalText] = useState("");
   const [currentPrompt, setCurrentPrompt] = useState(0);
   const [transformSlider, setTransformSlider] = useState([50]);
+  const [hasCelebrated, setHasCelebrated] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Confetti celebration when slider reaches 100%
+  const triggerCelebration = useCallback(() => {
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        return;
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+        colors: ['#FFB6C1', '#FF69B4', '#FF1493', '#C71585', '#DB7093'],
+      });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+        colors: ['#E8B4BC', '#DDA0DD', '#DA70D6', '#BA55D3', '#9370DB'],
+      });
+    }, 250);
+  }, []);
+
+  // Watch for slider reaching 100%
+  useEffect(() => {
+    if (transformSlider[0] >= 100 && !hasCelebrated) {
+      setHasCelebrated(true);
+      triggerCelebration();
+    } else if (transformSlider[0] < 100) {
+      setHasCelebrated(false);
+    }
+  }, [transformSlider, hasCelebrated, triggerCelebration]);
 
   // Auto-play chat demo with looping
   useEffect(() => {
@@ -436,18 +482,48 @@ const InteractiveDemo = () => {
                             : "hsl(var(--primary) / 0.2)"
                         } 100%)`,
                       }}
-                      className="rounded-2xl p-6 text-center"
+                      className="rounded-2xl p-6 text-center relative overflow-hidden"
                     >
+                      <AnimatePresence>
+                        {sliderValue >= 100 && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="absolute inset-0 bg-gradient-to-br from-accent/30 to-primary/30 flex items-center justify-center z-10"
+                          >
+                            <div className="text-center">
+                              <motion.div
+                                animate={{ 
+                                  rotate: [0, -10, 10, -10, 10, 0],
+                                  scale: [1, 1.2, 1]
+                                }}
+                                transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1 }}
+                              >
+                                <PartyPopper className="w-12 h-12 text-accent mx-auto mb-3" />
+                              </motion.div>
+                              <p className="font-heading text-2xl font-bold text-foreground">
+                                Congratulations!
+                              </p>
+                              <p className="text-muted-foreground text-sm mt-1">
+                                You've completed your transformation
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                       <motion.span
-                        key={sliderValue > 50 ? "happy" : "sad"}
+                        key={sliderValue >= 100 ? "celebration" : sliderValue > 50 ? "happy" : "sad"}
                         initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
+                        animate={{ scale: 1, opacity: sliderValue >= 100 ? 0.3 : 1 }}
                         className="text-6xl block mb-4"
                       >
-                        {sliderValue < 25 ? "😢" : sliderValue < 50 ? "😔" : sliderValue < 75 ? "🙂" : "😊"}
+                        {sliderValue >= 100 ? "🎉" : sliderValue < 25 ? "😢" : sliderValue < 50 ? "😔" : sliderValue < 75 ? "🙂" : "😊"}
                       </motion.span>
-                      <p className="font-heading text-xl font-bold text-foreground">
-                        {sliderValue < 25 
+                      <p className={`font-heading text-xl font-bold text-foreground ${sliderValue >= 100 ? 'opacity-30' : ''}`}>
+                        {sliderValue >= 100
+                          ? "Transformed!"
+                          : sliderValue < 25 
                           ? "Struggling" 
                           : sliderValue < 50 
                           ? "Starting the Journey" 
