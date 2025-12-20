@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import LunaAvatar from "./LunaAvatar";
 import SocialLinks from "./SocialLinks";
+import InteractiveDemo from "./InteractiveDemo";
 
 const features = [
   {
@@ -161,6 +162,7 @@ const DesktopLanding = () => {
             </div>
             <nav className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
+              <a href="#demo" className="text-muted-foreground hover:text-foreground transition-colors">Try Demo</a>
               <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">How It Works</a>
               <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">Stories</a>
               <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
@@ -335,8 +337,11 @@ const DesktopLanding = () => {
         </div>
       </section>
 
+      {/* Section 3.5: Interactive Demo */}
+      <InteractiveDemo />
+
       {/* Section 4: How It Works */}
-      <section id="how-it-works" className="py-24 bg-muted/20">
+      <section id="how-it-works" className="py-24 bg-background">
         <div className="max-w-6xl mx-auto px-6">
           <motion.div {...fadeInUp} className="text-center mb-16">
             <span className="text-accent text-sm font-medium uppercase tracking-wider">How It Works</span>
