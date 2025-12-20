@@ -138,18 +138,6 @@ const Landing = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { trigger: triggerHaptic } = useHapticFeedback();
 
-  // Redirect logged in users
-  useEffect(() => {
-    if (user) {
-      navigate("/chat");
-    }
-  }, [user, navigate]);
-
-  // Show desktop landing for non-mobile users
-  if (!isMobile) {
-    return <DesktopLanding />;
-  }
-
   const goToSlide = useCallback((index: number, withHaptic = true) => {
     if (index >= 0 && index < slides.length && index !== currentSlide) {
       setDirection(index > currentSlide ? 1 : -1);
@@ -160,7 +148,7 @@ const Landing = () => {
     }
   }, [currentSlide, triggerHaptic]);
 
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = useCallback((_: any, info: PanInfo) => {
     const threshold = 50;
     const velocity = 0.5;
 
@@ -175,7 +163,7 @@ const Landing = () => {
         goToSlide(currentSlide - 1);
       }
     }
-  };
+  }, [currentSlide, goToSlide]);
 
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
@@ -201,6 +189,13 @@ const Landing = () => {
     }
   }, [currentSlide, goToSlide]);
 
+  // Redirect logged in users
+  useEffect(() => {
+    if (user) {
+      navigate("/chat");
+    }
+  }, [user, navigate]);
+
   useEffect(() => {
     const container = containerRef.current;
     if (container) {
@@ -214,6 +209,11 @@ const Landing = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
+
+  // Show desktop landing for non-mobile users
+  if (!isMobile) {
+    return <DesktopLanding />;
+  }
 
   const slide = slides[currentSlide];
   const Icon = slide.icon;
