@@ -1,6 +1,6 @@
 import { useDeepLinks } from "@/hooks/useDeepLinks";
 
-export const DeepLinkHandler = ({ children }: { children: React.ReactNode }) => {
+export const DeepLinkHandler = () => {
   useDeepLinks();
-  return <>{children}</>;
+  return null;
 };
