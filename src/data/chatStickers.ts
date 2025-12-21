@@ -116,4 +116,5 @@ export const quickReactions = [
   { emoji: "😢", label: "Sad" },
   { emoji: "🔥", label: "Fire" },
   { emoji: "👍", label: "Thumbs Up" },
+  { emoji: "🍆", label: "Eggplant" },
 ];
