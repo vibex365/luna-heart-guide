@@ -40,13 +40,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <AuthProvider>
-        <DeepLinkHandler>
-          <Toaster />
-          <Sonner />
-          <OfflineBanner />
-          <BiometricLockScreen />
-          <RateAppPrompt />
-          <Routes>
+        <Toaster />
+        <Sonner />
+        <OfflineBanner />
+        <BiometricLockScreen />
+        <RateAppPrompt />
+        <DeepLinkHandler />
+        <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/dm" element={<DMFunnel />} />
           <Route path="/welcome" element={<Welcome />} />
@@ -195,7 +195,6 @@ const App = () => (
           />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        </DeepLinkHandler>
       </AuthProvider>
     </BrowserRouter>
   </QueryClientProvider>
