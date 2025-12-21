@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, ArrowLeft, MessageCircle, Gamepad2, Gift, Calendar, Activity, Sparkles } from "lucide-react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useVirtualCurrency } from "@/hooks/useVirtualCurrency";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -22,7 +22,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePartnerNotifications } from "@/hooks/usePartnerNotifications";
 import { CoinBalance } from "@/components/couples/CoinBalance";
-
+import { PartnerSuggestionCard } from "@/components/couples/PartnerSuggestionCard";
+import { usePartnerSuggestions } from "@/hooks/usePartnerSuggestions";
 const Couples = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -31,6 +32,7 @@ const Couples = () => {
   const { isLinked, isLoading, partnerLink, partnerId } = useCouplesAccount();
   const { shouldPrompt, dismiss } = usePhonePrompt();
   const { earnCoins } = useVirtualCurrency();
+  const { suggestions, dismissSuggestion, actOnSuggestion } = usePartnerSuggestions();
   const [showPhonePrompt, setShowPhonePrompt] = useState(false);
   const [showChat, setShowChat] = useState(false);
   
@@ -252,6 +254,28 @@ const Couples = () => {
 
         {isLinked && (
           <>
+            {/* Partner Suggestions */}
+            <AnimatePresence>
+              {suggestions.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: 0.05 }}
+                  className="space-y-3"
+                >
+                  {suggestions.map((suggestion) => (
+                    <PartnerSuggestionCard
+                      key={suggestion.id}
+                      suggestion={suggestion}
+                      onDismiss={dismissSuggestion}
+                      onActed={actOnSuggestion}
+                    />
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Chat CTA */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
