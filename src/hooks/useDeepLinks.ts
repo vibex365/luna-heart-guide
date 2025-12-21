@@ -1,20 +1,17 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Capacitor } from "@capacitor/core";
-import { App, URLOpenListenerEvent } from "@capacitor/app";
 
 export const useDeepLinks = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    // Handle deep links when app is opened from a URL
-    const handleDeepLink = (event: URLOpenListenerEvent) => {
-      const url = new URL(event.url);
-      const path = url.pathname;
-      const params = url.searchParams;
+  const handleDeepLink = useCallback((url: string) => {
+    try {
+      const parsedUrl = new URL(url);
+      const path = parsedUrl.pathname;
+      const params = parsedUrl.searchParams;
 
-      console.log("Deep link received:", event.url);
+      console.log("Deep link received:", url);
 
       // Handle partner invite codes
       // e.g., luna://invite?code=ABC123 or https://lunaapp.com/invite?code=ABC123
@@ -38,20 +35,38 @@ export const useDeepLinks = () => {
       if (path && path !== "/") {
         navigate(path);
       }
+    } catch (error) {
+      console.error("Error handling deep link:", error);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    // Dynamically import Capacitor to avoid issues during SSR/initial load
+    const setupCapacitorListeners = async () => {
+      try {
+        const { Capacitor } = await import("@capacitor/core");
+        
+        if (Capacitor.isNativePlatform()) {
+          const { App } = await import("@capacitor/app");
+          
+          // Listen for app URL open events
+          App.addListener("appUrlOpen", (event) => {
+            handleDeepLink(event.url);
+          });
+
+          // Check if app was opened with a URL (cold start)
+          const result = await App.getLaunchUrl();
+          if (result?.url) {
+            handleDeepLink(result.url);
+          }
+        }
+      } catch (error) {
+        // Capacitor not available (web environment without native)
+        console.log("Capacitor not available for deep links");
+      }
     };
 
-    // Only set up listeners on native platforms
-    if (Capacitor.isNativePlatform()) {
-      // Listen for app URL open events
-      App.addListener("appUrlOpen", handleDeepLink);
-
-      // Check if app was opened with a URL (cold start)
-      App.getLaunchUrl().then((result) => {
-        if (result?.url) {
-          handleDeepLink({ url: result.url });
-        }
-      });
-    }
+    setupCapacitorListeners();
 
     // Handle web deep links (query params)
     const urlParams = new URLSearchParams(window.location.search);
@@ -62,11 +77,18 @@ export const useDeepLinks = () => {
     }
 
     return () => {
-      if (Capacitor.isNativePlatform()) {
-        App.removeAllListeners();
-      }
+      // Cleanup listeners
+      import("@capacitor/core").then(({ Capacitor }) => {
+        if (Capacitor.isNativePlatform()) {
+          import("@capacitor/app").then(({ App }) => {
+            App.removeAllListeners();
+          });
+        }
+      }).catch(() => {
+        // Ignore cleanup errors
+      });
     };
-  }, [navigate, location.pathname]);
+  }, [navigate, location.pathname, handleDeepLink]);
 };
 
 export default useDeepLinks;
