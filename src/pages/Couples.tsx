@@ -1,66 +1,27 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ArrowLeft, MessageCircle } from "lucide-react";
+import { Heart, ArrowLeft, MessageCircle, Gamepad2, Gift, Calendar, Activity, Sparkles } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useVirtualCurrency } from "@/hooks/useVirtualCurrency";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { useCouplesTrial } from "@/hooks/useCouplesTrial";
 import { PartnerInviteCard } from "@/components/couples/PartnerInviteCard";
 import { CouplesLinkedStatus } from "@/components/couples/CouplesLinkedStatus";
-import { RelationshipHealthCard } from "@/components/couples/RelationshipHealthCard";
-import { RelationshipAssessment } from "@/components/couples/RelationshipAssessment";
-import { RelationshipTrendsChart } from "@/components/couples/RelationshipTrendsChart";
-import { SharedMoodTracker } from "@/components/couples/SharedMoodTracker";
-import { SharedActivities } from "@/components/couples/SharedActivities";
-import { ConflictResolutionTools } from "@/components/couples/ConflictResolutionTools";
-import { CoupleGoals } from "@/components/couples/CoupleGoals";
-import { LoveLanguageQuiz } from "@/components/couples/LoveLanguageQuiz";
-import { WouldYouRather } from "@/components/couples/WouldYouRather";
-import { DailyChallenges } from "@/components/couples/DailyChallenges";
-import { CouplesStreakTracker } from "@/components/couples/CouplesStreakTracker";
-import { DateNightGenerator } from "@/components/couples/DateNightGenerator";
-import { MilestoneTracker } from "@/components/couples/MilestoneTracker";
-import { AppreciationPrompts } from "@/components/couples/AppreciationPrompts";
-import { TruthOrDare } from "@/components/couples/TruthOrDare";
-import { CouplesQuizGame } from "@/components/couples/CouplesQuizGame";
-import { NeverHaveIEver } from "@/components/couples/NeverHaveIEver";
-import { ConversationStarters } from "@/components/couples/ConversationStarters";
-import { GameStatsCard } from "@/components/couples/GameStatsCard";
-import { FinishMySentence } from "@/components/couples/FinishMySentence";
-import { RateTheFantasy } from "@/components/couples/RateTheFantasy";
-import { TonightsPlans } from "@/components/couples/TonightsPlans";
-import { ThisOrThat } from "@/components/couples/ThisOrThat";
-import { LoveLetterGenerator } from "@/components/couples/LoveLetterGenerator";
-import { DrinkingGame } from "@/components/couples/DrinkingGame";
-import { HotColdGame } from "@/components/couples/HotColdGame";
-import { FantasyCards } from "@/components/couples/FantasyCards";
-import { CouplesChat } from "@/components/couples/CouplesChat";
 import { CouplesTrialBanner } from "@/components/couples/CouplesTrialBanner";
 import { CouplesFeaturePreviews } from "@/components/couples/CouplesFeaturesPreviews";
 import { TrialExpiredCard } from "@/components/couples/TrialExpiredCard";
+import { CouplesChat } from "@/components/couples/CouplesChat";
 import { PhoneNumberPrompt } from "@/components/PhoneNumberPrompt";
 import { usePhonePrompt } from "@/hooks/usePhonePrompt";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePartnerNotifications } from "@/hooks/usePartnerNotifications";
-import { Badge } from "@/components/ui/badge";
-import TwoTruthsOneLie from "@/components/couples/TwoTruthsOneLie";
-import MostLikelyTo from "@/components/couples/MostLikelyTo";
-import NewlywedGame from "@/components/couples/NewlywedGame";
-import ThirtySixQuestions from "@/components/couples/ThirtySixQuestions";
-import SpinTheWheel from "@/components/couples/SpinTheWheel";
-import { GiftButton } from "@/components/couples/GiftButton";
-import { GiftCollection } from "@/components/couples/GiftCollection";
-import { DailyQuestionCard } from "@/components/couples/DailyQuestionCard";
-import { QuickDailyHub } from "@/components/couples/QuickDailyHub";
-import { DailyTip } from "@/components/couples/DailyTip";
 import { CoinBalance } from "@/components/couples/CoinBalance";
-import { DailyJournalCard } from "@/components/couples/DailyJournalCard";
-import { TimeCapsuleComposer } from "@/components/couples/TimeCapsuleComposer";
-import { TimeCapsuleInbox } from "@/components/couples/TimeCapsuleInbox";
 
 const Couples = () => {
   const navigate = useNavigate();
@@ -73,7 +34,6 @@ const Couples = () => {
   const [showPhonePrompt, setShowPhonePrompt] = useState(false);
   const [showChat, setShowChat] = useState(false);
   
-  // Trial hook
   const {
     hasCouplesAccess,
     hasCouplesSubscription,
@@ -87,7 +47,6 @@ const Couples = () => {
     trial,
   } = useCouplesTrial();
 
-  // Enable real-time partner notifications
   usePartnerNotifications();
 
   // Handle coin purchase success from URL params
@@ -95,7 +54,6 @@ const Couples = () => {
     const coinsPurchased = searchParams.get('coins_purchased');
     if (coinsPurchased && user?.id) {
       const coins = parseInt(coinsPurchased, 10);
-      // Process the coin purchase
       supabase.functions.invoke('process-coin-purchase', {
         body: { userId: user.id, coins },
       }).then(() => {
@@ -103,12 +61,10 @@ const Couples = () => {
         queryClient.invalidateQueries({ queryKey: ['user-coins'] });
         queryClient.invalidateQueries({ queryKey: ['coin-transactions'] });
       });
-      // Clear the URL param
       setSearchParams({});
     }
   }, [searchParams, user?.id]);
 
-  // Show phone prompt after a short delay when user is linked but has no phone
   useEffect(() => {
     if (isLinked && shouldPrompt && hasCouplesAccess) {
       const timer = setTimeout(() => setShowPhonePrompt(true), 2000);
@@ -116,7 +72,6 @@ const Couples = () => {
     }
   }, [isLinked, shouldPrompt, hasCouplesAccess]);
 
-  // Get partner's display name
   const { data: partnerProfile } = useQuery({
     queryKey: ["partner-profile", partnerId],
     queryFn: async () => {
@@ -131,7 +86,6 @@ const Couples = () => {
     enabled: !!partnerId,
   });
 
-  // Get current user's display name
   const { data: myProfile } = useQuery({
     queryKey: ["my-profile", user?.id],
     queryFn: async () => {
@@ -146,7 +100,6 @@ const Couples = () => {
     enabled: !!user,
   });
 
-  // Get unread message count
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ["unread-messages", partnerLink?.id],
     queryFn: async () => {
@@ -175,7 +128,47 @@ const Couples = () => {
 
   const partnerName = partnerProfile?.display_name || "Your Partner";
 
-  // If user doesn't have access (no subscription and no active trial)
+  // Category cards for the hub
+  const categoryCards = [
+    {
+      title: "Daily Activities",
+      description: "Questions, journal, challenges & streaks",
+      icon: Calendar,
+      color: "from-orange-500 to-amber-500",
+      bgColor: "bg-orange-500/10",
+      route: "/couples/daily",
+      badge: null,
+    },
+    {
+      title: "Games & Fun",
+      description: "Play together: Truth or Dare, Quizzes & more",
+      icon: Gamepad2,
+      color: "from-purple-500 to-indigo-500",
+      bgColor: "bg-purple-500/10",
+      route: "/couples/games",
+      badge: "18+ games",
+    },
+    {
+      title: "Gifts & Time Capsules",
+      description: "Send love notes & surprises to your partner",
+      icon: Gift,
+      color: "from-pink-500 to-rose-500",
+      bgColor: "bg-pink-500/10",
+      route: "/couples/gifts",
+      badge: null,
+    },
+    {
+      title: "Relationship Health",
+      description: "Track progress, set goals & grow together",
+      icon: Activity,
+      color: "from-emerald-500 to-teal-500",
+      bgColor: "bg-emerald-500/10",
+      route: "/couples/health",
+      badge: null,
+    },
+  ];
+
+  // If user doesn't have access
   if (!hasCouplesAccess) {
     return (
       <div className="min-h-screen bg-background pb-24">
@@ -193,17 +186,11 @@ const Couples = () => {
         </header>
 
         <div className="p-4 space-y-4">
-          {/* Show trial expired card if applicable */}
           {isTrialExpired && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               <TrialExpiredCard featuresUsed={trial?.features_used || []} />
             </motion.div>
           )}
-
-          {/* Show feature previews */}
           <CouplesFeaturePreviews
             onStartTrial={startTrial}
             onUpgrade={() => navigate("/subscription")}
@@ -215,10 +202,8 @@ const Couples = () => {
     );
   }
 
-  // User has access (via subscription or active trial)
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="flex items-center justify-between p-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -229,7 +214,6 @@ const Couples = () => {
             Couples
           </h1>
           <div className="flex items-center gap-2">
-            {/* Coin Balance */}
             <CoinBalance />
             {isLinked && (
               <Button
@@ -254,44 +238,21 @@ const Couples = () => {
       </header>
 
       <div className="p-4 space-y-4">
-        {/* Trial Banner - only show if on trial (not subscription) */}
+        {/* Trial Banner */}
         {isTrialActive && !hasCouplesSubscription && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <CouplesTrialBanner
-              daysLeft={trialDaysLeft}
-              hoursLeft={trialHoursLeft}
-            />
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+            <CouplesTrialBanner daysLeft={trialDaysLeft} hoursLeft={trialHoursLeft} />
           </motion.div>
         )}
 
-        {/* Quick Daily Hub - 5 Minutes a Day Dashboard */}
-        {isLinked && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <QuickDailyHub currentStreak={0} hasDoneChallenge={false} />
-          </motion.div>
-        )}
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          {/* Connection Status */}
-          {isLinked ? (
-            <CouplesLinkedStatus />
-          ) : (
-            <PartnerInviteCard />
-          )}
+        {/* Connection Status */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          {isLinked ? <CouplesLinkedStatus /> : <PartnerInviteCard />}
         </motion.div>
 
         {isLinked && (
           <>
-            {/* Chat CTA Card */}
+            {/* Chat CTA */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -322,338 +283,75 @@ const Couples = () => {
               </button>
             </motion.div>
 
-            {/* Daily Question Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.07 }}
-            >
-              <DailyQuestionCard partnerLinkId={partnerLink?.id} />
-            </motion.div>
+            {/* Category Cards Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              {categoryCards.map((card, index) => (
+                <motion.div
+                  key={card.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + index * 0.05 }}
+                >
+                  <Card 
+                    className={`cursor-pointer hover:shadow-lg transition-all border-2 hover:border-primary/30 ${card.bgColor} relative overflow-hidden`}
+                    onClick={() => navigate(card.route)}
+                  >
+                    <CardContent className="p-4">
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center mb-3`}>
+                        <card.icon className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="font-semibold text-sm mb-1">{card.title}</h3>
+                      <p className="text-[11px] text-muted-foreground line-clamp-2">
+                        {card.description}
+                      </p>
+                      {card.badge && (
+                        <Badge variant="secondary" className="absolute top-2 right-2 text-[9px] px-1.5 py-0.5">
+                          {card.badge}
+                        </Badge>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
 
-            {/* Daily Journal Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.075 }}
-            >
-              <DailyJournalCard partnerName={partnerName} />
-            </motion.div>
-
-            {/* Expert Daily Tip */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.08 }}
-            >
-              <DailyTip />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <CouplesStreakTracker partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.12 }}
-            >
-              <MilestoneTracker partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.14 }}
-            >
-              <AppreciationPrompts partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            {/* Time Capsule Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.145 }}
-              className="space-y-3"
-            >
-              <TimeCapsuleComposer partnerName={partnerName} />
-              <TimeCapsuleInbox partnerName={partnerName} />
-            </motion.div>
-
-            {/* Gift Store Section */}
-            {partnerLink?.id && partnerId && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-                className="space-y-4"
-              >
-                <GiftButton
-                  partnerLinkId={partnerLink.id}
-                  partnerId={partnerId}
-                  partnerName={partnerProfile?.display_name || "your partner"}
-                />
-                <GiftCollection
-                  partnerLinkId={partnerLink.id}
-                  partnerId={partnerId}
-                />
-              </motion.div>
-            )}
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.16 }}
-            >
-              <RelationshipAssessment />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-            >
-              <RelationshipHealthCard />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.18 }}
-            >
-              <RelationshipTrendsChart />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <SharedMoodTracker />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-            >
-              <CoupleGoals />
-            </motion.div>
-
+            {/* Quick Stats */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <DateNightGenerator partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-            >
-              <SharedActivities />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-            >
-              <LoveLanguageQuiz />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <WouldYouRather partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.42 }}
-            >
-              <TruthOrDare partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.44 }}
-            >
-              <CouplesQuizGame partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.46 }}
-            >
-              <NeverHaveIEver partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.48 }}
-            >
-              <FinishMySentence partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.50 }}
-            >
-              <RateTheFantasy partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.51 }}
-            >
-              <TonightsPlans partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.52 }}
-            >
-              <ThisOrThat partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.53 }}
-            >
-              <LoveLetterGenerator partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.54 }}
-            >
-              <ConversationStarters partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55 }}
-            >
-              <DrinkingGame partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.56 }}
-            >
-              <HotColdGame partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.57 }}
-            >
-              <FantasyCards partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.58 }}
-            >
-              <GameStatsCard partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.59 }}
-            >
-              <TwoTruthsOneLie partnerLinkId={partnerLink?.id || ""} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.60 }}
-            >
-              <MostLikelyTo partnerLinkId={partnerLink?.id || ""} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.61 }}
-            >
-              <NewlywedGame partnerLinkId={partnerLink?.id || ""} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.62 }}
-            >
-              <ThirtySixQuestions partnerLinkId={partnerLink?.id || ""} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.63 }}
-            >
-              <SpinTheWheel partnerLinkId={partnerLink?.id || ""} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.52 }}
-            >
-              <DailyChallenges />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.54 }}
-            >
-              <ConflictResolutionTools />
+              <Card className="bg-gradient-to-br from-pink-50/50 to-purple-50/50 dark:from-pink-950/20 dark:to-purple-950/20 border-pink-200/50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="w-4 h-4 text-pink-500" />
+                    <span className="text-sm font-medium">Grow Together</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Explore games, send surprises, and build your relationship one day at a time. 
+                    Your connection gets stronger with every activity you complete together!
+                  </p>
+                </CardContent>
+              </Card>
             </motion.div>
           </>
         )}
-
-        {!isLinked && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-center py-8"
-          >
-            <p className="text-muted-foreground">
-              Connect with your partner to unlock shared mood tracking, 
-              relationship health scores, and couples activities.
-            </p>
-          </motion.div>
-        )}
       </div>
 
-      {/* Phone Number Prompt */}
+      {/* Chat Modal */}
+      <AnimatePresence>
+        {showChat && partnerLink?.id && (
+          <CouplesChat
+            partnerLinkId={partnerLink.id}
+            partnerId={partnerId || ""}
+            partnerName={partnerName}
+            senderName={myProfile?.display_name || "You"}
+            onClose={() => setShowChat(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Phone Prompt */}
       <PhoneNumberPrompt
         open={showPhonePrompt}
         onOpenChange={(open) => {
@@ -661,19 +359,6 @@ const Couples = () => {
           if (!open) dismiss();
         }}
       />
-
-      {/* Chat Modal */}
-      <AnimatePresence>
-        {showChat && partnerLink?.id && partnerId && (
-          <CouplesChat
-            partnerLinkId={partnerLink.id}
-            partnerName={partnerName}
-            partnerId={partnerId}
-            senderName={myProfile?.display_name || "Your partner"}
-            onClose={() => setShowChat(false)}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 };
