@@ -29,6 +29,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import AppStoreAssets from "./pages/AppStoreAssets";
 import PromoVideoTemplate from "./pages/PromoVideoTemplate";
+import PromoVideos from "./pages/PromoVideos";
 import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminModeration, AdminCoins, AdminAnalytics, AdminFunnelAnalytics, AdminMarketing, AdminSettings, AdminFeedback, AdminNotifications } from "./pages/admin";
 import NotFound from "./pages/NotFound";
 
@@ -66,6 +67,7 @@ const App = () => (
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/app-store-assets" element={<AppStoreAssets />} />
           <Route path="/promo-video" element={<PromoVideoTemplate />} />
+          <Route path="/promo-videos" element={<PromoVideos />} />
           <Route
             path="/admin"
             element={
