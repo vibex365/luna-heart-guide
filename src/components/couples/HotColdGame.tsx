@@ -1,12 +1,18 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Flame, Snowflake, ArrowRight, RotateCcw, Thermometer } from "lucide-react";
+import { Flame, Snowflake, ArrowRight, RotateCcw, Thermometer, Users, Bell } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GameCard } from "./cards/GameCard";
 import { useAgeGateEnabled } from "@/hooks/useGameQuestions";
 import { AgeGateModal } from "./AgeGateModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCouplesAccount } from "@/hooks/useCouplesAccount";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { notifyPartner } from "@/utils/smsNotifications";
 
 interface HotColdGameProps {
   partnerLinkId?: string;
@@ -18,6 +24,19 @@ interface HotColdCard {
   text: string;
   type: "action" | "question";
   intensity: IntensityLevel;
+}
+
+interface GameSession {
+  id: string;
+  partner_link_id: string;
+  started_by: string;
+  game_state: {
+    intensity: IntensityLevel;
+    current_card: HotColdCard | null;
+    round_count: number;
+    revealed: boolean;
+    player_completed: Record<string, boolean>;
+  };
 }
 
 const coldCards: HotColdCard[] = [
@@ -71,18 +90,111 @@ const intensityStyles: Record<IntensityLevel, { color: string; icon: React.React
   burning: { color: "from-red-500 to-rose-600", icon: <Flame className="w-4 h-4" />, label: "🔥 Burning" },
 };
 
+const getAllCardsForIntensity = (intensity: IntensityLevel): HotColdCard[] => {
+  switch (intensity) {
+    case "cold": return coldCards;
+    case "warm": return warmCards;
+    case "hot": return hotCards;
+    case "burning": return burningCards;
+  }
+};
+
 export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
+  const { user } = useAuth();
+  const { partnerId } = useCouplesAccount();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentCard, setCurrentCard] = useState<HotColdCard | null>(null);
-  const [usedCards, setUsedCards] = useState<Set<string>>(new Set());
   const [selectedIntensity, setSelectedIntensity] = useState<IntensityLevel>("warm");
+  const [usedCards, setUsedCards] = useState<Set<string>>(new Set());
   const [isCardFlipped, setIsCardFlipped] = useState(false);
-  const [roundCount, setRoundCount] = useState(0);
   const [showAgeGate, setShowAgeGate] = useState(false);
   const [ageVerified, setAgeVerified] = useState(false);
+  const [session, setSession] = useState<GameSession | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { data: ageGateEnabled } = useAgeGateEnabled();
+
+  // Fetch partner name
+  const { data: partnerProfile } = useQuery({
+    queryKey: ["partner-profile-hotcold", partnerId],
+    queryFn: async () => {
+      if (!partnerId) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", partnerId)
+        .single();
+      return data;
+    },
+    enabled: !!partnerId,
+  });
+
+  const partnerName = partnerProfile?.display_name || "Partner";
+
+  // Fetch active session
+  useEffect(() => {
+    if (!partnerLinkId) return;
+
+    const fetchSession = async () => {
+      const { data } = await supabase
+        .from("couples_game_sessions")
+        .select("*")
+        .eq("partner_link_id", partnerLinkId)
+        .eq("game_type", "hot_cold_game")
+        .maybeSingle();
+
+      if (data) {
+        const gameState = data.game_state as unknown as GameSession["game_state"];
+        setSession({
+          id: data.id,
+          partner_link_id: data.partner_link_id,
+          started_by: data.started_by,
+          game_state: gameState,
+        });
+        setSelectedIntensity(gameState.intensity);
+        setIsCardFlipped(gameState.revealed);
+      }
+    };
+
+    fetchSession();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel(`hotcold-${partnerLinkId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "couples_game_sessions",
+          filter: `partner_link_id=eq.${partnerLinkId}`,
+        },
+        (payload) => {
+          if (payload.eventType === "DELETE") {
+            if ((payload.old as any).game_type === "hot_cold_game") {
+              setSession(null);
+            }
+          } else {
+            const data = payload.new as any;
+            if (data.game_type === "hot_cold_game") {
+              const gameState = data.game_state as unknown as GameSession["game_state"];
+              setSession({
+                id: data.id,
+                partner_link_id: data.partner_link_id,
+                started_by: data.started_by,
+                game_state: gameState,
+              });
+              setSelectedIntensity(gameState.intensity);
+              setIsCardFlipped(gameState.revealed);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [partnerLinkId]);
 
   const handleIntensitySelect = (intensity: IntensityLevel) => {
     if ((intensity === "hot" || intensity === "burning") && ageGateEnabled && !ageVerified) {
@@ -90,7 +202,7 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
       setShowAgeGate(true);
     } else {
       setSelectedIntensity(intensity);
-      if (isPlaying) {
+      if (session) {
         drawCard(intensity);
       }
     }
@@ -99,53 +211,177 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
   const handleAgeConfirm = () => {
     setAgeVerified(true);
     setShowAgeGate(false);
-    if (isPlaying) {
+    if (session) {
       drawCard(selectedIntensity);
     }
   };
 
-  const getAllCardsForIntensity = (intensity: IntensityLevel): HotColdCard[] => {
-    switch (intensity) {
-      case "cold": return coldCards;
-      case "warm": return warmCards;
-      case "hot": return hotCards;
-      case "burning": return burningCards;
-    }
-  };
-
-  const drawCard = useCallback((intensity?: IntensityLevel) => {
-    const currentIntensity = intensity || selectedIntensity;
-    const cards = getAllCardsForIntensity(currentIntensity);
+  const getRandomCard = (intensity: IntensityLevel): HotColdCard => {
+    const cards = getAllCardsForIntensity(intensity);
     const availableCards = cards.filter(c => !usedCards.has(c.text));
 
-    let selectedCard: HotColdCard;
     if (availableCards.length === 0) {
       setUsedCards(new Set());
-      selectedCard = cards[Math.floor(Math.random() * cards.length)];
+      return cards[Math.floor(Math.random() * cards.length)];
     } else {
-      selectedCard = availableCards[Math.floor(Math.random() * availableCards.length)];
+      const selectedCard = availableCards[Math.floor(Math.random() * availableCards.length)];
       setUsedCards(prev => new Set([...prev, selectedCard.text]));
+      return selectedCard;
     }
-
-    setCurrentCard(selectedCard);
-    setIsCardFlipped(false);
-    setRoundCount(prev => prev + 1);
-  }, [selectedIntensity, usedCards]);
-
-  const startGame = () => {
-    setIsPlaying(true);
-    setUsedCards(new Set());
-    setRoundCount(0);
-    drawCard();
   };
 
-  const resetGame = () => {
-    setIsPlaying(false);
-    setCurrentCard(null);
-    setUsedCards(new Set());
-    setRoundCount(0);
+  const startGame = async () => {
+    if (!partnerLinkId || !user) return;
+    setIsLoading(true);
+
+    try {
+      // Delete any existing session
+      await supabase
+        .from("couples_game_sessions")
+        .delete()
+        .eq("partner_link_id", partnerLinkId)
+        .eq("game_type", "hot_cold_game");
+
+      const card = getRandomCard(selectedIntensity);
+
+      const gameStateData = {
+        intensity: selectedIntensity,
+        current_card: card,
+        round_count: 1,
+        revealed: false,
+        player_completed: {},
+      };
+
+      const { data, error } = await supabase
+        .from("couples_game_sessions")
+        .insert({
+          partner_link_id: partnerLinkId,
+          started_by: user.id,
+          game_type: "hot_cold_game",
+          game_state: gameStateData as unknown as Record<string, unknown>,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const gameState = data.game_state as unknown as GameSession["game_state"];
+      setSession({
+        id: data.id,
+        partner_link_id: data.partner_link_id,
+        started_by: data.started_by,
+        game_state: gameState,
+      });
+
+      // Notify partner
+      if (partnerId) {
+        const { data: myProfile } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("user_id", user.id)
+          .single();
+        const myName = myProfile?.display_name || "Your partner";
+        await notifyPartner.gameStarted(partnerId, myName, "Hot & Cold Cards");
+      }
+
+      toast.success("Game started! Your partner has been notified.");
+    } catch (error) {
+      console.error("Error starting game:", error);
+      toast.error("Failed to start game");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const drawCard = async (intensity?: IntensityLevel) => {
+    if (!session) return;
+
+    const currentIntensity = intensity || selectedIntensity;
+    const card = getRandomCard(currentIntensity);
+
+    const newGameState = {
+      ...session.game_state,
+      intensity: currentIntensity,
+      current_card: card,
+      round_count: session.game_state.round_count + 1,
+      revealed: false,
+      player_completed: {},
+    };
+
+    await supabase
+      .from("couples_game_sessions")
+      .update({
+        game_state: newGameState as unknown as Record<string, unknown>,
+      })
+      .eq("id", session.id);
+
     setIsCardFlipped(false);
   };
+
+  const revealCard = async () => {
+    if (!session) return;
+
+    await supabase
+      .from("couples_game_sessions")
+      .update({
+        game_state: {
+          ...session.game_state,
+          revealed: true,
+        },
+      })
+      .eq("id", session.id);
+
+    setIsCardFlipped(true);
+  };
+
+  const markComplete = async () => {
+    if (!session || !user) return;
+
+    const newCompleted = {
+      ...session.game_state.player_completed,
+      [user.id]: true,
+    };
+
+    await supabase
+      .from("couples_game_sessions")
+      .update({
+        game_state: {
+          ...session.game_state,
+          player_completed: newCompleted,
+        },
+      })
+      .eq("id", session.id);
+  };
+
+  const resetGame = async () => {
+    if (!session) return;
+
+    await supabase
+      .from("couples_game_sessions")
+      .delete()
+      .eq("id", session.id);
+
+    setSession(null);
+    setUsedCards(new Set());
+    setIsCardFlipped(false);
+  };
+
+  const remindPartner = async () => {
+    if (!partnerId || !user) return;
+    const { data: myProfile } = await supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("user_id", user.id)
+      .single();
+    const myName = myProfile?.display_name || "Your partner";
+    await notifyPartner.gameStarted(partnerId, myName, "Hot & Cold Cards");
+    toast.success(`Reminder sent to ${partnerName}!`);
+  };
+
+  const isPlaying = !!session;
+  const currentCard = session?.game_state.current_card;
+  const bothCompleted = session?.game_state.player_completed?.[user?.id || ""] && 
+                       session?.game_state.player_completed?.[partnerId || ""];
 
   return (
     <>
@@ -160,6 +396,11 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
                 <Thermometer className="w-5 h-5 text-white" />
               </div>
               Hot & Cold Cards
+              {isPlaying && (
+                <Badge variant="outline" className="ml-1 border-green-500/50 text-green-500">
+                  <Users className="w-3 h-3 mr-1" /> Live
+                </Badge>
+              )}
             </CardTitle>
             <motion.div
               animate={{ rotate: isExpanded ? 90 : 0 }}
@@ -182,7 +423,7 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
                 {!isPlaying ? (
                   <>
                     <p className="text-sm text-muted-foreground text-center">
-                      Draw cards with varying intensity levels - from sweet to steamy!
+                      Draw cards with varying intensity levels - play remotely with your partner! 🔥
                     </p>
 
                     {/* Intensity selector */}
@@ -203,7 +444,12 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
                       ))}
                     </div>
 
-                    <Button onClick={startGame} className="w-full bg-gradient-to-r from-pink-500 to-orange-500">
+                    <Button 
+                      onClick={startGame} 
+                      className="w-full bg-gradient-to-r from-pink-500 to-orange-500"
+                      disabled={isLoading || !partnerLinkId}
+                    >
+                      <Users className="w-4 h-4 mr-2" />
                       Start Drawing Cards
                     </Button>
                   </>
@@ -215,7 +461,7 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
                         <Badge className={`bg-gradient-to-r ${intensityStyles[selectedIntensity].color} text-white`}>
                           {intensityStyles[selectedIntensity].label}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">Round {roundCount}</span>
+                        <span className="text-sm text-muted-foreground">Round {session.game_state.round_count}</span>
                       </div>
                       <Button variant="ghost" size="sm" onClick={resetGame}>
                         <RotateCcw className="w-4 h-4 mr-1" />
@@ -249,7 +495,7 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
                                    currentCard.intensity === "warm" ? "romance" :
                                    currentCard.intensity === "hot" ? "spicy" : "intimate"}
                             isFlipped={isCardFlipped}
-                            onFlip={() => setIsCardFlipped(true)}
+                            onFlip={revealCard}
                             showFlipHint={!isCardFlipped}
                             category={currentCard.type === "action" ? "Action" : "Question"}
                             frontContent={
@@ -268,12 +514,42 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
                       </div>
                     )}
 
-                    {/* Next card button */}
+                    {/* Completion status */}
+                    {isCardFlipped && (
+                      <div className="flex items-center justify-center gap-4 text-sm">
+                        <span className={session.game_state.player_completed?.[user?.id || ""] 
+                          ? "text-green-500" 
+                          : "text-muted-foreground"
+                        }>
+                          {session.game_state.player_completed?.[user?.id || ""] ? "✓ You completed" : "Mark as done"}
+                        </span>
+                        <span className={session.game_state.player_completed?.[partnerId || ""] 
+                          ? "text-green-500" 
+                          : "text-muted-foreground"
+                        }>
+                          {session.game_state.player_completed?.[partnerId || ""] 
+                            ? `✓ ${partnerName} completed` 
+                            : `Waiting for ${partnerName}...`}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Actions */}
                     {isCardFlipped && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
+                        className="space-y-2"
                       >
+                        {!session.game_state.player_completed?.[user?.id || ""] && (
+                          <Button
+                            onClick={markComplete}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            ✓ I Did It!
+                          </Button>
+                        )}
                         <Button
                           onClick={() => drawCard()}
                           className={`w-full bg-gradient-to-r ${intensityStyles[selectedIntensity].color}`}
@@ -283,6 +559,17 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
                         </Button>
                       </motion.div>
                     )}
+
+                    {/* Remind partner */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={remindPartner}
+                      className="w-full gap-2"
+                    >
+                      <Bell className="w-4 h-4" />
+                      Remind {partnerName}
+                    </Button>
                   </div>
                 )}
               </CardContent>
