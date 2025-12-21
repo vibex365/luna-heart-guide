@@ -258,7 +258,7 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
           partner_link_id: partnerLinkId,
           started_by: user.id,
           game_type: "hot_cold_game",
-          game_state: gameStateData as unknown as Record<string, unknown>,
+          game_state: JSON.parse(JSON.stringify(gameStateData)),
         })
         .select()
         .single();
@@ -311,7 +311,7 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
     await supabase
       .from("couples_game_sessions")
       .update({
-        game_state: newGameState as unknown as Record<string, unknown>,
+        game_state: JSON.parse(JSON.stringify(newGameState)),
       })
       .eq("id", session.id);
 
@@ -321,13 +321,11 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
   const revealCard = async () => {
     if (!session) return;
 
+    const updatedState = { ...session.game_state, revealed: true };
     await supabase
       .from("couples_game_sessions")
       .update({
-        game_state: {
-          ...session.game_state,
-          revealed: true,
-        },
+        game_state: JSON.parse(JSON.stringify(updatedState)),
       })
       .eq("id", session.id);
 
@@ -342,13 +340,11 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
       [user.id]: true,
     };
 
+    const updatedState = { ...session.game_state, player_completed: newCompleted };
     await supabase
       .from("couples_game_sessions")
       .update({
-        game_state: {
-          ...session.game_state,
-          player_completed: newCompleted,
-        },
+        game_state: JSON.parse(JSON.stringify(updatedState)),
       })
       .eq("id", session.id);
   };
