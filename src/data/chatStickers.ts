@@ -117,4 +117,12 @@ export const quickReactions = [
   { emoji: "🔥", label: "Fire" },
   { emoji: "👍", label: "Thumbs Up" },
   { emoji: "🍆", label: "Eggplant" },
+  { emoji: "👅", label: "Tongue" },
+  { emoji: "💦", label: "Sweat Droplets" },
+  { emoji: "🍑", label: "Peach" },
+  { emoji: "😈", label: "Devil" },
+  { emoji: "😏", label: "Smirk" },
+  { emoji: "🥵", label: "Hot Face" },
+  { emoji: "😍", label: "Heart Eyes" },
+  { emoji: "🤤", label: "Drooling" },
 ];
