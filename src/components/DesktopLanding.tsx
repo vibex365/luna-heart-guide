@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import LunaAvatar from "./LunaAvatar";
 import SocialLinks from "./SocialLinks";
+import CouplesInteractiveDemo from "./CouplesInteractiveDemo";
 import InteractiveDemo from "./InteractiveDemo";
 
 const features = [
