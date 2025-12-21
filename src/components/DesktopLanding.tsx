@@ -6,6 +6,14 @@ import LunaAvatar from "./LunaAvatar";
 import SocialLinks from "./SocialLinks";
 import CouplesInteractiveDemo from "./CouplesInteractiveDemo";
 import InteractiveDemo from "./InteractiveDemo";
+
+// Import landing page images
+import heroCouple from "@/assets/landing/hero-couple.jpg";
+import journalingMoment from "@/assets/landing/journaling-moment.jpg";
+import couplesPlaying from "@/assets/landing/couples-playing.jpg";
+import breathingCalm from "@/assets/landing/breathing-calm.jpg";
+import couplesEmbrace from "@/assets/landing/couples-embrace.jpg";
+
 const features = [{
   icon: MessageCircle,
   title: "AI-Powered Conversations",
@@ -104,16 +112,24 @@ const DesktopLanding = () => {
     }
   };
   return <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Section 1: Hero */}
+      {/* Section 1: Hero with Image */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Animated romantic background */}
-        <div className="absolute inset-0 gradient-hero" />
-        <div className="absolute inset-0 romantic-glow" />
+        {/* Hero background image with overlay */}
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/25 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-peach/40 rounded-full blur-3xl animate-pulse delay-1000" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/30 rounded-full blur-3xl" />
-          <div className="absolute top-1/3 right-1/3 w-64 h-64 bg-accent/15 rounded-full blur-3xl animate-float" />
+          <img 
+            src={heroCouple} 
+            alt="Loving couple at sunset" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50" />
+        </div>
+        
+        {/* Animated romantic accents */}
+        <div className="absolute inset-0 romantic-glow opacity-50" />
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-accent/15 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-peach/25 rounded-full blur-3xl animate-pulse delay-1000" />
         </div>
 
         {/* Navigation */}
@@ -143,91 +159,90 @@ const DesktopLanding = () => {
           </div>
         </header>
 
-        {/* Hero Content */}
-        <div className="relative z-10 max-w-6xl mx-auto px-6 text-center pt-32">
-          <motion.div initial={{
-          opacity: 0,
-          scale: 0.8
-        }} animate={{
-          opacity: 1,
-          scale: 1
-        }} transition={{
-          duration: 0.5
-        }} className="mb-8 inline-flex items-center gap-2 bg-muted/50 backdrop-blur-sm px-4 py-2 rounded-full border border-border">
-            <Sparkles className="w-4 h-4 text-accent" />
-            <span className="text-sm text-muted-foreground">Your 24/7 AI Companion for Emotional Wellness</span>
-          </motion.div>
+        {/* Hero Content - Left aligned for split layout */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-32 w-full">
+          <div className="max-w-2xl">
+            <motion.div initial={{
+            opacity: 0,
+            scale: 0.8
+          }} animate={{
+            opacity: 1,
+            scale: 1
+          }} transition={{
+            duration: 0.5
+          }} className="mb-8 inline-flex items-center gap-2 bg-card/80 backdrop-blur-sm px-4 py-2 rounded-full border border-accent/30 shadow-soft">
+              <Sparkles className="w-4 h-4 text-accent" />
+              <span className="text-sm text-foreground">Your 24/7 AI Companion for Emotional Wellness</span>
+            </motion.div>
 
-          <motion.h1 initial={{
-          opacity: 0,
-          y: 30
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.2,
-          duration: 0.6
-        }} className="font-heading text-5xl md:text-7xl font-bold text-foreground mb-6 leading-tight">
-            Talk through feelings.
-            <br />
-            <span className="bg-gradient-to-r from-accent via-peach to-accent bg-clip-text text-transparent">Heal together.</span>
-          </motion.h1>
+            <motion.h1 initial={{
+            opacity: 0,
+            y: 30
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            delay: 0.2,
+            duration: 0.6
+          }} className="font-heading text-5xl md:text-7xl font-bold text-foreground mb-6 leading-tight">
+              Talk through feelings.
+              <br />
+              <span className="bg-gradient-to-r from-accent via-peach to-accent bg-clip-text text-transparent">Heal together.</span>
+            </motion.h1>
 
-          <motion.p initial={{
-          opacity: 0,
-          y: 30
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.3,
-          duration: 0.6
-        }} className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            A safe, judgment-free space to process emotions, strengthen relationships, 
-            and find clarity — powered by understanding AI.
-          </motion.p>
+            <motion.p initial={{
+            opacity: 0,
+            y: 30
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            delay: 0.3,
+            duration: 0.6
+          }} className="text-xl text-muted-foreground max-w-xl mb-10">
+              A safe, judgment-free space to process emotions, strengthen relationships, 
+              and find clarity — powered by understanding AI.
+            </motion.p>
 
-          <motion.div initial={{
-          opacity: 0,
-          y: 30
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.4,
-          duration: 0.6
-        }} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" variant="peach" className="text-lg px-8 py-6 shadow-button" onClick={() => navigate("/auth")}>
-              <Rocket className="w-5 h-5 mr-2" />
-              Start Your Journey — Free
-            </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6" onClick={() => navigate("/auth")}>
-              Watch Demo
-            </Button>
-          </motion.div>
+            <motion.div initial={{
+            opacity: 0,
+            y: 30
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            delay: 0.4,
+            duration: 0.6
+          }} className="flex flex-col sm:flex-row items-start gap-4">
+              <Button size="lg" variant="peach" className="text-lg px-8 py-6 shadow-button" onClick={() => navigate("/auth")}>
+                <Rocket className="w-5 h-5 mr-2" />
+                Start Your Journey — Free
+              </Button>
+              <Button size="lg" variant="outline" className="text-lg px-8 py-6 bg-card/50 backdrop-blur-sm" onClick={() => navigate("/auth")}>
+                Watch Demo
+              </Button>
+            </motion.div>
 
-          {/* Avatar showcase */}
-          <motion.div initial={{
-          opacity: 0,
-          y: 50
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.6,
-          duration: 0.8
-        }} className="mt-16 relative">
-            <div className="relative w-48 h-48 mx-auto">
-              <LunaAvatar size="lg" showGlow />
-              <motion.div animate={{
-              scale: [1, 1.1, 1],
-              opacity: [0.5, 0.8, 0.5]
-            }} transition={{
-              duration: 3,
-              repeat: Infinity
-            }} className="absolute inset-0 rounded-full bg-accent/20 blur-2xl -z-10" />
-            </div>
-          </motion.div>
+            {/* Luna Avatar next to text */}
+            <motion.div initial={{
+            opacity: 0,
+            y: 50
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            delay: 0.6,
+            duration: 0.8
+          }} className="mt-12 flex items-center gap-4">
+              <div className="relative w-16 h-16">
+                <LunaAvatar size="md" showGlow />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Meet Luna</p>
+                <p className="text-foreground font-medium">Your AI wellness companion</p>
+              </div>
+            </motion.div>
+          </div>
         </div>
 
         {/* Scroll indicator */}
@@ -331,17 +346,20 @@ const DesktopLanding = () => {
             step: "01",
             icon: Heart,
             title: "Share Your Feelings",
-            description: "Start a conversation with Luna about anything on your mind. No judgment, just understanding."
+            description: "Start a conversation with Luna about anything on your mind. No judgment, just understanding.",
+            image: journalingMoment
           }, {
             step: "02",
             icon: Brain,
             title: "Gain Insights",
-            description: "Luna helps you understand patterns in your emotions and provides personalized guidance."
+            description: "Luna helps you understand patterns in your emotions and provides personalized guidance.",
+            image: breathingCalm
           }, {
             step: "03",
             icon: Zap,
             title: "Take Action",
-            description: "Use tools like breathing exercises, journaling, and communication scripts to grow."
+            description: "Use tools like breathing exercises, journaling, and communication scripts to grow.",
+            image: couplesEmbrace
           }].map((item, index) => {
             const Icon = item.icon;
             return <motion.div key={item.step} initial={{
@@ -355,8 +373,13 @@ const DesktopLanding = () => {
             }} transition={{
               delay: index * 0.2
             }} className="relative text-center">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full gradient-romantic mb-6 shadow-romantic">
-                    <Icon className="w-10 h-10 text-accent-foreground" />
+                  {/* Step image */}
+                  <div className="relative w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-4 border-accent/30 shadow-romantic">
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-accent/30 to-transparent" />
+                  </div>
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 inline-flex items-center justify-center w-10 h-10 rounded-full gradient-romantic shadow-soft">
+                    <Icon className="w-5 h-5 text-accent-foreground" />
                   </div>
                   <span className="absolute top-0 right-1/4 text-6xl font-bold bg-gradient-to-b from-accent/20 to-transparent bg-clip-text text-transparent">
                     {item.step}
@@ -427,27 +450,34 @@ const DesktopLanding = () => {
           }} className="relative">
               <div className="relative aspect-square max-w-md mx-auto">
                 <div className="absolute inset-0 bg-gradient-to-br from-accent/30 to-primary/20 rounded-3xl blur-2xl" />
-                <div className="relative bg-card rounded-3xl p-8 border border-border shadow-luna">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
-                      <Users className="w-6 h-6 text-accent" />
+                {/* Couples image with overlay card */}
+                <div className="relative rounded-3xl overflow-hidden shadow-luna">
+                  <img 
+                    src={couplesPlaying} 
+                    alt="Happy couple playing together" 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent" />
+                  {/* Floating stats card */}
+                  <div className="absolute bottom-6 left-6 right-6 bg-card/95 backdrop-blur-sm rounded-2xl p-5 border border-accent/20 shadow-romantic">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+                        <Users className="w-5 h-5 text-accent" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground text-sm">Partner Connected</p>
+                        <p className="text-xs text-muted-foreground">Relationship Health: 92%</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-foreground">Partner Connected</p>
-                      <p className="text-sm text-muted-foreground">Relationship Health: 92%</p>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="bg-muted/50 rounded-xl p-4">
-                      <p className="text-sm text-muted-foreground mb-1">Today's Challenge</p>
-                      <p className="font-medium text-foreground">Share 3 things you appreciate about each other</p>
-                    </div>
-                    <div className="bg-muted/50 rounded-xl p-4">
-                      <p className="text-sm text-muted-foreground mb-1">Current Streak</p>
-                      <p className="font-medium text-foreground">🔥 14 days of connection</p>
-                    </div>
-                    <div className="bg-accent/10 rounded-xl p-4 border border-accent/20">
-                      <p className="text-sm text-accent">Next milestone in 3 days!</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-muted/50 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground">Streak</p>
+                        <p className="font-medium text-foreground text-sm">🔥 14 days</p>
+                      </div>
+                      <div className="bg-accent/10 rounded-lg p-3 border border-accent/20">
+                        <p className="text-xs text-accent">Milestone</p>
+                        <p className="font-medium text-foreground text-sm">3 days!</p>
+                      </div>
                     </div>
                   </div>
                 </div>
