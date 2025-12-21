@@ -641,17 +641,25 @@ const DesktopLanding = () => {
       {/* Footer */}
       <footer className="py-12 bg-card border-t border-border">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <LunaAvatar size="sm" showGlow={false} />
-              <span className="font-heading font-bold text-xl text-foreground">LUNA</span>
+          <div className="flex flex-col items-center gap-8">
+            <div className="flex flex-col md:flex-row items-center justify-between w-full gap-6">
+              <div className="flex items-center gap-3">
+                <LunaAvatar size="sm" showGlow={false} />
+                <span className="font-heading font-bold text-xl text-foreground">LUNA</span>
+              </div>
+              <nav className="flex items-center gap-6 text-sm text-muted-foreground">
+                <a href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</a>
+                <a href="/terms" className="hover:text-foreground transition-colors">Terms of Service</a>
+                <a href="/resources" className="hover:text-foreground transition-colors">Resources</a>
+                <a href="/crisis" className="hover:text-foreground transition-colors">Crisis Help</a>
+              </nav>
             </div>
-            <nav className="flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
-              <a href="#" className="hover:text-foreground transition-colors">Terms</a>
-              <a href="/resources" className="hover:text-foreground transition-colors">Resources</a>
-              <a href="/crisis" className="hover:text-foreground transition-colors">Crisis Help</a>
-            </nav>
+            
+            {/* Social Icons */}
+            <div className="flex items-center gap-4">
+              <SocialLinks />
+            </div>
+            
             <p className="text-sm text-muted-foreground">
               © 2024 Luna. Your data is private and secure.
             </p>
