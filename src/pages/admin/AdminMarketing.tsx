@@ -13,7 +13,11 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Copy, Eye, MessageCircle, TrendingUp, Users, Download, RefreshCw, Send, Loader2, Plus, TestTube, Heart, Brain, Sparkles } from "lucide-react";
+import { Save, Copy, Eye, MessageCircle, TrendingUp, Users, Download, RefreshCw, Send, Loader2, Plus, TestTube, Heart, Brain, Sparkles, Image, Video, FileText, ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import appIcon1024 from "@/assets/app-icon-1024.png";
+import lunaIcon from "@/assets/luna-icon-512.png";
+import ogImage from "@/assets/luna-og-image.png";
 import { format } from "date-fns";
 import { GenderAnalyticsDashboard } from "@/components/admin/GenderAnalyticsDashboard";
 import { MarketingAdGenerator } from "@/components/admin/MarketingAdGenerator";
@@ -43,6 +47,161 @@ interface Lead {
   last_interaction_at: string;
   converted_at: string | null;
 }
+
+// Assets Section Component
+const AssetsSection = () => {
+  const navigate = useNavigate();
+  
+  const handleDownload = (url: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const downloadAllIcons = () => {
+    const icons = [
+      { url: '/icons/icon-72x72.png', name: 'icon-72x72.png' },
+      { url: '/icons/icon-96x96.png', name: 'icon-96x96.png' },
+      { url: '/icons/icon-128x128.png', name: 'icon-128x128.png' },
+      { url: '/icons/icon-192x192.png', name: 'icon-192x192.png' },
+      { url: '/icons/icon-512x512.png', name: 'icon-512x512.png' },
+    ];
+    icons.forEach((icon, i) => {
+      setTimeout(() => handleDownload(icon.url, icon.name), i * 200);
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* App Icons */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Image className="w-5 h-5" />
+            App Icons
+          </CardTitle>
+          <CardDescription>Download app icons for App Store, Play Store, and marketing</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex flex-col items-center gap-2 p-4 border rounded-lg">
+              <img src={appIcon1024} alt="App Icon 1024" className="w-16 h-16 rounded-xl shadow-lg" />
+              <span className="text-sm font-medium">1024x1024</span>
+              <span className="text-xs text-muted-foreground">App Store</span>
+              <Button size="sm" variant="outline" onClick={() => handleDownload(appIcon1024, 'luna-icon-1024.png')}>
+                <Download className="w-3 h-3 mr-1" /> Download
+              </Button>
+            </div>
+            <div className="flex flex-col items-center gap-2 p-4 border rounded-lg">
+              <img src={lunaIcon} alt="Luna Avatar" className="w-16 h-16 rounded-xl shadow-lg" />
+              <span className="text-sm font-medium">512x512</span>
+              <span className="text-xs text-muted-foreground">Avatar</span>
+              <Button size="sm" variant="outline" onClick={() => handleDownload(lunaIcon, 'luna-avatar-512.png')}>
+                <Download className="w-3 h-3 mr-1" /> Download
+              </Button>
+            </div>
+            <div className="flex flex-col items-center gap-2 p-4 border rounded-lg">
+              <img src={ogImage} alt="OG Image" className="w-16 h-10 object-cover rounded shadow-lg" />
+              <span className="text-sm font-medium">OG Image</span>
+              <span className="text-xs text-muted-foreground">Social Media</span>
+              <Button size="sm" variant="outline" onClick={() => handleDownload(ogImage, 'luna-og-image.png')}>
+                <Download className="w-3 h-3 mr-1" /> Download
+              </Button>
+            </div>
+            <div className="flex flex-col items-center gap-2 p-4 border rounded-lg">
+              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center">
+                <FileText className="w-8 h-8 text-primary" />
+              </div>
+              <span className="text-sm font-medium">All Icons</span>
+              <span className="text-xs text-muted-foreground">Multiple sizes</span>
+              <Button size="sm" variant="outline" onClick={downloadAllIcons}>
+                <Download className="w-3 h-3 mr-1" /> Download All
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Promo Videos */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Video className="w-5 h-5" />
+            Promo Videos
+          </CardTitle>
+          <CardDescription>Screen-recordable promo videos for different platforms</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-pink-500/20 to-purple-500/20">
+                  <Video className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h4 className="font-medium">All Promo Videos</h4>
+                  <p className="text-xs text-muted-foreground">TikTok, IG Reels, YouTube, Square</p>
+                </div>
+              </div>
+              <Button size="sm" onClick={() => navigate('/promo-videos')}>
+                <ExternalLink className="w-4 h-4 mr-1" /> Open
+              </Button>
+            </div>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20">
+                  <FileText className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <h4 className="font-medium">App Store Assets</h4>
+                  <p className="text-xs text-muted-foreground">Screenshots, descriptions, keywords</p>
+                </div>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => navigate('/app-store-assets')}>
+                <ExternalLink className="w-4 h-4 mr-1" /> Open
+              </Button>
+            </div>
+          </div>
+          
+          <div className="bg-muted/50 rounded-lg p-4">
+            <h4 className="font-medium mb-2">Video Export Tips</h4>
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+              <li><strong>TikTok/Reels:</strong> 1080×1920 (9:16), under 60 seconds</li>
+              <li><strong>YouTube Shorts:</strong> 1080×1920 (9:16), under 60 seconds</li>
+              <li><strong>YouTube Pre-roll:</strong> 1920×1080 (16:9), 15-30 seconds</li>
+              <li><strong>Instagram Feed:</strong> 1080×1080 (1:1), under 60 seconds</li>
+              <li>Add trending music or voiceover after screen recording</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Links */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Links</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate('/promo-videos')}>
+              <Video className="w-4 h-4 mr-1" /> Promo Videos
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/app-store-assets')}>
+              <FileText className="w-4 h-4 mr-1" /> App Store Assets
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/promo-video')}>
+              <Video className="w-4 h-4 mr-1" /> Legacy Promo
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
 const AdminMarketing = () => {
   const { toast } = useToast();
@@ -718,6 +877,7 @@ Ready to start healing?
             <TabsTrigger value="performance" className="text-xs sm:text-sm">Performance</TabsTrigger>
             <TabsTrigger value="analytics" className="gap-1 text-xs sm:text-sm"><Brain className="w-3 h-3 hidden sm:block" />Analytics</TabsTrigger>
             <TabsTrigger value="ads" className="gap-1 text-xs sm:text-sm"><Sparkles className="w-3 h-3 hidden sm:block" />Ads</TabsTrigger>
+            <TabsTrigger value="assets" className="gap-1 text-xs sm:text-sm"><Image className="w-3 h-3 hidden sm:block" />Assets</TabsTrigger>
           </TabsList>
 
           {/* Leads Tab */}
@@ -1120,6 +1280,11 @@ Ready to start healing?
 
           <TabsContent value="ads">
             <MarketingAdGenerator />
+          </TabsContent>
+
+          {/* Assets Tab */}
+          <TabsContent value="assets" className="space-y-6">
+            <AssetsSection />
           </TabsContent>
         </Tabs>
       </div>
