@@ -1146,6 +1146,31 @@ serve(async (req) => {
               console.log("Logged analytics for module:", module);
             }
           }).catch(err => console.error("Analytics error:", err));
+
+          // Generate partner suggestions (non-blocking) - only for non-crisis and non-breakup modules
+          const sensitiveModules = ['crisis', 'breakup_healing'];
+          const isSensitive = crisisResult.isCrisis || sensitiveModules.some(m => module.includes(m));
+          
+          if (!isSensitive) {
+            fetch(`${SUPABASE_URL}/functions/v1/generate-partner-suggestions`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+              },
+              body: JSON.stringify({
+                userId: userId,
+                conversationId: conversationId || null,
+                moduleActivated: module,
+              }),
+            }).then(res => {
+              if (!res.ok) {
+                console.log("Partner suggestion generation skipped or failed:", res.status);
+              } else {
+                console.log("Partner suggestion generation triggered");
+              }
+            }).catch(err => console.log("Partner suggestion error (non-critical):", err));
+          }
         }
       }
     }

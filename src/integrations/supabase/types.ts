@@ -1697,6 +1697,59 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_suggestions: {
+        Row: {
+          action_hint: string | null
+          created_at: string
+          expires_at: string
+          for_user_id: string
+          from_user_id: string
+          id: string
+          is_acted_on: boolean | null
+          is_dismissed: boolean | null
+          is_read: boolean | null
+          partner_link_id: string
+          suggestion_text: string
+          suggestion_type: string
+        }
+        Insert: {
+          action_hint?: string | null
+          created_at?: string
+          expires_at?: string
+          for_user_id: string
+          from_user_id: string
+          id?: string
+          is_acted_on?: boolean | null
+          is_dismissed?: boolean | null
+          is_read?: boolean | null
+          partner_link_id: string
+          suggestion_text: string
+          suggestion_type: string
+        }
+        Update: {
+          action_hint?: string | null
+          created_at?: string
+          expires_at?: string
+          for_user_id?: string
+          from_user_id?: string
+          id?: string
+          is_acted_on?: boolean | null
+          is_dismissed?: boolean | null
+          is_read?: boolean | null
+          partner_link_id?: string
+          suggestion_text?: string
+          suggestion_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_suggestions_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
