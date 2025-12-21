@@ -14,73 +14,76 @@
 
 @layer base {
   :root {
-    /* LUNA Design System - Soft Therapy Vibes */
+    /* LUNA Design System - Warm & Romantic */
     
     /* Core Colors */
-    --background: 30 25% 97%; /* Warm Sand #F3F1EC */
-    --foreground: 0 0% 16%; /* Charcoal Ink #2A2A2A */
+    --background: 20 30% 98%; /* Warm Cream */
+    --foreground: 350 20% 15%; /* Deep Wine */
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 16%;
+    --card-foreground: 350 20% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 16%;
+    --popover-foreground: 350 20% 15%;
 
-    /* Luna Blush - Primary emotional tone */
-    --primary: 330 50% 94%; /* #F7E9EF */
-    --primary-foreground: 0 0% 16%;
+    /* Rose Blush - Primary emotional tone */
+    --primary: 350 60% 92%; /* Soft Rose */
+    --primary-foreground: 350 40% 20%;
 
-    /* Calm Blue Mist - Emotional stability */
-    --secondary: 214 40% 85%; /* #C9D7E8 */
-    --secondary-foreground: 0 0% 16%;
+    /* Warm Coral Mist - Emotional warmth */
+    --secondary: 15 50% 90%; /* Coral Cream */
+    --secondary-foreground: 15 40% 20%;
 
-    /* Mauve Depth - Accent color */
-    --accent: 310 15% 49%; /* #8D6E8A */
+    /* Deep Rose - Accent color */
+    --accent: 345 55% 60%; /* Rose Pink */
     --accent-foreground: 0 0% 100%;
 
-    /* Peach Glow - CTA & highlights */
-    --peach: 20 100% 88%; /* #FFD5C2 */
-    --peach-foreground: 0 0% 16%;
+    /* Coral Peach - CTA & highlights */
+    --peach: 15 100% 85%; /* Warm Coral */
+    --peach-foreground: 15 60% 20%;
 
-    /* Luna Blush for muted surfaces */
-    --muted: 330 50% 94%;
-    --muted-foreground: 310 15% 40%;
+    /* Rose Blush for muted surfaces */
+    --muted: 350 50% 95%;
+    --muted-foreground: 350 25% 40%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 330 30% 88%;
-    --input: 330 30% 88%;
-    --ring: 310 15% 49%;
+    --border: 350 35% 90%;
+    --input: 350 35% 90%;
+    --ring: 345 55% 60%;
 
     --radius: 1rem;
 
     /* Custom Luna variables */
-    --luna-glow: 214 40% 85%;
-    --luna-bubble: 214 40% 92%;
-    --user-bubble: 30 25% 95%;
+    --luna-glow: 345 55% 75%;
+    --luna-bubble: 350 50% 94%;
+    --user-bubble: 15 40% 95%;
     
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(330 50% 94%) 0%, hsl(214 40% 90%) 50%, hsl(30 25% 97%) 100%);
-    --gradient-luna: linear-gradient(180deg, hsl(214 40% 88%) 0%, hsl(330 50% 92%) 100%);
-    --gradient-peach: linear-gradient(135deg, hsl(20 100% 88%) 0%, hsl(330 50% 90%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(30 25% 97%) 100%);
+    /* Romantic Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(350 60% 95%) 0%, hsl(15 50% 93%) 35%, hsl(330 40% 92%) 70%, hsl(20 30% 98%) 100%);
+    --gradient-luna: linear-gradient(180deg, hsl(350 55% 92%) 0%, hsl(15 45% 90%) 100%);
+    --gradient-peach: linear-gradient(135deg, hsl(15 100% 85%) 0%, hsl(350 60% 88%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(20 30% 98%) 100%);
+    --gradient-romantic: linear-gradient(135deg, hsl(350 65% 90%) 0%, hsl(345 55% 80%) 50%, hsl(15 70% 85%) 100%);
+    --gradient-warmth: linear-gradient(180deg, hsl(350 60% 93%) 0%, hsl(15 55% 91%) 50%, hsl(345 50% 88%) 100%);
 
     /* Shadows */
-    --shadow-soft: 0 4px 20px -4px hsl(310 15% 49% / 0.1);
-    --shadow-glow: 0 0 40px hsl(214 40% 85% / 0.4);
-    --shadow-luna: 0 8px 32px -8px hsl(214 40% 85% / 0.3);
-    --shadow-button: 0 4px 16px -4px hsl(20 100% 70% / 0.3);
+    --shadow-soft: 0 4px 20px -4px hsl(345 55% 60% / 0.12);
+    --shadow-glow: 0 0 40px hsl(345 55% 75% / 0.35);
+    --shadow-luna: 0 8px 32px -8px hsl(345 55% 70% / 0.25);
+    --shadow-button: 0 4px 16px -4px hsl(15 100% 70% / 0.35);
+    --shadow-romantic: 0 12px 40px -8px hsl(345 55% 60% / 0.2);
 
     /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 350 20% 25%;
+    --sidebar-primary: 345 55% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 350 50% 96%;
+    --sidebar-accent-foreground: 350 30% 25%;
+    --sidebar-border: 350 30% 92%;
+    --sidebar-ring: 345 55% 60%;
   }
 
   .dark {
@@ -184,6 +187,14 @@
   .gradient-soft {
     background: var(--gradient-soft);
   }
+
+  .gradient-romantic {
+    background: var(--gradient-romantic);
+  }
+
+  .gradient-warmth {
+    background: var(--gradient-warmth);
+  }
   
   .shadow-soft {
     box-shadow: var(--shadow-soft);
@@ -200,6 +211,10 @@
   .shadow-button {
     box-shadow: var(--shadow-button);
   }
+
+  .shadow-romantic {
+    box-shadow: var(--shadow-romantic);
+  }
   
   .luna-glow {
     @apply relative;
@@ -208,9 +223,13 @@
   .luna-glow::after {
     content: '';
     @apply absolute inset-0 rounded-full;
-    background: radial-gradient(circle, hsl(var(--luna-glow) / 0.4) 0%, transparent 70%);
+    background: radial-gradient(circle, hsl(var(--luna-glow) / 0.5) 0%, transparent 70%);
     filter: blur(20px);
     z-index: -1;
+  }
+
+  .romantic-glow {
+    background: radial-gradient(ellipse 60% 40% at 50% 40%, hsl(345 55% 70% / 0.2) 0%, transparent 70%);
   }
 
   .text-balance {

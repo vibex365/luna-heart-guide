@@ -146,12 +146,14 @@ const DesktopLanding = () => {
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Section 1: Hero */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Animated background */}
+        {/* Animated romantic background */}
         <div className="absolute inset-0 gradient-hero" />
+        <div className="absolute inset-0 romantic-glow" />
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-secondary/30 rounded-full blur-3xl animate-pulse delay-1000" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/25 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-peach/40 rounded-full blur-3xl animate-pulse delay-1000" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/30 rounded-full blur-3xl" />
+          <div className="absolute top-1/3 right-1/3 w-64 h-64 bg-accent/15 rounded-full blur-3xl animate-float" />
         </div>
 
         {/* Navigation */}
@@ -201,7 +203,7 @@ const DesktopLanding = () => {
           >
             Talk through feelings.
             <br />
-            <span className="text-accent">Heal together.</span>
+            <span className="bg-gradient-to-r from-accent via-peach to-accent bg-clip-text text-transparent">Heal together.</span>
           </motion.h1>
 
           <motion.p
@@ -278,7 +280,7 @@ const DesktopLanding = () => {
       </section>
 
       {/* Section 2: Stats Bar */}
-      <section className="py-12 bg-muted/30 border-y border-border">
+      <section className="py-12 gradient-warmth border-y border-accent/20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
@@ -290,7 +292,7 @@ const DesktopLanding = () => {
                 transition={{ delay: index * 0.1 }}
                 className="text-center"
               >
-                <p className="text-4xl font-bold text-accent mb-1">{stat.value}</p>
+                <p className="text-4xl font-bold bg-gradient-to-r from-accent to-peach bg-clip-text text-transparent mb-1">{stat.value}</p>
                 <p className="text-muted-foreground">{stat.label}</p>
               </motion.div>
             ))}
@@ -321,9 +323,9 @@ const DesktopLanding = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
-                  className="group p-6 rounded-2xl bg-card border border-border hover:border-accent/50 hover:shadow-luna transition-all duration-300"
+                  className="group p-6 rounded-2xl bg-card border border-accent/10 hover:border-accent/40 hover:shadow-romantic transition-all duration-300"
                 >
-                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br from-accent/20 to-peach/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-soft`}>
                     <Icon className="w-7 h-7 text-accent" />
                   </div>
                   <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
@@ -383,10 +385,10 @@ const DesktopLanding = () => {
                   transition={{ delay: index * 0.2 }}
                   className="relative text-center"
                 >
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full gradient-luna mb-6 shadow-luna">
-                    <Icon className="w-10 h-10 text-accent" />
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full gradient-romantic mb-6 shadow-romantic">
+                    <Icon className="w-10 h-10 text-accent-foreground" />
                   </div>
-                  <span className="absolute top-0 right-1/4 text-6xl font-bold text-accent/10">
+                  <span className="absolute top-0 right-1/4 text-6xl font-bold bg-gradient-to-b from-accent/20 to-transparent bg-clip-text text-transparent">
                     {item.step}
                   </span>
                   <h3 className="font-heading text-2xl font-semibold text-foreground mb-3">
@@ -403,7 +405,8 @@ const DesktopLanding = () => {
       </section>
 
       {/* Section 5: Couples Mode Highlight */}
-      <section className="py-24 bg-gradient-to-br from-primary/20 via-background to-secondary/20 overflow-hidden">
+      <section className="py-24 bg-gradient-to-br from-accent/15 via-primary/20 to-peach/25 overflow-hidden relative">
+        <div className="absolute inset-0 romantic-glow opacity-50" />
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -531,8 +534,9 @@ const DesktopLanding = () => {
       </section>
 
       {/* Section 7: Pricing */}
-      <section id="pricing" className="py-24 bg-muted/20">
-        <div className="max-w-6xl mx-auto px-6">
+      <section id="pricing" className="py-24 gradient-soft relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/5 to-transparent" />
+        <div className="max-w-6xl mx-auto px-6 relative z-10">
           <motion.div {...fadeInUp} className="text-center mb-16">
             <span className="text-accent text-sm font-medium uppercase tracking-wider">Pricing</span>
             <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mt-3 mb-4">
@@ -553,8 +557,8 @@ const DesktopLanding = () => {
                 transition={{ delay: index * 0.1 }}
                 className={`relative rounded-2xl p-6 ${
                   plan.highlight
-                    ? "bg-accent text-accent-foreground scale-105 shadow-xl"
-                    : "bg-card border border-border"
+                    ? "gradient-romantic text-accent-foreground scale-105 shadow-romantic border border-accent/30"
+                    : "bg-card border border-accent/10 hover:border-accent/30 hover:shadow-soft transition-all"
                 }`}
               >
                 {plan.popular && (
@@ -595,10 +599,12 @@ const DesktopLanding = () => {
       </section>
 
       {/* Section 8: Final CTA */}
-      <section className="py-24 bg-gradient-to-br from-primary/30 via-background to-accent/20 relative overflow-hidden">
+      <section className="py-24 bg-gradient-to-br from-accent/20 via-primary/25 to-peach/30 relative overflow-hidden">
+        <div className="absolute inset-0 romantic-glow" />
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-accent/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/30 rounded-full blur-3xl" />
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-accent/25 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-peach/35 rounded-full blur-3xl animate-pulse delay-700" />
+          <div className="absolute top-1/2 right-1/4 w-48 h-48 bg-primary/30 rounded-full blur-3xl animate-float" />
         </div>
         
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
