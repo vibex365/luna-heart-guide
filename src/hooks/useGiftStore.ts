@@ -148,21 +148,19 @@ export const useGiftStore = (partnerLinkId?: string, partnerId?: string) => {
       // Spend coins first
       await spendCoins(coinPrice, 'gift_purchase', `Sent ${gift.name}`);
 
-      // Record the gift in the database
-      const { data, error } = await supabase
-        .from('partner_gifts')
-        .insert({
-          partner_link_id: partnerLinkId,
-          sender_id: user.id,
-          recipient_id: partnerId,
-          gift_id: giftId,
+      // Use the record-gift edge function to record the gift AND send SMS notification
+      const { data, error } = await supabase.functions.invoke('record-gift', {
+        body: {
+          giftId,
+          recipientId: partnerId,
+          partnerLinkId,
           message,
-        })
-        .select()
-        .single();
+          senderId: user.id,
+        },
+      });
 
       if (error) throw error;
-      return data;
+      return data.gift;
     },
     onSuccess: () => {
       toast.success("Gift sent with coins! 🎁");
