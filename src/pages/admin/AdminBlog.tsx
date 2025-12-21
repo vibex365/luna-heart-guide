@@ -26,6 +26,7 @@ import {
   ListTodo,
   Settings,
   Plus,
+  ImageIcon,
 } from "lucide-react";
 
 const AdminBlog = () => {
@@ -33,6 +34,7 @@ const AdminBlog = () => {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isRegeneratingImages, setIsRegeneratingImages] = useState(false);
 
   // Fetch blog posts
   const { data: posts, isLoading: postsLoading } = useQuery({
@@ -155,6 +157,34 @@ const AdminBlog = () => {
     }
   };
 
+  // Regenerate all blog images
+  const handleRegenerateImages = async () => {
+    setIsRegeneratingImages(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("regenerate-blog-images");
+      
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast({
+          title: "Images regenerated!",
+          description: data.message,
+        });
+        queryClient.invalidateQueries({ queryKey: ["admin-blog-posts"] });
+      } else {
+        throw new Error(data?.error || "Failed to regenerate images");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error regenerating images",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsRegeneratingImages(false);
+    }
+  };
+
   // Add new topic
   const addTopicMutation = useMutation({
     mutationFn: async (topic: string) => {
@@ -183,19 +213,34 @@ const AdminBlog = () => {
             <h1 className="text-2xl font-bold text-foreground">Blog Management</h1>
             <p className="text-muted-foreground">AI-powered content generation for SEO traffic</p>
           </div>
-          <Button onClick={handleGeneratePost} disabled={isGenerating} variant="peach">
-            {isGenerating ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Generate Post Now
-              </>
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleRegenerateImages} disabled={isRegeneratingImages} variant="outline">
+              {isRegeneratingImages ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Regenerating Images...
+                </>
+              ) : (
+                <>
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  Regenerate All Images
+                </>
+              )}
+            </Button>
+            <Button onClick={handleGeneratePost} disabled={isGenerating} variant="peach">
+              {isGenerating ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate Post Now
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
