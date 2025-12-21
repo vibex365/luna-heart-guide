@@ -667,6 +667,8 @@ export type Database = {
           media_url: string | null
           message_type: string
           partner_link_id: string
+          reactions: Json | null
+          reply_to_id: string | null
           sender_id: string
           thumbnail_url: string | null
           updated_at: string | null
@@ -680,6 +682,8 @@ export type Database = {
           media_url?: string | null
           message_type: string
           partner_link_id: string
+          reactions?: Json | null
+          reply_to_id?: string | null
           sender_id: string
           thumbnail_url?: string | null
           updated_at?: string | null
@@ -693,6 +697,8 @@ export type Database = {
           media_url?: string | null
           message_type?: string
           partner_link_id?: string
+          reactions?: Json | null
+          reply_to_id?: string | null
           sender_id?: string
           thumbnail_url?: string | null
           updated_at?: string | null
@@ -703,6 +709,13 @@ export type Database = {
             columns: ["partner_link_id"]
             isOneToOne: false
             referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "couples_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "couples_messages"
             referencedColumns: ["id"]
           },
         ]
@@ -786,6 +799,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      couples_typing_status: {
+        Row: {
+          id: string
+          is_typing: boolean | null
+          partner_link_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_typing?: boolean | null
+          partner_link_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_typing?: boolean | null
+          partner_link_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "couples_typing_status_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       daily_affirmation_templates: {
         Row: {
