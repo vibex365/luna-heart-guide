@@ -2,6 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useVirtualCurrency } from "./useVirtualCurrency";
+
+// Convert cents to coin value
+export const getCoinPrice = (priceCents: number): number => {
+  return Math.ceil(priceCents / 2);
+};
 
 export interface DigitalGift {
   id: string;
@@ -33,6 +39,7 @@ export interface PartnerGift {
 export const useGiftStore = (partnerLinkId?: string, partnerId?: string) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { spendCoins } = useVirtualCurrency();
 
   // Fetch available gifts
   const { data: gifts = [], isLoading: giftsLoading } = useQuery({
@@ -125,6 +132,48 @@ export const useGiftStore = (partnerLinkId?: string, partnerId?: string) => {
     },
   });
 
+  // Send gift with coins (no Stripe)
+  const sendGiftWithCoinsMutation = useMutation({
+    mutationFn: async ({ giftId, message }: { giftId: string; message?: string }) => {
+      if (!partnerLinkId || !partnerId || !user) {
+        throw new Error("Missing required data");
+      }
+
+      // Get the gift to find the coin price
+      const gift = gifts.find(g => g.id === giftId);
+      if (!gift) throw new Error("Gift not found");
+
+      const coinPrice = getCoinPrice(gift.price_cents);
+
+      // Spend coins first
+      await spendCoins(coinPrice, 'gift_purchase', `Sent ${gift.name}`);
+
+      // Record the gift in the database
+      const { data, error } = await supabase
+        .from('partner_gifts')
+        .insert({
+          partner_link_id: partnerLinkId,
+          sender_id: user.id,
+          recipient_id: partnerId,
+          gift_id: giftId,
+          message,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Gift sent with coins! 🎁");
+      queryClient.invalidateQueries({ queryKey: ['sent-gifts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-coins'] });
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to send gift: ${error.message}`);
+    },
+  });
+
   // Mark gift as opened
   const openGiftMutation = useMutation({
     mutationFn: async (giftId: string) => {
@@ -185,7 +234,8 @@ export const useGiftStore = (partnerLinkId?: string, partnerId?: string) => {
     sentLoading,
     unopenedGiftsCount,
     sendGift: sendGiftMutation.mutate,
-    isSending: sendGiftMutation.isPending,
+    sendGiftWithCoins: sendGiftWithCoinsMutation.mutate,
+    isSending: sendGiftMutation.isPending || sendGiftWithCoinsMutation.isPending,
     openGift: openGiftMutation.mutate,
     subscribeToGifts,
     refetchReceived,
