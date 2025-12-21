@@ -69,25 +69,42 @@ export const FlirtyEmojiButton = ({ onSelect }: FlirtyEmojiButtonProps) => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 10 }}
               transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="absolute bottom-14 left-1/2 -translate-x-1/2 z-50 bg-card border border-border rounded-2xl p-3 shadow-xl"
+              className="absolute bottom-14 right-0 z-50 bg-card border border-border rounded-2xl p-4 shadow-2xl min-w-[280px]"
             >
-              <div className="flex items-center gap-1 mb-2 px-1">
-                <Flame className="w-3 h-3 text-red-500" />
-                <span className="text-xs text-muted-foreground font-medium">Flirty</span>
+              {/* Header */}
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
+                  <Flame className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <span className="text-sm font-semibold text-foreground">Flirty Emojis</span>
+                  <p className="text-xs text-muted-foreground">Send something spicy 🔥</p>
+                </div>
               </div>
-              <div className="grid grid-cols-5 gap-1">
-                {flirtyQuickEmojis.map((emoji) => (
+              
+              {/* Emoji grid */}
+              <div className="grid grid-cols-5 gap-2">
+                {flirtyQuickEmojis.map((emoji, index) => (
                   <motion.button
                     key={emoji.id}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.03 }}
+                    whileHover={{ scale: 1.3, rotate: [0, -10, 10, 0] }}
+                    whileTap={{ scale: 0.8 }}
                     onClick={() => handleSelect(emoji)}
-                    className="w-10 h-10 flex items-center justify-center text-2xl rounded-lg hover:bg-muted transition-colors"
+                    className="w-12 h-12 flex items-center justify-center text-2xl rounded-xl hover:bg-gradient-to-br hover:from-red-500/10 hover:to-pink-500/10 transition-all duration-200 active:bg-red-500/20"
+                    title={emoji.label}
                   >
                     {emoji.emoji}
                   </motion.button>
                 ))}
               </div>
+              
+              {/* Tip */}
+              <p className="text-[10px] text-muted-foreground text-center mt-3 pt-2 border-t border-border">
+                Tap to send instantly
+              </p>
             </motion.div>
           </>
         )}
