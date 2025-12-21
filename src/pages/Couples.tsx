@@ -45,6 +45,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePartnerNotifications } from "@/hooks/usePartnerNotifications";
 import { Badge } from "@/components/ui/badge";
+import TwoTruthsOneLie from "@/components/couples/TwoTruthsOneLie";
+import MostLikelyTo from "@/components/couples/MostLikelyTo";
+import NewlywedGame from "@/components/couples/NewlywedGame";
+import ThirtySixQuestions from "@/components/couples/ThirtySixQuestions";
+import SpinTheWheel from "@/components/couples/SpinTheWheel";
 
 const Couples = () => {
   const navigate = useNavigate();
@@ -470,6 +475,46 @@ const Couples = () => {
               transition={{ delay: 0.58 }}
             >
               <GameStatsCard partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.59 }}
+            >
+              <TwoTruthsOneLie partnerLinkId={partnerLink?.id || ""} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.60 }}
+            >
+              <MostLikelyTo partnerLinkId={partnerLink?.id || ""} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.61 }}
+            >
+              <NewlywedGame partnerLinkId={partnerLink?.id || ""} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.62 }}
+            >
+              <ThirtySixQuestions partnerLinkId={partnerLink?.id || ""} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.63 }}
+            >
+              <SpinTheWheel partnerLinkId={partnerLink?.id || ""} />
             </motion.div>
 
             <motion.div
