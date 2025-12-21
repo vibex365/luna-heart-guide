@@ -5,16 +5,21 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Send, Mic, MessageCircle, Heart, Video } from "lucide-react";
+import { ArrowLeft, Send, Mic, MessageCircle, Heart, Video, Smile } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage } from "./ChatMessage";
 import { VoiceRecorderButton } from "./VoiceRecorderButton";
 import { VideoRecorderButton } from "./VideoRecorderButton";
+import { StickerPicker } from "./StickerPicker";
+import { ReplyPreview } from "./ReplyPreview";
+import { TypingIndicator } from "./TypingIndicator";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { useVideoRecorder } from "@/hooks/useVideoRecorder";
+import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { notifyPartner } from "@/utils/smsNotifications";
 import { cn } from "@/lib/utils";
+import { Sticker } from "@/data/chatStickers";
 
 interface CouplesChatProps {
   partnerLinkId: string;
@@ -24,17 +29,26 @@ interface CouplesChatProps {
   onClose: () => void;
 }
 
+interface ReplyToMessage {
+  id: string;
+  content: string | null;
+  message_type: string;
+  sender_id: string;
+}
+
 interface Message {
   id: string;
   partner_link_id: string;
   sender_id: string;
-  message_type: "text" | "voice" | "video" | "image";
+  message_type: "text" | "voice" | "video" | "image" | "sticker";
   content: string | null;
   media_url: string | null;
   media_duration: number | null;
   thumbnail_url: string | null;
   is_read: boolean;
   created_at: string;
+  reactions: Record<string, string> | null;
+  reply_to_id: string | null;
 }
 
 export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName, onClose }: CouplesChatProps) => {
@@ -42,11 +56,18 @@ export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName,
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   const [isVoiceMode, setIsVoiceMode] = useState(false);
+  const [showStickerPicker, setShowStickerPicker] = useState(false);
+  const [replyTo, setReplyTo] = useState<ReplyToMessage | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const voiceRecorder = useVoiceRecorder({ maxDuration: 60 });
   const videoRecorder = useVideoRecorder({ maxDuration: 60 });
+  const { isPartnerTyping, handleTyping, clearTyping } = useTypingIndicator({
+    partnerLinkId,
+    partnerId,
+  });
 
   // Fetch messages
   const { data: messages = [], isLoading } = useQuery({
@@ -64,14 +85,17 @@ export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName,
     enabled: !!partnerLinkId,
   });
 
-  // Subscribe to real-time messages
+  // Create a map of messages for quick lookup
+  const messagesMap = new Map(messages.map((m) => [m.id, m]));
+
+  // Subscribe to real-time messages and updates
   useEffect(() => {
     const channel = supabase
       .channel(`couples-chat-${partnerLinkId}`)
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "couples_messages",
           filter: `partner_link_id=eq.${partnerLinkId}`,
@@ -79,8 +103,8 @@ export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName,
         (payload) => {
           queryClient.invalidateQueries({ queryKey: ["couples-messages", partnerLinkId] });
           
-          // Mark as read if from partner
-          if (payload.new.sender_id !== user?.id) {
+          // Mark as read if new message from partner
+          if (payload.eventType === "INSERT" && payload.new.sender_id !== user?.id) {
             markAsRead(payload.new.id);
           }
         }
@@ -127,11 +151,12 @@ export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName,
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (data: {
-      messageType: "text" | "voice" | "video" | "image";
+      messageType: "text" | "voice" | "video" | "image" | "sticker";
       content?: string;
       mediaUrl?: string;
       mediaDuration?: number;
       thumbnailUrl?: string;
+      replyToId?: string;
     }) => {
       if (!user) throw new Error("Not authenticated");
 
@@ -143,21 +168,57 @@ export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName,
         media_url: data.mediaUrl || null,
         media_duration: data.mediaDuration || null,
         thumbnail_url: data.thumbnailUrl || null,
+        reply_to_id: data.replyToId || null,
       });
 
       if (error) throw error;
 
       // Send SMS notification to partner
       if (partnerId) {
-        notifyPartner.newMessage(partnerId, senderName, data.messageType);
+        const notifyType = data.messageType === "sticker" ? "text" : data.messageType;
+        notifyPartner.newMessage(partnerId, senderName, notifyType);
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["couples-messages", partnerLinkId] });
       setMessage("");
+      setReplyTo(null);
+      clearTyping();
     },
     onError: () => {
       toast.error("Failed to send message");
+    },
+  });
+
+  // Update reaction mutation
+  const updateReactionMutation = useMutation({
+    mutationFn: async ({ messageId, emoji }: { messageId: string; emoji: string }) => {
+      if (!user) throw new Error("Not authenticated");
+
+      const msg = messagesMap.get(messageId);
+      if (!msg) throw new Error("Message not found");
+
+      const currentReactions = msg.reactions || {};
+      let newReactions: Record<string, string>;
+
+      if (emoji === "" || currentReactions[user.id] === emoji) {
+        // Remove reaction
+        const { [user.id]: _, ...rest } = currentReactions;
+        newReactions = rest;
+      } else {
+        // Add/update reaction
+        newReactions = { ...currentReactions, [user.id]: emoji };
+      }
+
+      const { error } = await supabase
+        .from("couples_messages")
+        .update({ reactions: newReactions })
+        .eq("id", messageId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["couples-messages", partnerLinkId] });
     },
   });
 
@@ -166,7 +227,17 @@ export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName,
     sendMessageMutation.mutate({
       messageType: "text",
       content: message.trim(),
+      replyToId: replyTo?.id,
     });
+  };
+
+  const handleSendSticker = (sticker: Sticker) => {
+    sendMessageMutation.mutate({
+      messageType: "sticker",
+      content: sticker.emoji,
+      replyToId: replyTo?.id,
+    });
+    setShowStickerPicker(false);
   };
 
   const handleSendVoice = async () => {
@@ -177,6 +248,7 @@ export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName,
         messageType: "voice",
         mediaUrl: audioUrl,
         mediaDuration: voiceRecorder.duration,
+        replyToId: replyTo?.id,
       });
       voiceRecorder.clearAudio();
     }
@@ -191,8 +263,33 @@ export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName,
         mediaUrl: result.videoUrl,
         thumbnailUrl: result.thumbnailUrl,
         mediaDuration: videoRecorder.duration,
+        replyToId: replyTo?.id,
       });
       videoRecorder.clearVideo();
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
+    handleTyping();
+  };
+
+  const handleReply = (msg: Message) => {
+    setReplyTo({
+      id: msg.id,
+      content: msg.content,
+      message_type: msg.message_type,
+      sender_id: msg.sender_id,
+    });
+    inputRef.current?.focus();
+  };
+
+  const scrollToMessage = (messageId: string) => {
+    const element = messageRefs.current.get(messageId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      element.classList.add("animate-pulse");
+      setTimeout(() => element.classList.remove("animate-pulse"), 1000);
     }
   };
 
@@ -213,7 +310,29 @@ export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName,
             <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
             {partnerName}
           </h2>
-          <p className="text-xs text-muted-foreground">Private chat</p>
+          <AnimatePresence mode="wait">
+            {isPartnerTyping ? (
+              <motion.p
+                key="typing"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-xs text-primary"
+              >
+                typing...
+              </motion.p>
+            ) : (
+              <motion.p
+                key="status"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-xs text-muted-foreground"
+              >
+                Private chat
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
       </header>
 
@@ -232,28 +351,74 @@ export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName,
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {messages.map((msg) => (
-              <ChatMessage
-                key={msg.id}
-                id={msg.id}
-                messageType={msg.message_type}
-                content={msg.content || undefined}
-                mediaUrl={msg.media_url || undefined}
-                mediaDuration={msg.media_duration || undefined}
-                thumbnailUrl={msg.thumbnail_url || undefined}
-                isOwn={msg.sender_id === user?.id}
-                isRead={msg.is_read}
-                createdAt={msg.created_at}
-                senderName={msg.sender_id !== user?.id ? partnerName : undefined}
-              />
-            ))}
+          <div className="space-y-4">
+            {messages.map((msg) => {
+              const replyToMsg = msg.reply_to_id ? messagesMap.get(msg.reply_to_id) : null;
+              return (
+                <div
+                  key={msg.id}
+                  ref={(el) => {
+                    if (el) messageRefs.current.set(msg.id, el);
+                  }}
+                >
+                  <ChatMessage
+                    id={msg.id}
+                    messageType={msg.message_type}
+                    content={msg.content || undefined}
+                    mediaUrl={msg.media_url || undefined}
+                    mediaDuration={msg.media_duration || undefined}
+                    thumbnailUrl={msg.thumbnail_url || undefined}
+                    isOwn={msg.sender_id === user?.id}
+                    isRead={msg.is_read}
+                    createdAt={msg.created_at}
+                    senderName={msg.sender_id !== user?.id ? partnerName : undefined}
+                    reactions={msg.reactions}
+                    replyTo={replyToMsg ? {
+                      id: replyToMsg.id,
+                      content: replyToMsg.content,
+                      message_type: replyToMsg.message_type,
+                      sender_id: replyToMsg.sender_id,
+                    } : null}
+                    replyToSenderName={replyToMsg?.sender_id === user?.id ? "You" : partnerName}
+                    currentUserId={user?.id}
+                    onReact={(emoji) => updateReactionMutation.mutate({ messageId: msg.id, emoji })}
+                    onReply={() => handleReply(msg)}
+                    onScrollToMessage={scrollToMessage}
+                  />
+                </div>
+              );
+            })}
+            
+            {/* Typing Indicator */}
+            <AnimatePresence>
+              {isPartnerTyping && (
+                <TypingIndicator partnerName={partnerName} />
+              )}
+            </AnimatePresence>
           </div>
         )}
       </ScrollArea>
 
       {/* Input area */}
-      <div className="p-4 border-t border-border bg-background/95 backdrop-blur-lg">
+      <div className="p-4 border-t border-border bg-background/95 backdrop-blur-lg relative">
+        {/* Sticker Picker */}
+        <StickerPicker
+          isOpen={showStickerPicker}
+          onSelect={handleSendSticker}
+          onClose={() => setShowStickerPicker(false)}
+        />
+
+        {/* Reply Preview */}
+        <AnimatePresence>
+          {replyTo && (
+            <ReplyPreview
+              replyTo={replyTo}
+              senderName={replyTo.sender_id === user?.id ? "You" : partnerName}
+              onClear={() => setReplyTo(null)}
+            />
+          )}
+        </AnimatePresence>
+
         <AnimatePresence mode="wait">
           {isVoiceMode ? (
             <motion.div
@@ -291,6 +456,16 @@ export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName,
               exit={{ opacity: 0, y: 10 }}
               className="flex items-center gap-2"
             >
+              {/* Sticker button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowStickerPicker(!showStickerPicker)}
+                className="h-10 w-10 rounded-full bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
+              >
+                <Smile className="w-5 h-5" />
+              </Button>
+
               {/* Video button */}
               <VideoRecorderButton
                 isRecording={videoRecorder.isRecording}
@@ -322,7 +497,7 @@ export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName,
               <Input
                 ref={inputRef}
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={handleInputChange}
                 placeholder="Type a message..."
                 className="flex-1"
                 onKeyDown={(e) => {
