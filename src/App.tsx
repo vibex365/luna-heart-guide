@@ -29,7 +29,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import AppStoreAssets from "./pages/AppStoreAssets";
 import PromoVideoTemplate from "./pages/PromoVideoTemplate";
-import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminAnalytics, AdminFunnelAnalytics, AdminMarketing, AdminSettings, AdminFeedback, AdminNotifications } from "./pages/admin";
+import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminModeration, AdminCoins, AdminAnalytics, AdminFunnelAnalytics, AdminMarketing, AdminSettings, AdminFeedback, AdminNotifications } from "./pages/admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -119,6 +119,22 @@ const App = () => (
             element={
               <AdminRoute>
                 <AdminSafety />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/moderation"
+            element={
+              <AdminRoute>
+                <AdminModeration />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/coins"
+            element={
+              <AdminRoute>
+                <AdminCoins />
               </AdminRoute>
             }
           />
