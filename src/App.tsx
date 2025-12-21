@@ -32,7 +32,9 @@ import AppStoreAssets from "./pages/AppStoreAssets";
 import PromoVideoTemplate from "./pages/PromoVideoTemplate";
 import PromoVideos from "./pages/PromoVideos";
 import CoinPurchase from "./pages/CoinPurchase";
-import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminModeration, AdminCoins, AdminAnalytics, AdminFunnelAnalytics, AdminMarketing, AdminSettings, AdminFeedback, AdminNotifications } from "./pages/admin";
+import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminModeration, AdminCoins, AdminAnalytics, AdminFunnelAnalytics, AdminMarketing, AdminSettings, AdminFeedback, AdminNotifications, AdminBlog } from "./pages/admin";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -195,6 +197,16 @@ const App = () => (
               </AdminRoute>
             }
           />
+          <Route
+            path="/admin/blog"
+            element={
+              <AdminRoute>
+                <AdminBlog />
+              </AdminRoute>
+            }
+          />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AuthProvider>
