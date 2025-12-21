@@ -52,7 +52,7 @@ const features = [
   {
     icon: Users,
     title: "Couples Mode",
-    description: "Play relationship games, send private messages, track shared moods, and grow together.",
+    description: "Send digital gifts, play relationship games, daily journaling, private chat, and earn coins together.",
     gradient: "from-primary/40 to-accent/30",
   },
   {
@@ -115,10 +115,10 @@ const pricingPlans = [
     period: "/month",
     features: [
       "Everything in Pro",
+      "Send digital gifts",
       "Private couples chat",
+      "Daily journal prompts",
       "Relationship games",
-      "Shared mood tracking",
-      "Milestone celebrations",
     ],
     highlight: false,
     popular: false,
@@ -425,10 +425,11 @@ const DesktopLanding = () => {
               </p>
               <ul className="space-y-4 mb-8">
                 {[
+                  "Send digital gifts with animations",
                   "Private encrypted messaging",
+                  "Daily journal prompts together",
                   "Fun relationship quizzes & games",
-                  "Shared mood tracking & insights",
-                  "Date night idea generator",
+                  "Earn & spend coins on gifts",
                   "Milestone & anniversary reminders",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3">
