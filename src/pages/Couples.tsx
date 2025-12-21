@@ -328,6 +328,15 @@ const Couples = () => {
               <DailyQuestionCard partnerLinkId={partnerLink?.id} />
             </motion.div>
 
+            {/* Daily Journal Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.075 }}
+            >
+              <DailyJournalCard partnerName={partnerName} />
+            </motion.div>
+
             {/* Expert Daily Tip */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
