@@ -5,13 +5,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Send, Mic, MessageCircle, Heart, Video, Smile } from "lucide-react";
+import { ArrowLeft, Send, Mic, MessageCircle, Heart, Smile } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatMessage } from "./ChatMessage";
 import { VoiceRecorderButton } from "./VoiceRecorderButton";
 import { VideoRecorderButton } from "./VideoRecorderButton";
 import { StickerPicker } from "./StickerPicker";
+import { FlirtyEmojiButton } from "./FlirtyEmojiButton";
 import { ReplyPreview } from "./ReplyPreview";
 import { TypingIndicator } from "./TypingIndicator";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
@@ -482,6 +483,9 @@ export const CouplesChat = ({ partnerLinkId, partnerName, partnerId, senderName,
                 onCancel={videoRecorder.cancelRecording}
                 className="h-10 w-10 rounded-full bg-pink-500/10 text-pink-500 hover:bg-pink-500/20"
               />
+
+              {/* Flirty emoji button */}
+              <FlirtyEmojiButton onSelect={handleSendSticker} />
 
               {/* Voice button */}
               <Button
