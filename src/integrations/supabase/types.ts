@@ -2270,6 +2270,65 @@ export type Database = {
           },
         ]
       }
+      time_capsule_messages: {
+        Row: {
+          created_at: string
+          deliver_at: string
+          delivered_at: string | null
+          id: string
+          is_delivered: boolean
+          is_opened: boolean
+          message: string
+          opened_at: string | null
+          partner_link_id: string
+          recipient_id: string
+          sender_id: string
+          updated_at: string
+          video_url: string | null
+          voice_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          deliver_at: string
+          delivered_at?: string | null
+          id?: string
+          is_delivered?: boolean
+          is_opened?: boolean
+          message: string
+          opened_at?: string | null
+          partner_link_id: string
+          recipient_id: string
+          sender_id: string
+          updated_at?: string
+          video_url?: string | null
+          voice_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          deliver_at?: string
+          delivered_at?: string | null
+          id?: string
+          is_delivered?: boolean
+          is_opened?: boolean
+          message?: string
+          opened_at?: string | null
+          partner_link_id?: string
+          recipient_id?: string
+          sender_id?: string
+          updated_at?: string
+          video_url?: string | null
+          voice_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_capsule_messages_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       truth_or_dare_sessions: {
         Row: {
           created_at: string | null
