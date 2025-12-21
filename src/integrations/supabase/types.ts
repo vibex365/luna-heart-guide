@@ -82,6 +82,126 @@ export type Database = {
           },
         ]
       }
+      blog_posts: {
+        Row: {
+          ai_model_used: string | null
+          category: string
+          content: string
+          created_at: string
+          excerpt: string | null
+          id: string
+          keywords: string[] | null
+          meta_description: string | null
+          meta_title: string | null
+          published_at: string | null
+          read_time_minutes: number | null
+          slug: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          views_count: number | null
+        }
+        Insert: {
+          ai_model_used?: string | null
+          category?: string
+          content: string
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          read_time_minutes?: number | null
+          slug: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          views_count?: number | null
+        }
+        Update: {
+          ai_model_used?: string | null
+          category?: string
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          keywords?: string[] | null
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          read_time_minutes?: number | null
+          slug?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          views_count?: number | null
+        }
+        Relationships: []
+      }
+      blog_settings: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      blog_topics: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          keywords: string[] | null
+          priority: number | null
+          status: string
+          topic: string
+          used_at: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          keywords?: string[] | null
+          priority?: number | null
+          status?: string
+          topic: string
+          used_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          keywords?: string[] | null
+          priority?: number | null
+          status?: string
+          topic?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       breathing_exercises: {
         Row: {
           category: string | null

@@ -44,7 +44,7 @@ const defaultContent = {
       emoji: "📈"
     }
   ],
-  cta_text: "Start Together – $19/mo for Both",
+  cta_text: "Start Together – $7.99/mo for Both",
   relatability_tagline: "You're not failing. You're struggling to communicate."
 };
 
@@ -189,7 +189,7 @@ const CouplesFunnel = () => {
 
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
-          priceId: 'price_1SdhytAsrgxssNTVvlvnqvZr',
+          priceId: 'price_1SiKbCAsrgxssNTV1TrOyFLq',
           returnUrl: '/couples-welcome',
           metadata: { ...utmData, segment }
         }
@@ -423,7 +423,7 @@ const CouplesFunnel = () => {
                 Best Value
               </div>
               <p className="text-xs text-couples-accent uppercase tracking-wide mb-2">Luna Couples</p>
-              <p className="text-2xl font-bold text-couples-accent">$19</p>
+              <p className="text-2xl font-bold text-couples-accent">$7.99</p>
               <p className="text-xs text-white/60">per month, total</p>
               <p className="text-xs text-white/80 mt-2 font-medium">2 accounts included ✨</p>
             </div>
