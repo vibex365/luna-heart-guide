@@ -4,24 +4,65 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
+import { useRef } from "react";
+import html2canvas from "html2canvas";
+import { toast } from "sonner";
 import appIcon1024 from "@/assets/app-icon-1024.png";
 import lunaIcon from "@/assets/luna-icon-512.png";
 import ogImage from "@/assets/luna-og-image.png";
 
-// Screenshot frame component
-const PhoneFrame = ({ children, title }: { children: React.ReactNode; title: string }) => (
-  <div className="flex flex-col items-center gap-3">
-    <div className="relative w-[280px] h-[560px] bg-background rounded-[3rem] border-[8px] border-foreground/20 shadow-2xl overflow-hidden">
-      {/* Notch */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-foreground/20 rounded-b-2xl z-10" />
-      {/* Screen content */}
-      <div className="w-full h-full overflow-hidden">
-        {children}
+// Screenshot frame component with download capability
+const PhoneFrame = ({ children, title, screenshotId }: { children: React.ReactNode; title: string; screenshotId: string }) => {
+  const frameRef = useRef<HTMLDivElement>(null);
+
+  const handleDownload = async () => {
+    if (!frameRef.current) return;
+    
+    try {
+      toast.info("Generating screenshot...");
+      
+      // Get the screen content element (skip the frame border)
+      const screenContent = frameRef.current.querySelector('.screen-content') as HTMLElement;
+      if (!screenContent) return;
+      
+      const canvas = await html2canvas(screenContent, {
+        scale: 3, // High resolution
+        backgroundColor: null,
+        useCORS: true,
+        logging: false,
+      });
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.download = `luna-screenshot-${screenshotId}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast.success("Screenshot downloaded!");
+    } catch (error) {
+      console.error("Screenshot error:", error);
+      toast.error("Failed to generate screenshot");
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div ref={frameRef} className="relative w-[280px] h-[560px] bg-background rounded-[3rem] border-[8px] border-foreground/20 shadow-2xl overflow-hidden">
+        {/* Notch */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-foreground/20 rounded-b-2xl z-10" />
+        {/* Screen content */}
+        <div className="screen-content w-full h-full overflow-hidden">
+          {children}
+        </div>
       </div>
+      <p className="text-sm font-medium text-muted-foreground">{title}</p>
+      <Button size="sm" variant="outline" onClick={handleDownload} className="gap-1">
+        <Download className="w-3 h-3" />
+        Download
+      </Button>
     </div>
-    <p className="text-sm font-medium text-muted-foreground">{title}</p>
-  </div>
-);
+  );
+};
 
 // App store feature badge
 const FeatureBadge = ({ text }: { text: string }) => (
@@ -175,7 +216,7 @@ const AppStoreAssets = () => {
             <TabsContent value="ios" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Screenshot 1 - Chat */}
-                <PhoneFrame title="AI Relationship Therapist">
+                <PhoneFrame title="AI Relationship Therapist" screenshotId="chat">
                   <div className="w-full h-full bg-gradient-to-b from-[#1a0f2e] to-[#0f0a1a] p-4 flex flex-col">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-500" />
@@ -196,7 +237,7 @@ const AppStoreAssets = () => {
                 </PhoneFrame>
 
                 {/* Screenshot 2 - Mood Tracking */}
-                <PhoneFrame title="Track Your Emotions">
+                <PhoneFrame title="Track Your Emotions" screenshotId="mood">
                   <div className="w-full h-full bg-gradient-to-b from-[#1a0f2e] to-[#0f0a1a] p-4 flex flex-col items-center justify-center">
                     <h3 className="text-white text-lg font-semibold mb-6">How are you feeling?</h3>
                     <div className="grid grid-cols-3 gap-4">
@@ -219,7 +260,7 @@ const AppStoreAssets = () => {
                 </PhoneFrame>
 
                 {/* Screenshot 3 - Couples */}
-                <PhoneFrame title="Connect With Your Partner">
+                <PhoneFrame title="Connect With Your Partner" screenshotId="couples">
                   <div className="w-full h-full bg-gradient-to-b from-[#1a0f2e] to-[#0f0a1a] p-4 flex flex-col items-center justify-center">
                     <div className="relative mb-6">
                       <div className="flex -space-x-4">
