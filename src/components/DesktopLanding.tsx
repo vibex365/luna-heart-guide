@@ -1,149 +1,109 @@
 import { motion } from "framer-motion";
-import { 
-  Heart, 
-  MessageCircle, 
-  Wind, 
-  BookOpen, 
-  Users, 
-  Sparkles, 
-  Shield, 
-  Star,
-  ArrowRight,
-  Check,
-  Rocket,
-  Crown,
-  Quote,
-  Brain,
-  HeartHandshake,
-  Zap
-} from "lucide-react";
+import { Heart, MessageCircle, Wind, BookOpen, Users, Sparkles, Shield, Star, ArrowRight, Check, Rocket, Crown, Quote, Brain, HeartHandshake, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import LunaAvatar from "./LunaAvatar";
 import SocialLinks from "./SocialLinks";
 import CouplesInteractiveDemo from "./CouplesInteractiveDemo";
 import InteractiveDemo from "./InteractiveDemo";
-
-const features = [
-  {
-    icon: MessageCircle,
-    title: "AI-Powered Conversations",
-    description: "Get personalized guidance and communication scripts to navigate difficult conversations with loved ones.",
-    gradient: "from-primary/30 to-secondary/20",
-  },
-  {
-    icon: Sparkles,
-    title: "Mood Tracking",
-    description: "Log your emotions daily and discover patterns in your emotional journey over time.",
-    gradient: "from-secondary/30 to-accent/20",
-  },
-  {
-    icon: Wind,
-    title: "Breathing Exercises",
-    description: "Access calming breathing techniques whenever you need to center yourself and find peace.",
-    gradient: "from-accent/20 to-primary/30",
-  },
-  {
-    icon: BookOpen,
-    title: "Guided Journaling",
-    description: "Write freely with thoughtful prompts that help you reflect, process, and grow.",
-    gradient: "from-peach/30 to-secondary/20",
-  },
-  {
-    icon: Users,
-    title: "Couples Mode",
-    description: "Send digital gifts, play relationship games, daily journaling, private chat, and earn coins together.",
-    gradient: "from-primary/40 to-accent/30",
-  },
-  {
-    icon: Brain,
-    title: "Weekly Insights",
-    description: "Receive personalized insights and progress reports based on your activity.",
-    gradient: "from-secondary/40 to-primary/20",
-  },
-];
-
-const testimonials = [
-  {
-    quote: "Luna helped me understand my anxiety patterns and gave me tools to cope. It's like having a therapist in my pocket.",
-    author: "Sarah M.",
-    role: "Managing anxiety for 2 years",
-  },
-  {
-    quote: "The couples mode saved our relationship. We communicate so much better now.",
-    author: "Michael & Jessica",
-    role: "Together for 5 years",
-  },
-  {
-    quote: "I never knew journaling could be this easy. Luna's prompts help me dig deeper.",
-    author: "David K.",
-    role: "Daily user for 6 months",
-  },
-];
-
-const pricingPlans = [
-  {
-    name: "Free",
-    price: "$0",
-    period: "forever",
-    features: [
-      "5 messages per day",
-      "Basic mood tracking",
-      "Breathing exercises",
-      "Limited journal prompts",
-    ],
-    highlight: false,
-    popular: false,
-  },
-  {
-    name: "Pro",
-    price: "$12",
-    period: "/month",
-    features: [
-      "Unlimited conversations",
-      "Advanced mood analytics",
-      "Priority AI responses",
-      "All journal templates",
-      "Weekly insights",
-    ],
-    highlight: true,
-    popular: true,
-  },
-  {
-    name: "Couples",
-    price: "$19",
-    period: "/month",
-    features: [
-      "Everything in Pro",
-      "Send digital gifts",
-      "Private couples chat",
-      "Daily journal prompts",
-      "Relationship games",
-    ],
-    highlight: false,
-    popular: false,
-  },
-];
-
-const stats = [
-  { value: "50K+", label: "Active Users" },
-  { value: "1M+", label: "Conversations" },
-  { value: "4.9★", label: "App Rating" },
-  { value: "24/7", label: "Always Available" },
-];
-
+const features = [{
+  icon: MessageCircle,
+  title: "AI-Powered Conversations",
+  description: "Get personalized guidance and communication scripts to navigate difficult conversations with loved ones.",
+  gradient: "from-primary/30 to-secondary/20"
+}, {
+  icon: Sparkles,
+  title: "Mood Tracking",
+  description: "Log your emotions daily and discover patterns in your emotional journey over time.",
+  gradient: "from-secondary/30 to-accent/20"
+}, {
+  icon: Wind,
+  title: "Breathing Exercises",
+  description: "Access calming breathing techniques whenever you need to center yourself and find peace.",
+  gradient: "from-accent/20 to-primary/30"
+}, {
+  icon: BookOpen,
+  title: "Guided Journaling",
+  description: "Write freely with thoughtful prompts that help you reflect, process, and grow.",
+  gradient: "from-peach/30 to-secondary/20"
+}, {
+  icon: Users,
+  title: "Couples Mode",
+  description: "Send digital gifts, play relationship games, daily journaling, private chat, and earn coins together.",
+  gradient: "from-primary/40 to-accent/30"
+}, {
+  icon: Brain,
+  title: "Weekly Insights",
+  description: "Receive personalized insights and progress reports based on your activity.",
+  gradient: "from-secondary/40 to-primary/20"
+}];
+const testimonials = [{
+  quote: "Luna helped me understand my anxiety patterns and gave me tools to cope. It's like having a therapist in my pocket.",
+  author: "Sarah M.",
+  role: "Managing anxiety for 2 years"
+}, {
+  quote: "The couples mode saved our relationship. We communicate so much better now.",
+  author: "Michael & Jessica",
+  role: "Together for 5 years"
+}, {
+  quote: "I never knew journaling could be this easy. Luna's prompts help me dig deeper.",
+  author: "David K.",
+  role: "Daily user for 6 months"
+}];
+const pricingPlans = [{
+  name: "Free",
+  price: "$0",
+  period: "forever",
+  features: ["5 messages per day", "Basic mood tracking", "Breathing exercises", "Limited journal prompts"],
+  highlight: false,
+  popular: false
+}, {
+  name: "Pro",
+  price: "$12",
+  period: "/month",
+  features: ["Unlimited conversations", "Advanced mood analytics", "Priority AI responses", "All journal templates", "Weekly insights"],
+  highlight: true,
+  popular: true
+}, {
+  name: "Couples",
+  price: "$19",
+  period: "/month",
+  features: ["Everything in Pro", "Send digital gifts", "Private couples chat", "Daily journal prompts", "Relationship games"],
+  highlight: false,
+  popular: false
+}];
+const stats = [{
+  value: "50K+",
+  label: "Active Users"
+}, {
+  value: "1M+",
+  label: "Conversations"
+}, {
+  value: "4.9★",
+  label: "App Rating"
+}, {
+  value: "24/7",
+  label: "Always Available"
+}];
 const DesktopLanding = () => {
   const navigate = useNavigate();
-
   const fadeInUp = {
-    initial: { opacity: 0, y: 30 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true },
-    transition: { duration: 0.6 },
+    initial: {
+      opacity: 0,
+      y: 30
+    },
+    whileInView: {
+      opacity: 1,
+      y: 0
+    },
+    viewport: {
+      once: true
+    },
+    transition: {
+      duration: 0.6
+    }
   };
-
-  return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+  return <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Section 1: Hero */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Animated romantic background */}
@@ -185,95 +145,105 @@ const DesktopLanding = () => {
 
         {/* Hero Content */}
         <div className="relative z-10 max-w-6xl mx-auto px-6 text-center pt-32">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8 inline-flex items-center gap-2 bg-muted/50 backdrop-blur-sm px-4 py-2 rounded-full border border-border"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          scale: 0.8
+        }} animate={{
+          opacity: 1,
+          scale: 1
+        }} transition={{
+          duration: 0.5
+        }} className="mb-8 inline-flex items-center gap-2 bg-muted/50 backdrop-blur-sm px-4 py-2 rounded-full border border-border">
             <Sparkles className="w-4 h-4 text-accent" />
             <span className="text-sm text-muted-foreground">Your 24/7 AI Companion for Emotional Wellness</span>
           </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="font-heading text-5xl md:text-7xl font-bold text-foreground mb-6 leading-tight"
-          >
+          <motion.h1 initial={{
+          opacity: 0,
+          y: 30
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          delay: 0.2,
+          duration: 0.6
+        }} className="font-heading text-5xl md:text-7xl font-bold text-foreground mb-6 leading-tight">
             Talk through feelings.
             <br />
             <span className="bg-gradient-to-r from-accent via-peach to-accent bg-clip-text text-transparent">Heal together.</span>
           </motion.h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
-          >
+          <motion.p initial={{
+          opacity: 0,
+          y: 30
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          delay: 0.3,
+          duration: 0.6
+        }} className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
             A safe, judgment-free space to process emotions, strengthen relationships, 
             and find clarity — powered by understanding AI.
           </motion.p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
-            <Button 
-              size="lg" 
-              variant="peach" 
-              className="text-lg px-8 py-6 shadow-button"
-              onClick={() => navigate("/auth")}
-            >
+          <motion.div initial={{
+          opacity: 0,
+          y: 30
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          delay: 0.4,
+          duration: 0.6
+        }} className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button size="lg" variant="peach" className="text-lg px-8 py-6 shadow-button" onClick={() => navigate("/auth")}>
               <Rocket className="w-5 h-5 mr-2" />
               Start Your Journey — Free
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="text-lg px-8 py-6"
-              onClick={() => navigate("/auth")}
-            >
+            <Button size="lg" variant="outline" className="text-lg px-8 py-6" onClick={() => navigate("/auth")}>
               Watch Demo
             </Button>
           </motion.div>
 
           {/* Avatar showcase */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-            className="mt-16 relative"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 50
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          delay: 0.6,
+          duration: 0.8
+        }} className="mt-16 relative">
             <div className="relative w-48 h-48 mx-auto">
               <LunaAvatar size="lg" showGlow />
-              <motion.div
-                animate={{ 
-                  scale: [1, 1.1, 1],
-                  opacity: [0.5, 0.8, 0.5]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="absolute inset-0 rounded-full bg-accent/20 blur-2xl -z-10"
-              />
+              <motion.div animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.5, 0.8, 0.5]
+            }} transition={{
+              duration: 3,
+              repeat: Infinity
+            }} className="absolute inset-0 rounded-full bg-accent/20 blur-2xl -z-10" />
             </div>
           </motion.div>
         </div>
 
         {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-6 h-10 border-2 border-muted-foreground/50 rounded-full flex justify-center pt-2"
-          >
+        <motion.div initial={{
+        opacity: 0
+      }} animate={{
+        opacity: 1
+      }} transition={{
+        delay: 1
+      }} className="absolute bottom-8 left-1/2 -translate-x-1/2">
+          <motion.div animate={{
+          y: [0, 10, 0]
+        }} transition={{
+          duration: 1.5,
+          repeat: Infinity
+        }} className="w-6 h-10 border-2 border-muted-foreground/50 rounded-full flex justify-center pt-2">
             <div className="w-1.5 h-3 bg-muted-foreground/50 rounded-full" />
           </motion.div>
         </motion.div>
@@ -283,19 +253,20 @@ const DesktopLanding = () => {
       <section className="py-12 gradient-warmth border-y border-accent/20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="text-center"
-              >
+            {stats.map((stat, index) => <motion.div key={stat.label} initial={{
+            opacity: 0,
+            y: 20
+          }} whileInView={{
+            opacity: 1,
+            y: 0
+          }} viewport={{
+            once: true
+          }} transition={{
+            delay: index * 0.1
+          }} className="text-center">
                 <p className="text-4xl font-bold bg-gradient-to-r from-accent to-peach bg-clip-text text-transparent mb-1">{stat.value}</p>
                 <p className="text-muted-foreground">{stat.label}</p>
-              </motion.div>
-            ))}
+              </motion.div>)}
           </div>
         </div>
       </section>
@@ -315,16 +286,18 @@ const DesktopLanding = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <motion.div
-                  key={feature.title}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="group p-6 rounded-2xl bg-card border border-accent/10 hover:border-accent/40 hover:shadow-romantic transition-all duration-300"
-                >
+            const Icon = feature.icon;
+            return <motion.div key={feature.title} initial={{
+              opacity: 0,
+              y: 30
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} viewport={{
+              once: true
+            }} transition={{
+              delay: index * 0.1
+            }} className="group p-6 rounded-2xl bg-card border border-accent/10 hover:border-accent/40 hover:shadow-romantic transition-all duration-300">
                   <div className={`w-14 h-14 rounded-xl bg-gradient-to-br from-accent/20 to-peach/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-soft`}>
                     <Icon className="w-7 h-7 text-accent" />
                   </div>
@@ -334,9 +307,8 @@ const DesktopLanding = () => {
                   <p className="text-muted-foreground leading-relaxed">
                     {feature.description}
                   </p>
-                </motion.div>
-              );
-            })}
+                </motion.div>;
+          })}
           </div>
         </div>
       </section>
@@ -355,36 +327,34 @@ const DesktopLanding = () => {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                step: "01",
-                icon: Heart,
-                title: "Share Your Feelings",
-                description: "Start a conversation with Luna about anything on your mind. No judgment, just understanding.",
-              },
-              {
-                step: "02",
-                icon: Brain,
-                title: "Gain Insights",
-                description: "Luna helps you understand patterns in your emotions and provides personalized guidance.",
-              },
-              {
-                step: "03",
-                icon: Zap,
-                title: "Take Action",
-                description: "Use tools like breathing exercises, journaling, and communication scripts to grow.",
-              },
-            ].map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <motion.div
-                  key={item.step}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.2 }}
-                  className="relative text-center"
-                >
+            {[{
+            step: "01",
+            icon: Heart,
+            title: "Share Your Feelings",
+            description: "Start a conversation with Luna about anything on your mind. No judgment, just understanding."
+          }, {
+            step: "02",
+            icon: Brain,
+            title: "Gain Insights",
+            description: "Luna helps you understand patterns in your emotions and provides personalized guidance."
+          }, {
+            step: "03",
+            icon: Zap,
+            title: "Take Action",
+            description: "Use tools like breathing exercises, journaling, and communication scripts to grow."
+          }].map((item, index) => {
+            const Icon = item.icon;
+            return <motion.div key={item.step} initial={{
+              opacity: 0,
+              y: 30
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} viewport={{
+              once: true
+            }} transition={{
+              delay: index * 0.2
+            }} className="relative text-center">
                   <div className="inline-flex items-center justify-center w-20 h-20 rounded-full gradient-romantic mb-6 shadow-romantic">
                     <Icon className="w-10 h-10 text-accent-foreground" />
                   </div>
@@ -397,9 +367,8 @@ const DesktopLanding = () => {
                   <p className="text-muted-foreground">
                     {item.description}
                   </p>
-                </motion.div>
-              );
-            })}
+                </motion.div>;
+          })}
           </div>
         </div>
       </section>
@@ -409,12 +378,17 @@ const DesktopLanding = () => {
         <div className="absolute inset-0 romantic-glow opacity-50" />
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
+            <motion.div initial={{
+            opacity: 0,
+            x: -50
+          }} whileInView={{
+            opacity: 1,
+            x: 0
+          }} viewport={{
+            once: true
+          }} transition={{
+            duration: 0.6
+          }}>
               <span className="inline-flex items-center gap-2 text-accent text-sm font-medium uppercase tracking-wider">
                 <HeartHandshake className="w-4 h-4" />
                 For Couples
@@ -427,21 +401,12 @@ const DesktopLanding = () => {
                 play relationship-building games, track shared moods, and celebrate milestones together.
               </p>
               <ul className="space-y-4 mb-8">
-                {[
-                  "Send digital gifts with animations",
-                  "Private encrypted messaging",
-                  "Daily journal prompts together",
-                  "Fun relationship quizzes & games",
-                  "Earn & spend coins on gifts",
-                  "Milestone & anniversary reminders",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-3">
+                {["Send digital gifts with animations", "Private encrypted messaging", "Daily journal prompts together", "Fun relationship quizzes & games", "Earn & spend coins on gifts", "Milestone & anniversary reminders"].map(item => <li key={item} className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center">
                       <Check className="w-4 h-4 text-accent" />
                     </div>
                     <span className="text-foreground">{item}</span>
-                  </li>
-                ))}
+                  </li>)}
               </ul>
               <Button variant="peach" size="lg" onClick={() => navigate("/couples-welcome")}>
                 Try Couples Mode
@@ -449,13 +414,17 @@ const DesktopLanding = () => {
               </Button>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="relative"
-            >
+            <motion.div initial={{
+            opacity: 0,
+            x: 50
+          }} whileInView={{
+            opacity: 1,
+            x: 0
+          }} viewport={{
+            once: true
+          }} transition={{
+            duration: 0.6
+          }} className="relative">
               <div className="relative aspect-square max-w-md mx-auto">
                 <div className="absolute inset-0 bg-gradient-to-br from-accent/30 to-primary/20 rounded-3xl blur-2xl" />
                 <div className="relative bg-card rounded-3xl p-8 border border-border shadow-luna">
@@ -507,15 +476,17 @@ const DesktopLanding = () => {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={testimonial.author}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-card rounded-2xl p-6 border border-border hover:shadow-luna transition-shadow"
-              >
+            {testimonials.map((testimonial, index) => <motion.div key={testimonial.author} initial={{
+            opacity: 0,
+            y: 30
+          }} whileInView={{
+            opacity: 1,
+            y: 0
+          }} viewport={{
+            once: true
+          }} transition={{
+            delay: index * 0.1
+          }} className="bg-card rounded-2xl p-6 border border-border hover:shadow-luna transition-shadow">
                 <Quote className="w-10 h-10 text-accent/30 mb-4" />
                 <p className="text-foreground mb-6 leading-relaxed">"{testimonial.quote}"</p>
                 <div className="flex items-center gap-3">
@@ -527,8 +498,7 @@ const DesktopLanding = () => {
                     <p className="text-sm text-muted-foreground">{testimonial.role}</p>
                   </div>
                 </div>
-              </motion.div>
-            ))}
+              </motion.div>)}
           </div>
         </div>
       </section>
@@ -548,24 +518,20 @@ const DesktopLanding = () => {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {pricingPlans.map((plan, index) => (
-              <motion.div
-                key={plan.name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className={`relative rounded-2xl p-6 ${
-                  plan.highlight
-                    ? "gradient-romantic text-accent-foreground scale-105 shadow-romantic border border-accent/30"
-                    : "bg-card border border-accent/10 hover:border-accent/30 hover:shadow-soft transition-all"
-                }`}
-              >
-                {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-peach text-peach-foreground text-xs font-bold px-3 py-1 rounded-full">
+            {pricingPlans.map((plan, index) => <motion.div key={plan.name} initial={{
+            opacity: 0,
+            y: 30
+          }} whileInView={{
+            opacity: 1,
+            y: 0
+          }} viewport={{
+            once: true
+          }} transition={{
+            delay: index * 0.1
+          }} className={`relative rounded-2xl p-6 ${plan.highlight ? "gradient-romantic text-accent-foreground scale-105 shadow-romantic border border-accent/30" : "bg-card border border-accent/10 hover:border-accent/30 hover:shadow-soft transition-all"}`}>
+                {plan.popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-peach text-peach-foreground text-xs font-bold px-3 py-1 rounded-full">
                     Most Popular
-                  </span>
-                )}
+                  </span>}
                 <h3 className={`text-xl font-bold mb-2 ${plan.highlight ? "" : "text-foreground"}`}>
                   {plan.name}
                 </h3>
@@ -576,24 +542,17 @@ const DesktopLanding = () => {
                   </span>
                 </div>
                 <ul className="space-y-3 mb-6">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2">
+                  {plan.features.map(feature => <li key={feature} className="flex items-center gap-2">
                       <Check className={`w-4 h-4 ${plan.highlight ? "" : "text-accent"}`} />
                       <span className={`text-sm ${plan.highlight ? "" : "text-muted-foreground"}`}>
                         {feature}
                       </span>
-                    </li>
-                  ))}
+                    </li>)}
                 </ul>
-                <Button
-                  variant={plan.highlight ? "secondary" : "outline"}
-                  className="w-full"
-                  onClick={() => navigate("/auth")}
-                >
+                <Button variant={plan.highlight ? "secondary" : "outline"} className="w-full" onClick={() => navigate("/auth")}>
                   {plan.name === "Free" ? "Get Started" : "Upgrade Now"}
                 </Button>
-              </motion.div>
-            ))}
+              </motion.div>)}
           </div>
         </div>
       </section>
@@ -608,11 +567,15 @@ const DesktopLanding = () => {
         </div>
         
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 30
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} viewport={{
+          once: true
+        }}>
             <div className="w-24 h-24 mx-auto mb-8 relative">
               <LunaAvatar size="lg" showGlow />
             </div>
@@ -624,12 +587,7 @@ const DesktopLanding = () => {
               Your journey to emotional wellness starts now.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-              <Button 
-                size="lg" 
-                variant="peach" 
-                className="text-lg px-8 py-6 shadow-button"
-                onClick={() => navigate("/auth")}
-              >
+              <Button size="lg" variant="peach" className="text-lg px-8 py-6 shadow-button" onClick={() => navigate("/auth")}>
                 <Rocket className="w-5 h-5 mr-2" />
                 Start Free Today
               </Button>
@@ -637,8 +595,9 @@ const DesktopLanding = () => {
             
             {/* Social links */}
             <div className="flex flex-col items-center gap-3">
-              <p className="text-sm text-muted-foreground">Follow Luna for daily healing reminders</p>
-              <SocialLinks />
+              <p className="text-sm text-muted-foreground">
+            </p>
+              
             </div>
           </motion.div>
         </div>
@@ -672,8 +631,6 @@ const DesktopLanding = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default DesktopLanding;
