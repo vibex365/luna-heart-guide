@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Flame, Snowflake, ArrowRight, RotateCcw, Thermometer, Users, Bell } from "lucide-react";
+import { Flame, Snowflake, ArrowRight, RotateCcw, Thermometer, Users, Bell, Send, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { GameCard } from "./cards/GameCard";
 import { useAgeGateEnabled } from "@/hooks/useGameQuestions";
 import { AgeGateModal } from "./AgeGateModal";
@@ -36,6 +37,7 @@ interface GameSession {
     round_count: number;
     revealed: boolean;
     player_completed: Record<string, boolean>;
+    player_responses: Record<string, string>;
   };
 }
 
@@ -110,6 +112,7 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
   const [ageVerified, setAgeVerified] = useState(false);
   const [session, setSession] = useState<GameSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [myResponse, setMyResponse] = useState("");
 
   const { data: ageGateEnabled } = useAgeGateEnabled();
 
@@ -250,6 +253,7 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
         round_count: 1,
         revealed: false,
         player_completed: {},
+        player_responses: {},
       };
 
       const { data, error } = await supabase
@@ -306,6 +310,7 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
       round_count: session.game_state.round_count + 1,
       revealed: false,
       player_completed: {},
+      player_responses: {},
     };
 
     await supabase
@@ -316,6 +321,7 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
       .eq("id", session.id);
 
     setIsCardFlipped(false);
+    setMyResponse("");
   };
 
   const revealCard = async () => {
@@ -330,6 +336,35 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
       .eq("id", session.id);
 
     setIsCardFlipped(true);
+  };
+
+  const submitResponse = async () => {
+    if (!session || !user || !myResponse.trim()) return;
+
+    const newResponses = {
+      ...session.game_state.player_responses,
+      [user.id]: myResponse.trim(),
+    };
+
+    const newCompleted = {
+      ...session.game_state.player_completed,
+      [user.id]: true,
+    };
+
+    const updatedState = { 
+      ...session.game_state, 
+      player_responses: newResponses,
+      player_completed: newCompleted 
+    };
+    
+    await supabase
+      .from("couples_game_sessions")
+      .update({
+        game_state: JSON.parse(JSON.stringify(updatedState)),
+      })
+      .eq("id", session.id);
+
+    toast.success("Response sent!");
   };
 
   const markComplete = async () => {
@@ -360,6 +395,7 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
     setSession(null);
     setUsedCards(new Set());
     setIsCardFlipped(false);
+    setMyResponse("");
   };
 
   const remindPartner = async () => {
@@ -530,8 +566,49 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
                       </div>
                     )}
 
-                    {/* Actions */}
-                    {isCardFlipped && (
+                    {/* Response input for questions */}
+                    {isCardFlipped && currentCard?.type === "question" && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-3"
+                      >
+                        {!session.game_state.player_responses?.[user?.id || ""] ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              placeholder="Type your answer here..."
+                              value={myResponse}
+                              onChange={(e) => setMyResponse(e.target.value)}
+                              className="min-h-[80px] resize-none"
+                            />
+                            <Button
+                              onClick={submitResponse}
+                              disabled={!myResponse.trim()}
+                              className="w-full"
+                            >
+                              <Send className="w-4 h-4 mr-2" />
+                              Send Response
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30">
+                            <p className="text-sm text-green-600 font-medium mb-1">Your answer:</p>
+                            <p className="text-sm">{session.game_state.player_responses[user?.id || ""]}</p>
+                          </div>
+                        )}
+
+                        {/* Partner's response */}
+                        {session.game_state.player_responses?.[partnerId || ""] && (
+                          <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                            <p className="text-sm text-blue-600 font-medium mb-1">{partnerName}'s answer:</p>
+                            <p className="text-sm">{session.game_state.player_responses[partnerId || ""]}</p>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+
+                    {/* Actions for action cards */}
+                    {isCardFlipped && currentCard?.type === "action" && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -546,14 +623,18 @@ export const HotColdGame = ({ partnerLinkId }: HotColdGameProps) => {
                             ✓ I Did It!
                           </Button>
                         )}
-                        <Button
-                          onClick={() => drawCard()}
-                          className={`w-full bg-gradient-to-r ${intensityStyles[selectedIntensity].color}`}
-                        >
-                          Draw Next Card
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
                       </motion.div>
+                    )}
+
+                    {/* Draw next card */}
+                    {isCardFlipped && (
+                      <Button
+                        onClick={() => drawCard()}
+                        className={`w-full bg-gradient-to-r ${intensityStyles[selectedIntensity].color}`}
+                      >
+                        Draw Next Card
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
                     )}
 
                     {/* Remind partner */}
