@@ -74,14 +74,16 @@ serve(async (req) => {
       try {
         const senderName = senderProfile?.display_name || 'Your partner';
         const giftName = giftRecord.digital_gifts?.name || 'a gift';
+        const giftMessage = message ? ` They said: "${message}"` : '';
         
         await supabaseClient.functions.invoke('send-sms', {
           body: {
-            to: recipientProfile.phone_number,
-            message: `💝 ${senderName} just sent you ${giftName}! Open Luna to see your gift. 🎁`,
+            action: 'send-direct',
+            phoneNumber: recipientProfile.phone_number,
+            message: `💝 ${senderName} just sent you ${giftName}!${giftMessage} Open Luna to see your gift and play the animation! 🎁✨`,
           },
         });
-        logStep("SMS notification sent");
+        logStep("SMS notification sent to recipient");
       } catch (smsError) {
         logStep("SMS notification failed (non-fatal)", { error: smsError });
       }
