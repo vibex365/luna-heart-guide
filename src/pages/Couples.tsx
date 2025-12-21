@@ -443,7 +443,31 @@ const Couples = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.55 }}
+            >
+              <DrinkingGame partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.56 }}
+            >
+              <HotColdGame partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.57 }}
+            >
+              <FantasyCards partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.58 }}
             >
               <GameStatsCard partnerLinkId={partnerLink?.id} />
             </motion.div>

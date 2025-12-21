@@ -164,6 +164,7 @@ const DesktopLanding = () => {
             <nav className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
               <a href="#demo" className="text-muted-foreground hover:text-foreground transition-colors">Try Demo</a>
+              <a href="#couples-demo" className="text-muted-foreground hover:text-foreground transition-colors">Couples Demo</a>
               <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">How It Works</a>
               <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">Stories</a>
               <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
@@ -481,6 +482,11 @@ const DesktopLanding = () => {
             </motion.div>
           </div>
         </div>
+      </section>
+
+      {/* Section 5.5: Couples Interactive Demo */}
+      <section id="couples-demo">
+        <CouplesInteractiveDemo />
       </section>
 
       {/* Section 6: Testimonials */}
