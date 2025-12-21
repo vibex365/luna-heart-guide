@@ -242,11 +242,23 @@ async function generateBlogPost(topic: BlogTopic): Promise<GeneratedPost | null>
 Target keywords: ${topic.keywords.join(', ')}
 Category: ${topic.category}
 
-REQUIREMENTS:
+CRITICAL FORMATTING RULES - YOU MUST FOLLOW THESE:
+- DO NOT use any markdown symbols like *, **, ***, #, ##, ###, or backticks
+- Use ONLY plain HTML tags for formatting
+- Use <h2> and <h3> tags for headings (NOT # or ##)
+- Use <strong> for bold text (NOT ** or __)
+- Use <em> for italic text (NOT * or _)
+- Use <p> tags for paragraphs
+- Use <ul> and <li> for bullet lists
+- Use <ol> and <li> for numbered lists
+- Use <blockquote> for quotes
+- Write clean, semantic HTML content
+
+CONTENT REQUIREMENTS:
 1. Write 1800-2500 words of high-quality, helpful content
 2. Use a warm, empathetic, conversational tone
 3. Include personal examples and relatable scenarios
-4. Structure with clear H2 and H3 headings using markdown (## and ###)
+4. Structure with clear <h2> and <h3> headings throughout
 5. Include an FAQ section at the end with 3-4 questions
 6. Naturally mention Luna as a helpful tool (but don't be salesy)
 7. Make it genuinely helpful for someone struggling with this issue`;
@@ -285,7 +297,7 @@ REQUIREMENTS:
                 },
                 content: { 
                   type: 'string', 
-                  description: 'Full markdown content with ## and ### headings, 1800-2500 words' 
+                  description: 'Full HTML content using <h2>, <h3>, <p>, <strong>, <em>, <ul>, <li> tags. NO markdown symbols (*, **, #, ##). 1800-2500 words.' 
                 },
                 meta_title: { 
                   type: 'string', 
