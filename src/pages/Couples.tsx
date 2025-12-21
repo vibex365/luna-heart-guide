@@ -50,6 +50,8 @@ import MostLikelyTo from "@/components/couples/MostLikelyTo";
 import NewlywedGame from "@/components/couples/NewlywedGame";
 import ThirtySixQuestions from "@/components/couples/ThirtySixQuestions";
 import SpinTheWheel from "@/components/couples/SpinTheWheel";
+import { GiftButton } from "@/components/couples/GiftButton";
+import { GiftCollection } from "@/components/couples/GiftCollection";
 
 const Couples = () => {
   const navigate = useNavigate();
@@ -300,6 +302,26 @@ const Couples = () => {
             >
               <AppreciationPrompts partnerLinkId={partnerLink?.id} />
             </motion.div>
+
+            {/* Gift Store Section */}
+            {partnerLink?.id && partnerId && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="space-y-4"
+              >
+                <GiftButton
+                  partnerLinkId={partnerLink.id}
+                  partnerId={partnerId}
+                  partnerName={partnerProfile?.display_name || "your partner"}
+                />
+                <GiftCollection
+                  partnerLinkId={partnerLink.id}
+                  partnerId={partnerId}
+                />
+              </motion.div>
+            )}
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}

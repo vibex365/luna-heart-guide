@@ -759,6 +759,48 @@ export type Database = {
           },
         ]
       }
+      digital_gifts: {
+        Row: {
+          animation_type: string
+          category: string | null
+          created_at: string | null
+          description: string | null
+          icon: string
+          id: string
+          is_active: boolean | null
+          name: string
+          price_cents: number
+          sort_order: number | null
+          stripe_price_id: string
+        }
+        Insert: {
+          animation_type: string
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price_cents: number
+          sort_order?: number | null
+          stripe_price_id: string
+        }
+        Update: {
+          animation_type?: string
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price_cents?: number
+          sort_order?: number | null
+          stripe_price_id?: string
+        }
+        Relationships: []
+      }
       dm_segments: {
         Row: {
           created_at: string | null
@@ -1330,6 +1372,60 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "never_have_i_ever_sessions_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_gifts: {
+        Row: {
+          created_at: string | null
+          gift_id: string
+          id: string
+          is_opened: boolean | null
+          message: string | null
+          opened_at: string | null
+          partner_link_id: string
+          recipient_id: string
+          sender_id: string
+          stripe_payment_intent_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          gift_id: string
+          id?: string
+          is_opened?: boolean | null
+          message?: string | null
+          opened_at?: string | null
+          partner_link_id: string
+          recipient_id: string
+          sender_id: string
+          stripe_payment_intent_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          gift_id?: string
+          id?: string
+          is_opened?: boolean | null
+          message?: string | null
+          opened_at?: string | null
+          partner_link_id?: string
+          recipient_id?: string
+          sender_id?: string
+          stripe_payment_intent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_gifts_gift_id_fkey"
+            columns: ["gift_id"]
+            isOneToOne: false
+            referencedRelation: "digital_gifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_gifts_partner_link_id_fkey"
             columns: ["partner_link_id"]
             isOneToOne: false
             referencedRelation: "partner_links"
