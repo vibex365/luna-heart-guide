@@ -7,6 +7,7 @@ import { AdminRoute } from "@/components/AdminRoute";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { BiometricLockScreen } from "@/components/BiometricLockScreen";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
+import { RateAppPrompt } from "@/components/RateAppPrompt";
 import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Chat from "./pages/Chat";
@@ -27,6 +28,7 @@ import CouplesWelcome from "./pages/CouplesWelcome";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import AppStoreAssets from "./pages/AppStoreAssets";
+import PromoVideoTemplate from "./pages/PromoVideoTemplate";
 import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminAnalytics, AdminFunnelAnalytics, AdminMarketing, AdminSettings, AdminFeedback, AdminNotifications } from "./pages/admin";
 import NotFound from "./pages/NotFound";
 
@@ -41,6 +43,7 @@ const App = () => (
           <Sonner />
           <OfflineBanner />
           <BiometricLockScreen />
+          <RateAppPrompt />
           <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/dm" element={<DMFunnel />} />
@@ -62,6 +65,7 @@ const App = () => (
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/app-store-assets" element={<AppStoreAssets />} />
+          <Route path="/promo-video" element={<PromoVideoTemplate />} />
           <Route
             path="/admin"
             element={
