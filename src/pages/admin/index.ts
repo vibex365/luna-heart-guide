@@ -13,3 +13,4 @@ export { default as AdminMarketing } from "./AdminMarketing";
 export { default as AdminSettings } from "./AdminSettings";
 export { default as AdminFeedback } from "./AdminFeedback";
 export { default as AdminNotifications } from "./AdminNotifications";
+export { default as AdminBlog } from "./AdminBlog";
