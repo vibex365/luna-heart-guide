@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -215,6 +215,15 @@ const Auth = () => {
             <p className="text-center text-xs text-muted-foreground mt-4">
               Your conversations are private and encrypted. 💜
             </p>
+            <div className="flex items-center justify-center gap-3 mt-2">
+              <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                Terms of Service
+              </Link>
+              <span className="text-muted-foreground/50">•</span>
+              <Link to="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                Privacy Policy
+              </Link>
+            </div>
           </motion.div>
         </main>
       </div>

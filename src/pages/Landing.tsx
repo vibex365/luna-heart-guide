@@ -3,7 +3,7 @@ import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles, HelpCircle, LogIn, Rocket, Crown, Check, Download, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
@@ -493,6 +493,15 @@ const Landing = () => {
           <p className="text-xs text-muted-foreground text-center mt-3">
             Free forever • 100% private • No credit card
           </p>
+          <div className="flex items-center justify-center gap-3 mt-2">
+            <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Terms
+            </Link>
+            <span className="text-muted-foreground/50">•</span>
+            <Link to="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Privacy
+            </Link>
+          </div>
         </div>
       </div>
     </MobileOnlyLayout>
