@@ -191,11 +191,24 @@ const BlogPost = () => {
         </div>
       </header>
 
+      {/* Featured Image Hero */}
+      {post.featured_image && (
+        <div className="relative h-64 md:h-96 w-full overflow-hidden">
+          <img 
+            src={post.featured_image} 
+            alt={post.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+        </div>
+      )}
+
       {/* Article */}
-      <article className="max-w-3xl mx-auto px-4 py-12">
+      <article className={`max-w-3xl mx-auto px-4 ${post.featured_image ? '-mt-24 relative z-10' : 'py-12'}`}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          className={post.featured_image ? 'bg-card rounded-xl p-8 shadow-lg border border-border/50' : ''}
         >
           {/* Category Badge */}
           <Badge variant="secondary" className="mb-4 capitalize">

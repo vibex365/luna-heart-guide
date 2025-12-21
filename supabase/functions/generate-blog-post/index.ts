@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { decode as base64Decode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -88,6 +89,10 @@ serve(async (req) => {
       throw new Error('Failed to generate blog post');
     }
 
+    // Generate featured image for the post
+    console.log('[generate-blog-post] Generating featured image...');
+    const featuredImageUrl = await generateAndUploadImage(supabase, generatedPost.title, generatedPost.slug);
+
     // Save the blog post
     const { data: savedPost, error: saveError } = await supabase
       .from('blog_posts')
@@ -102,6 +107,7 @@ serve(async (req) => {
         category: generatedPost.category,
         tags: generatedPost.tags,
         read_time_minutes: generatedPost.read_time_minutes,
+        featured_image: featuredImageUrl,
         status: 'published',
         published_at: new Date().toISOString(),
         ai_model_used: 'google/gemini-2.5-flash',
@@ -132,6 +138,7 @@ serve(async (req) => {
         id: savedPost.id,
         title: savedPost.title,
         slug: savedPost.slug,
+        featured_image: savedPost.featured_image,
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -342,6 +349,81 @@ REQUIREMENTS:
     };
   } catch (error) {
     console.error('[generate-blog-post] Error generating post:', error);
+    return null;
+  }
+}
+
+async function generateAndUploadImage(supabase: any, title: string, slug: string): Promise<string | null> {
+  try {
+    // Create a prompt for a blog featured image
+    const imagePrompt = `Create a beautiful, modern, minimalist blog featured image for an article titled "${title}". 
+    Style: Soft gradients, abstract shapes, warm and calming colors (peach, lavender, soft pink). 
+    The image should evoke feelings of connection, love, and emotional wellbeing. 
+    No text on the image. 16:9 aspect ratio. Professional, editorial quality.`;
+
+    console.log('[generate-blog-post] Generating image with prompt:', imagePrompt.substring(0, 100) + '...');
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [{ role: 'user', content: imagePrompt }],
+        modalities: ['image', 'text'],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[generate-blog-post] Image generation API error:', response.status, errorText);
+      return null;
+    }
+
+    const data = await response.json();
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+    if (!imageUrl || !imageUrl.startsWith('data:image')) {
+      console.error('[generate-blog-post] No valid image in response');
+      return null;
+    }
+
+    console.log('[generate-blog-post] Image generated, uploading to storage...');
+
+    // Extract base64 data from data URL
+    const base64Data = imageUrl.split(',')[1];
+    const imageBuffer = base64Decode(base64Data);
+
+    // Determine file extension from mime type
+    const mimeMatch = imageUrl.match(/data:image\/(\w+);/);
+    const extension = mimeMatch ? mimeMatch[1] : 'png';
+    const fileName = `${slug}.${extension}`;
+
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('blog-images')
+      .upload(fileName, imageBuffer, {
+        contentType: `image/${extension}`,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error('[generate-blog-post] Image upload error:', uploadError);
+      return null;
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('blog-images')
+      .getPublicUrl(fileName);
+
+    console.log('[generate-blog-post] Image uploaded successfully:', publicUrl);
+    return publicUrl;
+
+  } catch (error) {
+    console.error('[generate-blog-post] Error generating/uploading image:', error);
     return null;
   }
 }
