@@ -34,6 +34,7 @@ export const TimeCapsuleInbox = ({ partnerName }: TimeCapsuleInboxProps) => {
     openCapsule,
     deleteCapsule,
     subscribeToDeliveries,
+    isLoading,
   } = useTimeCapsule();
 
   const [selectedCapsule, setSelectedCapsule] = useState<any>(null);
@@ -52,6 +53,11 @@ export const TimeCapsuleInbox = ({ partnerName }: TimeCapsuleInboxProps) => {
 
     return unsubscribe;
   }, [subscribeToDeliveries]);
+
+  // Don't render anything while loading or if no data
+  if (isLoading) {
+    return null;
+  }
 
   const handleOpenCapsule = async (capsule: any) => {
     setSelectedCapsule(capsule);
