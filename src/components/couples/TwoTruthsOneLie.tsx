@@ -5,13 +5,23 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Trophy, RefreshCw, Send, CheckCircle, XCircle } from "lucide-react";
+import { Eye, EyeOff, Trophy, RefreshCw, Send, CheckCircle, XCircle, Users, Bell } from "lucide-react";
 import { twoTruthsCategories } from "@/data/couplesGamesContent";
+import { notifyPartner } from "@/utils/smsNotifications";
+import { useQuery } from "@tanstack/react-query";
 
 interface TwoTruthsOneLieProps {
   partnerLinkId: string;
+}
+
+interface GameState {
+  statements: string[];
+  lieIndex: number;
+  guess?: number;
+  revealed: boolean;
 }
 
 interface GameSession {
@@ -26,6 +36,7 @@ interface GameSession {
 
 const TwoTruthsOneLie: React.FC<TwoTruthsOneLieProps> = ({ partnerLinkId }) => {
   const { user } = useAuth();
+  const { partnerId } = useCouplesAccount();
   const [gameState, setGameState] = useState<"menu" | "create" | "guess" | "reveal" | "waiting">("menu");
   const [statements, setStatements] = useState(["", "", ""]);
   const [lieIndex, setLieIndex] = useState<number | null>(null);
@@ -34,10 +45,82 @@ const TwoTruthsOneLie: React.FC<TwoTruthsOneLieProps> = ({ partnerLinkId }) => {
   const [score, setScore] = useState({ correct: 0, fooled: 0 });
   const [loading, setLoading] = useState(false);
 
+  // Fetch partner name
+  const { data: partnerProfile } = useQuery({
+    queryKey: ["partner-profile-twotruths", partnerId],
+    queryFn: async () => {
+      if (!partnerId) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", partnerId)
+        .single();
+      return data;
+    },
+    enabled: !!partnerId,
+  });
+
+  const partnerName = partnerProfile?.display_name || "Partner";
+
   useEffect(() => {
     checkForPendingGame();
     loadScore();
   }, [partnerLinkId]);
+
+  // Subscribe to realtime updates
+  useEffect(() => {
+    if (!partnerLinkId) return;
+
+    const channel = supabase
+      .channel(`twotruths-${partnerLinkId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "couples_game_sessions",
+          filter: `partner_link_id=eq.${partnerLinkId}`,
+        },
+        (payload) => {
+          if (payload.eventType === "DELETE") {
+            if ((payload.old as any).game_type === "two_truths") {
+              setCurrentSession(null);
+              setGameState("menu");
+            }
+          } else {
+            const data = payload.new as any;
+            if (data.game_type === "two_truths") {
+              const gs = data.game_state as GameState;
+              const newSession: GameSession = {
+                id: data.id,
+                statements: gs.statements || [],
+                lieIndex: gs.lieIndex,
+                creatorId: data.started_by,
+                guess: gs.guess,
+                revealed: gs.revealed || false,
+              };
+              setCurrentSession(newSession);
+
+              // Update game state based on session
+              if (gs.revealed) {
+                setGameState("reveal");
+              } else if (data.started_by === user?.id && gs.guess === undefined) {
+                setGameState("waiting");
+              } else if (data.started_by !== user?.id && gs.guess === undefined) {
+                setGameState("guess");
+              } else if (gs.guess !== undefined && !gs.revealed) {
+                setGameState("reveal");
+              }
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [partnerLinkId, user?.id]);
 
   const checkForPendingGame = async () => {
     if (!user) return;
@@ -52,22 +135,22 @@ const TwoTruthsOneLie: React.FC<TwoTruthsOneLieProps> = ({ partnerLinkId }) => {
       .maybeSingle();
 
     if (data) {
-      const gameState = data.game_state as any;
-      if (!gameState.revealed) {
+      const gs = data.game_state as any;
+      if (!gs.revealed) {
         setCurrentSession({
           id: data.id,
-          statements: gameState.statements || [],
-          lieIndex: gameState.lieIndex,
+          statements: gs.statements || [],
+          lieIndex: gs.lieIndex,
           creatorId: data.started_by,
-          guess: gameState.guess,
-          revealed: gameState.revealed || false,
+          guess: gs.guess,
+          revealed: gs.revealed || false,
         });
         
-        if (data.started_by === user.id && !gameState.guess) {
+        if (data.started_by === user.id && !gs.guess) {
           setGameState("waiting");
-        } else if (data.started_by !== user.id && !gameState.guess) {
+        } else if (data.started_by !== user.id && !gs.guess) {
           setGameState("guess");
-        } else if (gameState.guess !== undefined && !gameState.revealed) {
+        } else if (gs.guess !== undefined && !gs.revealed) {
           setGameState("reveal");
         }
       }
@@ -105,17 +188,26 @@ const TwoTruthsOneLie: React.FC<TwoTruthsOneLieProps> = ({ partnerLinkId }) => {
 
     setLoading(true);
     try {
+      // Delete any existing unrevealed session
+      await supabase
+        .from("couples_game_sessions")
+        .delete()
+        .eq("partner_link_id", partnerLinkId)
+        .eq("game_type", "two_truths");
+
+      const gameStateData = {
+        statements,
+        lieIndex,
+        revealed: false,
+      };
+
       const { data, error } = await supabase
         .from("couples_game_sessions")
         .insert({
           partner_link_id: partnerLinkId,
           game_type: "two_truths",
           started_by: user.id,
-          game_state: {
-            statements,
-            lieIndex,
-            revealed: false,
-          },
+          game_state: JSON.parse(JSON.stringify(gameStateData)),
         })
         .select()
         .single();
@@ -130,7 +222,19 @@ const TwoTruthsOneLie: React.FC<TwoTruthsOneLieProps> = ({ partnerLinkId }) => {
         revealed: false,
       });
       setGameState("waiting");
-      toast.success("Statements submitted! Waiting for partner to guess.");
+
+      // Notify partner
+      if (partnerId) {
+        const { data: myProfile } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("user_id", user.id)
+          .single();
+        const myName = myProfile?.display_name || "Your partner";
+        await notifyPartner.gameStarted(partnerId, myName, "Two Truths & a Lie");
+      }
+
+      toast.success("Statements submitted! Your partner has been notified.");
     } catch (error) {
       toast.error("Failed to submit statements");
     } finally {
@@ -143,15 +247,17 @@ const TwoTruthsOneLie: React.FC<TwoTruthsOneLieProps> = ({ partnerLinkId }) => {
 
     setLoading(true);
     try {
+      const updatedState = {
+        statements: currentSession.statements,
+        lieIndex: currentSession.lieIndex,
+        guess: selectedGuess,
+        revealed: false,
+      };
+
       const { error } = await supabase
         .from("couples_game_sessions")
         .update({
-          game_state: {
-            statements: currentSession.statements,
-            lieIndex: currentSession.lieIndex,
-            guess: selectedGuess,
-            revealed: false,
-          },
+          game_state: JSON.parse(JSON.stringify(updatedState)),
         })
         .eq("id", currentSession.id);
 
@@ -185,13 +291,17 @@ const TwoTruthsOneLie: React.FC<TwoTruthsOneLieProps> = ({ partnerLinkId }) => {
       });
 
       // Mark session as revealed
+      const revealedState = {
+        statements: currentSession.statements,
+        lieIndex: currentSession.lieIndex,
+        guess: currentSession.guess,
+        revealed: true,
+      };
+
       await supabase
         .from("couples_game_sessions")
         .update({
-          game_state: {
-            ...currentSession,
-            revealed: true,
-          },
+          game_state: JSON.parse(JSON.stringify(revealedState)),
         })
         .eq("id", currentSession.id);
 
@@ -210,7 +320,13 @@ const TwoTruthsOneLie: React.FC<TwoTruthsOneLieProps> = ({ partnerLinkId }) => {
     }
   };
 
-  const resetGame = () => {
+  const resetGame = async () => {
+    if (currentSession) {
+      await supabase
+        .from("couples_game_sessions")
+        .delete()
+        .eq("id", currentSession.id);
+    }
     setGameState("menu");
     setCurrentSession(null);
     setStatements(["", "", ""]);
@@ -218,12 +334,31 @@ const TwoTruthsOneLie: React.FC<TwoTruthsOneLieProps> = ({ partnerLinkId }) => {
     setSelectedGuess(null);
   };
 
+  const remindPartner = async () => {
+    if (!partnerId || !user) return;
+    const { data: myProfile } = await supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("user_id", user.id)
+      .single();
+    const myName = myProfile?.display_name || "Your partner";
+    await notifyPartner.gameStarted(partnerId, myName, "Two Truths & a Lie");
+    toast.success(`Reminder sent to ${partnerName}!`);
+  };
+
+  const isPlaying = !!currentSession && !currentSession.revealed;
+
   return (
     <Card className="border-primary/20 bg-gradient-to-br from-card to-card/80">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Eye className="h-5 w-5 text-primary" />
           Two Truths & a Lie
+          {isPlaying && (
+            <Badge variant="outline" className="ml-1 border-green-500/50 text-green-500">
+              <Users className="w-3 h-3 mr-1" /> Live
+            </Badge>
+          )}
         </CardTitle>
         <div className="flex gap-2">
           <Badge variant="secondary">
@@ -246,7 +381,7 @@ const TwoTruthsOneLie: React.FC<TwoTruthsOneLieProps> = ({ partnerLinkId }) => {
               className="space-y-4"
             >
               <p className="text-sm text-muted-foreground">
-                Write two truths and one lie. Your partner will try to guess which one is the lie!
+                Write two truths and one lie. Your partner will try to guess which one is the lie - play remotely!
               </p>
               <div className="text-xs text-muted-foreground">
                 <p className="font-medium mb-1">Inspiration categories:</p>
@@ -257,6 +392,7 @@ const TwoTruthsOneLie: React.FC<TwoTruthsOneLieProps> = ({ partnerLinkId }) => {
                 </div>
               </div>
               <Button onClick={startNewGame} className="w-full">
+                <Users className="w-4 h-4 mr-2" />
                 Start New Round
               </Button>
             </motion.div>
@@ -321,11 +457,18 @@ const TwoTruthsOneLie: React.FC<TwoTruthsOneLieProps> = ({ partnerLinkId }) => {
                 <RefreshCw className="h-8 w-8 mx-auto text-primary animate-spin" />
               </div>
               <p className="text-muted-foreground">
-                Waiting for your partner to guess...
+                Waiting for {partnerName} to guess...
               </p>
-              <Button variant="outline" onClick={checkForPendingGame}>
-                Refresh
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={checkForPendingGame} className="flex-1">
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  Refresh
+                </Button>
+                <Button variant="secondary" onClick={remindPartner} className="flex-1">
+                  <Bell className="h-4 w-4 mr-1" />
+                  Remind
+                </Button>
+              </div>
             </motion.div>
           )}
 
