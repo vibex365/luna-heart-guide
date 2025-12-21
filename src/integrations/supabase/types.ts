@@ -136,6 +136,36 @@ export type Database = {
         }
         Relationships: []
       }
+      coin_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          reference_id: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       completed_activities: {
         Row: {
           activity_id: string
@@ -706,6 +736,81 @@ export type Database = {
           is_active?: boolean | null
           message?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      daily_question_answers: {
+        Row: {
+          answer_text: string
+          answered_at: string | null
+          id: string
+          partner_link_id: string
+          question_date: string
+          question_id: string
+          user_id: string
+        }
+        Insert: {
+          answer_text: string
+          answered_at?: string | null
+          id?: string
+          partner_link_id: string
+          question_date?: string
+          question_id: string
+          user_id: string
+        }
+        Update: {
+          answer_text?: string
+          answered_at?: string | null
+          id?: string
+          partner_link_id?: string
+          question_date?: string
+          question_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_question_answers_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_question_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "daily_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_questions: {
+        Row: {
+          category: string
+          created_at: string | null
+          difficulty: string | null
+          id: string
+          is_active: boolean | null
+          question_text: string
+          sort_order: number | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          difficulty?: string | null
+          id?: string
+          is_active?: boolean | null
+          question_text: string
+          sort_order?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          difficulty?: string | null
+          id?: string
+          is_active?: boolean | null
+          question_text?: string
+          sort_order?: number | null
         }
         Relationships: []
       }
@@ -1753,6 +1858,39 @@ export type Database = {
           },
         ]
       }
+      relationship_tips: {
+        Row: {
+          author: string | null
+          category: string
+          content: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          sort_order: number | null
+          title: string
+        }
+        Insert: {
+          author?: string | null
+          category?: string
+          content: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          title: string
+        }
+        Update: {
+          author?: string | null
+          category?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          sort_order?: number | null
+          title?: string
+        }
+        Relationships: []
+      }
       scheduled_sms: {
         Row: {
           created_at: string
@@ -2103,6 +2241,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_coins: {
+        Row: {
+          balance: number
+          created_at: string | null
+          id: string
+          lifetime_earned: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string | null
+          id?: string
+          lifetime_earned?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string | null
+          id?: string
+          lifetime_earned?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_preferences: {
         Row: {
