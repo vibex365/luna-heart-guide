@@ -5,6 +5,8 @@ export { default as AdminFeatures } from "./AdminFeatures";
 export { default as AdminLuna } from "./AdminLuna";
 export { default as AdminContent } from "./AdminContent";
 export { default as AdminSafety } from "./AdminSafety";
+export { default as AdminModeration } from "./AdminModeration";
+export { default as AdminCoins } from "./AdminCoins";
 export { default as AdminAnalytics } from "./AdminAnalytics";
 export { default as AdminFunnelAnalytics } from "./AdminFunnelAnalytics";
 export { default as AdminMarketing } from "./AdminMarketing";

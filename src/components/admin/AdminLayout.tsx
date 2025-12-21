@@ -37,10 +37,11 @@ const navItems = [
   { icon: Brain, label: "Luna Settings", path: "/admin/luna" },
   { icon: FileText, label: "Content", path: "/admin/content" },
   { icon: AlertTriangle, label: "Safety", path: "/admin/safety" },
+  { icon: MessageSquare, label: "Moderation", path: "/admin/moderation" },
+  { icon: BarChart3, label: "Coins", path: "/admin/coins" },
   { icon: BarChart3, label: "Analytics", path: "/admin/analytics" },
   { icon: BarChart3, label: "Funnels", path: "/admin/funnels" },
   { icon: Megaphone, label: "Marketing", path: "/admin/marketing" },
-  { icon: MessageSquare, label: "Feedback", path: "/admin/feedback" },
   { icon: Bell, label: "Notifications", path: "/admin/notifications" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },
 ];

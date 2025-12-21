@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -33,6 +34,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { 
   MessageSquare, 
   Heart, 
@@ -41,7 +49,9 @@ import {
   CheckCircle,
   Calendar,
   Clock,
-  Crown
+  Crown,
+  Coins,
+  Gift,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -68,6 +78,9 @@ export const UserDetailSheet = ({
 }: UserDetailSheetProps) => {
   const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
   const [suspendReason, setSuspendReason] = useState("");
+  const [giveCoinsOpen, setGiveCoinsOpen] = useState(false);
+  const [coinAmount, setCoinAmount] = useState("");
+  const [coinReason, setCoinReason] = useState("");
   const queryClient = useQueryClient();
 
   // Fetch subscription tiers
@@ -232,12 +245,109 @@ export const UserDetailSheet = ({
     enabled: !!user?.user_id && open,
   });
 
+  // Fetch user coin balance
+  const { data: userCoins } = useQuery({
+    queryKey: ["admin-user-coins-detail", user?.user_id],
+    queryFn: async () => {
+      if (!user?.user_id) return null;
+
+      const { data, error } = await supabase
+        .from("user_coins")
+        .select("*")
+        .eq("user_id", user.user_id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.user_id && open,
+  });
+
+  // Give coins mutation
+  const giveCoins = useMutation({
+    mutationFn: async ({ userId, amount, reason }: { userId: string; amount: number; reason: string }) => {
+      const { data: { user: adminUser } } = await supabase.auth.getUser();
+
+      const { data: existing } = await supabase
+        .from("user_coins")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (existing) {
+        const { error: updateError } = await supabase
+          .from("user_coins")
+          .update({
+            balance: existing.balance + amount,
+            lifetime_earned: existing.lifetime_earned + amount,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", userId);
+
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from("user_coins")
+          .insert({
+            user_id: userId,
+            balance: amount,
+            lifetime_earned: amount,
+          });
+
+        if (insertError) throw insertError;
+      }
+
+      const { error: txError } = await supabase
+        .from("coin_transactions")
+        .insert({
+          user_id: userId,
+          amount,
+          transaction_type: "admin_gift",
+          description: reason || "Admin gift",
+        });
+
+      if (txError) throw txError;
+
+      if (adminUser) {
+        await supabase.from("admin_action_logs").insert({
+          admin_id: adminUser.id,
+          action_type: "give_coins",
+          target_user_id: userId,
+          details: { amount, reason },
+          reason: `Gave ${amount} coins: ${reason}`,
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-user-coins-detail", user?.user_id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-user-coins"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-all-transactions"] });
+      toast.success("Coins given successfully!");
+      setGiveCoinsOpen(false);
+      setCoinAmount("");
+      setCoinReason("");
+    },
+    onError: (error) => {
+      console.error("Error giving coins:", error);
+      toast.error("Failed to give coins");
+    },
+  });
+
   if (!user) return null;
 
   const handleSuspendConfirm = () => {
     onSuspend(user.user_id, true, suspendReason);
     setSuspendDialogOpen(false);
     setSuspendReason("");
+  };
+
+  const handleGiveCoins = () => {
+    if (!coinAmount) return;
+    giveCoins.mutate({
+      userId: user.user_id,
+      amount: parseInt(coinAmount),
+      reason: coinReason,
+    });
   };
 
   const handleSubscriptionChange = (tierId: string) => {
@@ -356,7 +466,67 @@ export const UserDetailSheet = ({
 
             <Separator />
 
-            {/* Account Info */}
+            {/* Coin Balance */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                <Coins className="h-4 w-4 text-yellow-500" />
+                Coin Balance
+              </h3>
+              <div className="bg-muted/50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">
+                      {userCoins?.balance || 0}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Lifetime earned: {userCoins?.lifetime_earned || 0}
+                    </p>
+                  </div>
+                  <Dialog open={giveCoinsOpen} onOpenChange={setGiveCoinsOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline" className="gap-1">
+                        <Gift className="w-4 h-4" />
+                        Give Coins
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Give Coins to {user.display_name}</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Amount</Label>
+                          <Input
+                            type="number"
+                            value={coinAmount}
+                            onChange={(e) => setCoinAmount(e.target.value)}
+                            placeholder="Enter coin amount"
+                          />
+                        </div>
+                        <div>
+                          <Label>Reason</Label>
+                          <Textarea
+                            value={coinReason}
+                            onChange={(e) => setCoinReason(e.target.value)}
+                            placeholder="Why are you giving these coins?"
+                          />
+                        </div>
+                        <Button
+                          onClick={handleGiveCoins}
+                          disabled={!coinAmount || giveCoins.isPending}
+                          className="w-full"
+                        >
+                          <Gift className="w-4 h-4 mr-2" />
+                          Give {coinAmount || "0"} Coins
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-foreground">Account Info</h3>
               <div className="grid grid-cols-2 gap-4">
