@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, Wind, BookOpen, Users, Sparkles, Shield, Star, ArrowRight, Check, Rocket, Crown, Quote, Brain, HeartHandshake, Zap } from "lucide-react";
+import { Heart, MessageCircle, Wind, BookOpen, Users, Sparkles, Shield, Star, ArrowRight, Check, Rocket, Crown, Quote, Brain, HeartHandshake, Zap, Newspaper } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import LunaAvatar from "./LunaAvatar";
@@ -95,10 +96,35 @@ const stats = [{
   value: "24/7",
   label: "Always Available"
 }];
+interface BlogPost {
+  id: string;
+  title: string;
+  excerpt: string | null;
+  slug: string;
+  category: string;
+  read_time_minutes: number | null;
+  published_at: string | null;
+}
+
 const DesktopLanding = () => {
   const navigate = useNavigate();
   const [showDemoDialog, setShowDemoDialog] = useState(false);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   
+  useEffect(() => {
+    const fetchBlogPosts = async () => {
+      const { data } = await supabase
+        .from('blog_posts')
+        .select('id, title, excerpt, slug, category, read_time_minutes, published_at')
+        .eq('status', 'published')
+        .order('published_at', { ascending: false })
+        .limit(3);
+      
+      if (data) setBlogPosts(data);
+    };
+    
+    fetchBlogPosts();
+  }, []);
   const fadeInUp = {
     initial: {
       opacity: 0,
@@ -148,6 +174,7 @@ const DesktopLanding = () => {
               <a href="#demo" className="text-muted-foreground hover:text-foreground transition-colors">Try Demo</a>
               <a href="#couples-demo" className="text-muted-foreground hover:text-foreground transition-colors">Couples Demo</a>
               <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">How It Works</a>
+              <a href="#blog" className="text-muted-foreground hover:text-foreground transition-colors">Blog</a>
               <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">Stories</a>
               <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
             </nav>
@@ -591,7 +618,95 @@ const DesktopLanding = () => {
         </div>
       </section>
 
-      {/* Section 8: Final CTA */}
+      {/* Section 8: Blog */}
+      <section id="blog" className="py-24 bg-background relative">
+        <div className="max-w-6xl mx-auto px-6">
+          <motion.div {...fadeInUp} className="text-center mb-16">
+            <span className="text-accent text-sm font-medium uppercase tracking-wider">Blog</span>
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mt-3 mb-4">
+              Relationship Insights & Advice
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Expert guidance on building healthier relationships and emotional wellness
+            </p>
+          </motion.div>
+
+          {blogPosts.length > 0 ? (
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              {blogPosts.map((post, index) => (
+                <motion.article
+                  key={post.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-card rounded-2xl border border-accent/10 overflow-hidden hover:border-accent/30 hover:shadow-soft transition-all cursor-pointer group"
+                  onClick={() => navigate(`/blog/${post.slug}`)}
+                >
+                  <div className="p-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-1 rounded-full">
+                        {post.category}
+                      </span>
+                      {post.read_time_minutes && (
+                        <span className="text-xs text-muted-foreground">
+                          {post.read_time_minutes} min read
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-heading text-lg font-bold text-foreground mb-2 group-hover:text-accent transition-colors line-clamp-2">
+                      {post.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm line-clamp-3 mb-4">
+                      {post.excerpt}
+                    </p>
+                    <div className="flex items-center text-accent text-sm font-medium">
+                      Read More
+                      <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              {[1, 2, 3].map((_, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-card rounded-2xl border border-accent/10 p-6"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <Newspaper className="w-5 h-5 text-accent" />
+                    <span className="text-xs font-medium text-muted-foreground">Coming Soon</span>
+                  </div>
+                  <div className="h-4 w-3/4 bg-muted/50 rounded mb-2" />
+                  <div className="h-4 w-1/2 bg-muted/30 rounded mb-4" />
+                  <div className="h-3 w-full bg-muted/20 rounded mb-2" />
+                  <div className="h-3 w-4/5 bg-muted/20 rounded" />
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          <div className="text-center">
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-accent/30 hover:border-accent hover:bg-accent/5"
+              onClick={() => navigate("/blog")}
+            >
+              <Newspaper className="w-4 h-4 mr-2" />
+              View All Articles
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 9: Final CTA */}
       <section className="py-24 bg-gradient-to-br from-accent/20 via-primary/25 to-peach/30 relative overflow-hidden">
         <div className="absolute inset-0 romantic-glow" />
         <div className="absolute inset-0">
@@ -647,6 +762,7 @@ const DesktopLanding = () => {
                 <span className="font-heading font-bold text-xl text-foreground">LUNA</span>
               </div>
               <nav className="flex items-center gap-6 text-sm text-muted-foreground">
+                <a href="/blog" className="hover:text-foreground transition-colors">Blog</a>
                 <a href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</a>
                 <a href="/terms" className="hover:text-foreground transition-colors">Terms of Service</a>
                 <a href="/resources" className="hover:text-foreground transition-colors">Resources</a>
