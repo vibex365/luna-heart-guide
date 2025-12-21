@@ -29,7 +29,6 @@ interface GeneratedPost {
   category: string;
   tags: string[];
   read_time_minutes: number;
-  faq: { question: string; answer: string }[];
 }
 
 serve(async (req) => {
@@ -58,7 +57,6 @@ serve(async (req) => {
 
     if (!topics || topics.length === 0) {
       console.log('[generate-blog-post] No pending topics, generating a new one...');
-      // Generate a new topic if queue is empty
       const newTopic = await generateNewTopic(supabase);
       if (!newTopic) {
         return new Response(JSON.stringify({ error: 'No topics available' }), {
@@ -78,11 +76,10 @@ serve(async (req) => {
       .update({ status: 'processing', used_at: new Date().toISOString() })
       .eq('id', topic.id);
 
-    // Generate the blog post using Lovable AI
+    // Generate the blog post using Lovable AI with tool calling
     const generatedPost = await generateBlogPost(topic);
     
     if (!generatedPost) {
-      // Mark topic as failed
       await supabase
         .from('blog_topics')
         .update({ status: 'failed' })
@@ -114,7 +111,6 @@ serve(async (req) => {
 
     if (saveError) {
       console.error('[generate-blog-post] Error saving post:', saveError);
-      // Mark topic as failed
       await supabase
         .from('blog_topics')
         .update({ status: 'failed' })
@@ -152,23 +148,10 @@ serve(async (req) => {
 });
 
 async function generateNewTopic(supabase: any): Promise<BlogTopic | null> {
-  // Generate a fresh topic using AI
   const categories = ['relationships', 'communication', 'trust', 'dating', 'marriage', 'self-love', 'breakups', 'mental-health'];
   const randomCategory = categories[Math.floor(Math.random() * categories.length)];
   
-  const prompt = `Generate a single unique SEO blog topic about ${randomCategory} for a relationship and mental health app called Luna.
-
-The topic should:
-1. Target a long-tail keyword that people actually search for
-2. Be specific and actionable
-3. Address a real problem people face
-
-Return ONLY a JSON object with this exact format:
-{
-  "topic": "The blog post title",
-  "keywords": ["keyword1", "keyword2", "keyword3"],
-  "category": "${randomCategory}"
-}`;
+  const prompt = `Generate a unique SEO blog topic about ${randomCategory} for Luna, an AI relationship and mental health app. The topic should target a long-tail keyword, be specific, actionable, and address a real problem people face.`;
 
   try {
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -180,28 +163,52 @@ Return ONLY a JSON object with this exact format:
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 200,
+        tools: [{
+          type: 'function',
+          function: {
+            name: 'create_blog_topic',
+            description: 'Create a new blog topic with keywords',
+            parameters: {
+              type: 'object',
+              properties: {
+                topic: { type: 'string', description: 'The blog post title/topic' },
+                keywords: { 
+                  type: 'array', 
+                  items: { type: 'string' },
+                  description: 'SEO keywords for this topic'
+                },
+                category: { type: 'string', description: 'The category of the post' }
+              },
+              required: ['topic', 'keywords', 'category'],
+              additionalProperties: false
+            }
+          }
+        }],
+        tool_choice: { type: 'function', function: { name: 'create_blog_topic' } }
       }),
     });
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-    
-    if (!content) return null;
+    if (!response.ok) {
+      console.error('[generate-blog-post] Topic generation API error:', response.status);
+      return null;
+    }
 
-    // Parse the JSON response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
+    const data = await response.json();
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     
-    const topicData = JSON.parse(jsonMatch[0]);
+    if (!toolCall?.function?.arguments) {
+      console.error('[generate-blog-post] No tool call in topic response');
+      return null;
+    }
+
+    const topicData = JSON.parse(toolCall.function.arguments);
     
-    // Insert the new topic
     const { data: newTopic, error } = await supabase
       .from('blog_topics')
       .insert({
         topic: topicData.topic,
         keywords: topicData.keywords,
-        category: topicData.category,
+        category: topicData.category || randomCategory,
         status: 'pending',
         priority: 5,
       })
@@ -232,34 +239,13 @@ REQUIREMENTS:
 1. Write 1800-2500 words of high-quality, helpful content
 2. Use a warm, empathetic, conversational tone
 3. Include personal examples and relatable scenarios
-4. Structure with clear H2 and H3 headings
-5. Include an FAQ section with 3-4 questions
+4. Structure with clear H2 and H3 headings using markdown (## and ###)
+5. Include an FAQ section at the end with 3-4 questions
 6. Naturally mention Luna as a helpful tool (but don't be salesy)
-7. Use markdown formatting
-8. Make it genuinely helpful for someone struggling with this issue
-
-Return a JSON object with this EXACT structure:
-{
-  "title": "SEO-optimized title (max 60 chars)",
-  "slug": "url-friendly-slug",
-  "excerpt": "Compelling excerpt (max 160 chars)",
-  "content": "Full markdown content with ## and ### headings",
-  "meta_title": "SEO meta title (max 60 chars)",
-  "meta_description": "Meta description (max 155 chars)",
-  "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
-  "tags": ["tag1", "tag2", "tag3"],
-  "read_time_minutes": 8,
-  "faq": [
-    {"question": "FAQ question 1?", "answer": "Answer 1"},
-    {"question": "FAQ question 2?", "answer": "Answer 2"},
-    {"question": "FAQ question 3?", "answer": "Answer 3"}
-  ]
-}
-
-IMPORTANT: Return ONLY the JSON object, no other text.`;
+7. Make it genuinely helpful for someone struggling with this issue`;
 
   try {
-    console.log('[generate-blog-post] Calling Lovable AI...');
+    console.log('[generate-blog-post] Calling Lovable AI with tool calling...');
     
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -270,31 +256,80 @@ IMPORTANT: Return ONLY the JSON object, no other text.`;
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 4000,
+        tools: [{
+          type: 'function',
+          function: {
+            name: 'create_blog_post',
+            description: 'Create a complete blog post with all required fields',
+            parameters: {
+              type: 'object',
+              properties: {
+                title: { 
+                  type: 'string', 
+                  description: 'SEO-optimized title, max 60 characters' 
+                },
+                slug: { 
+                  type: 'string', 
+                  description: 'URL-friendly slug using only lowercase letters, numbers, and hyphens' 
+                },
+                excerpt: { 
+                  type: 'string', 
+                  description: 'Compelling excerpt, max 160 characters' 
+                },
+                content: { 
+                  type: 'string', 
+                  description: 'Full markdown content with ## and ### headings, 1800-2500 words' 
+                },
+                meta_title: { 
+                  type: 'string', 
+                  description: 'SEO meta title, max 60 characters' 
+                },
+                meta_description: { 
+                  type: 'string', 
+                  description: 'Meta description, max 155 characters' 
+                },
+                keywords: { 
+                  type: 'array', 
+                  items: { type: 'string' },
+                  description: '5 SEO keywords'
+                },
+                tags: { 
+                  type: 'array', 
+                  items: { type: 'string' },
+                  description: '3 tags for the post'
+                },
+                read_time_minutes: { 
+                  type: 'number', 
+                  description: 'Estimated read time in minutes'
+                }
+              },
+              required: ['title', 'slug', 'excerpt', 'content', 'meta_title', 'meta_description', 'keywords', 'tags', 'read_time_minutes'],
+              additionalProperties: false
+            }
+          }
+        }],
+        tool_choice: { type: 'function', function: { name: 'create_blog_post' } }
       }),
     });
 
     if (!response.ok) {
-      console.error('[generate-blog-post] Lovable API error:', response.status);
+      const errorText = await response.text();
+      console.error('[generate-blog-post] Lovable API error:', response.status, errorText);
       return null;
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
+    console.log('[generate-blog-post] API response received');
     
-    if (!content) {
-      console.error('[generate-blog-post] No content in response');
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    
+    if (!toolCall?.function?.arguments) {
+      console.error('[generate-blog-post] No tool call in response:', JSON.stringify(data).substring(0, 500));
       return null;
     }
 
-    // Parse the JSON response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error('[generate-blog-post] Could not extract JSON from response');
-      return null;
-    }
-    
-    const postData = JSON.parse(jsonMatch[0]);
+    const postData = JSON.parse(toolCall.function.arguments);
+    console.log('[generate-blog-post] Parsed post data for:', postData.title);
     
     // Generate unique slug with timestamp to avoid conflicts
     const baseSlug = postData.slug || topic.topic.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
