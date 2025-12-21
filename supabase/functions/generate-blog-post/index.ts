@@ -91,7 +91,7 @@ serve(async (req) => {
 
     // Generate featured image for the post
     console.log('[generate-blog-post] Generating featured image...');
-    const featuredImageUrl = await generateAndUploadImage(supabase, generatedPost.title, generatedPost.slug);
+    const featuredImageUrl = await generateAndUploadImage(supabase, generatedPost.title, generatedPost.slug, generatedPost.category);
 
     // Save the blog post
     const { data: savedPost, error: saveError } = await supabase
@@ -106,7 +106,7 @@ serve(async (req) => {
         keywords: generatedPost.keywords,
         category: generatedPost.category,
         tags: generatedPost.tags,
-        read_time_minutes: generatedPost.read_time_minutes,
+        read_time_minutes: Math.round(generatedPost.read_time_minutes),
         featured_image: featuredImageUrl,
         status: 'published',
         published_at: new Date().toISOString(),
@@ -318,8 +318,8 @@ CONTENT REQUIREMENTS:
                   description: '3 tags for the post'
                 },
                 read_time_minutes: { 
-                  type: 'number', 
-                  description: 'Estimated read time in minutes'
+                  type: 'integer', 
+                  description: 'Estimated read time in whole minutes (integer, no decimals)'
                 }
               },
               required: ['title', 'slug', 'excerpt', 'content', 'meta_title', 'meta_description', 'keywords', 'tags', 'read_time_minutes'],
@@ -365,13 +365,22 @@ CONTENT REQUIREMENTS:
   }
 }
 
-async function generateAndUploadImage(supabase: any, title: string, slug: string): Promise<string | null> {
+async function generateAndUploadImage(supabase: any, title: string, slug: string, category: string): Promise<string | null> {
   try {
-    // Create a prompt for a blog featured image
-    const imagePrompt = `Create a beautiful, modern, minimalist blog featured image for an article titled "${title}". 
-    Style: Soft gradients, abstract shapes, warm and calming colors (peach, lavender, soft pink). 
-    The image should evoke feelings of connection, love, and emotional wellbeing. 
-    No text on the image. 16:9 aspect ratio. Professional, editorial quality.`;
+    // Create a prompt for a blog featured image with real people
+    const imagePrompt = `Create a photorealistic, high-quality blog featured image for an article titled "${title}" in the ${category} category.
+    
+    REQUIREMENTS:
+    - Feature real, diverse people (couples, individuals, or families depending on the topic)
+    - Natural, candid moments showing genuine emotion and connection
+    - Warm, inviting lighting with soft natural tones
+    - Modern, editorial photography style like you'd see in a lifestyle magazine
+    - People should reflect the emotional tone of the article (supportive, loving, contemplative, hopeful)
+    - Professional quality, sharp focus on faces and expressions
+    - 16:9 aspect ratio
+    - NO text, logos, or watermarks on the image
+    
+    The image should feel authentic and relatable, showing real human connection and emotion.`;
 
     console.log('[generate-blog-post] Generating image with prompt:', imagePrompt.substring(0, 100) + '...');
 
