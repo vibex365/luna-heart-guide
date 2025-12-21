@@ -4,6 +4,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminRoute } from "@/components/AdminRoute";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { BiometricLockScreen } from "@/components/BiometricLockScreen";
+import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Chat from "./pages/Chat";
@@ -21,6 +24,8 @@ import DMFunnel from "./pages/DMFunnel";
 import CouplesFunnel from "./pages/CouplesFunnel";
 import Welcome from "./pages/Welcome";
 import CouplesWelcome from "./pages/CouplesWelcome";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminAnalytics, AdminFunnelAnalytics, AdminMarketing, AdminSettings, AdminFeedback, AdminNotifications } from "./pages/admin";
 import NotFound from "./pages/NotFound";
 
@@ -30,9 +35,12 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <Routes>
+        <DeepLinkHandler>
+          <Toaster />
+          <Sonner />
+          <OfflineBanner />
+          <BiometricLockScreen />
+          <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/dm" element={<DMFunnel />} />
           <Route path="/welcome" element={<Welcome />} />
@@ -50,6 +58,8 @@ const App = () => (
           <Route path="/couples" element={<Couples />} />
           <Route path="/couples-funnel" element={<CouplesFunnel />} />
           <Route path="/couples-welcome" element={<CouplesWelcome />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
           <Route
             path="/admin"
             element={
@@ -156,6 +166,7 @@ const App = () => (
           />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </DeepLinkHandler>
       </AuthProvider>
     </BrowserRouter>
   </QueryClientProvider>

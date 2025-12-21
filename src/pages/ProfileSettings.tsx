@@ -16,6 +16,7 @@ import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import { ProfileSkeleton } from "@/components/skeletons/PageSkeletons";
 import { PhoneSettingsCard } from "@/components/PhoneSettingsCard";
 import { SmsNotificationPreferences } from "@/components/SmsNotificationPreferences";
+import { SecuritySettings } from "@/components/SecuritySettings";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -922,6 +923,9 @@ const ProfileSettings = () => {
               )}
             </div>
           </div>
+
+          {/* Security Settings */}
+          <SecuritySettings />
 
           {/* Subscription Section */}
           <div className="bg-card rounded-3xl p-6 shadow-luna border border-border">

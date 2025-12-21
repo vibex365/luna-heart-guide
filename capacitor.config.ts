@@ -27,6 +27,13 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
   },
+  // Deep linking configuration
+  android: {
+    allowMixedContent: true,
+  },
+  ios: {
+    scheme: 'luna',
+  },
 };
 
 export default config;
