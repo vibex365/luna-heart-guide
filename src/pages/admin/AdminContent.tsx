@@ -4,7 +4,10 @@ import { BreathingExercisesCMS } from "@/components/admin/cms/BreathingExercises
 import { MoodPromptsCMS } from "@/components/admin/cms/MoodPromptsCMS";
 import { JournalTemplatesCMS } from "@/components/admin/cms/JournalTemplatesCMS";
 import { CouplesGameCMS } from "@/components/admin/cms/CouplesGameCMS";
-import { Wind, Heart, BookOpen, FileText, Gamepad2 } from "lucide-react";
+import { DailyQuestionsCMS } from "@/components/admin/cms/DailyQuestionsCMS";
+import { RelationshipTipsCMS } from "@/components/admin/cms/RelationshipTipsCMS";
+import { CoinAnalytics } from "@/components/admin/cms/CoinAnalytics";
+import { Wind, Heart, BookOpen, FileText, Gamepad2, MessageCircleQuestion, Lightbulb, Coins } from "lucide-react";
 
 const AdminContent = () => {
   return (
@@ -17,30 +20,54 @@ const AdminContent = () => {
             Content Management
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage breathing exercises, mood prompts, and journal templates
+            Manage content, daily questions, tips, and virtual currency
           </p>
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="breathing" className="space-y-6">
-          <TabsList className="grid w-full max-w-xl grid-cols-4">
-            <TabsTrigger value="breathing" className="gap-2">
+        <Tabs defaultValue="questions" className="space-y-6">
+          <TabsList className="grid w-full max-w-3xl grid-cols-7">
+            <TabsTrigger value="questions" className="gap-1 text-xs">
+              <MessageCircleQuestion className="h-4 w-4" />
+              Questions
+            </TabsTrigger>
+            <TabsTrigger value="tips" className="gap-1 text-xs">
+              <Lightbulb className="h-4 w-4" />
+              Tips
+            </TabsTrigger>
+            <TabsTrigger value="coins" className="gap-1 text-xs">
+              <Coins className="h-4 w-4" />
+              Coins
+            </TabsTrigger>
+            <TabsTrigger value="breathing" className="gap-1 text-xs">
               <Wind className="h-4 w-4" />
               Breathing
             </TabsTrigger>
-            <TabsTrigger value="moods" className="gap-2">
+            <TabsTrigger value="moods" className="gap-1 text-xs">
               <Heart className="h-4 w-4" />
               Moods
             </TabsTrigger>
-            <TabsTrigger value="journals" className="gap-2">
+            <TabsTrigger value="journals" className="gap-1 text-xs">
               <BookOpen className="h-4 w-4" />
               Journals
             </TabsTrigger>
-            <TabsTrigger value="couples" className="gap-2">
+            <TabsTrigger value="couples" className="gap-1 text-xs">
               <Gamepad2 className="h-4 w-4" />
-              Couples
+              Games
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="questions">
+            <DailyQuestionsCMS />
+          </TabsContent>
+
+          <TabsContent value="tips">
+            <RelationshipTipsCMS />
+          </TabsContent>
+
+          <TabsContent value="coins">
+            <CoinAnalytics />
+          </TabsContent>
 
           <TabsContent value="breathing">
             <BreathingExercisesCMS />

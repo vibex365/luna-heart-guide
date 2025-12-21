@@ -95,14 +95,19 @@ export const useDailyQuestion = () => {
 
       if (error) throw error;
 
-      // Award coins for answering
-      await earnCoins(5, 'daily_question', 'Answered daily question');
+      // Award coins for answering - wrapped in try/catch to not break the main flow
+      try {
+        await earnCoins(5, 'daily_question', 'Answered daily question');
+      } catch (coinError) {
+        console.error('Failed to award coins:', coinError);
+      }
 
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['daily-question-answers'] });
       queryClient.invalidateQueries({ queryKey: ['user-coins'] });
+      queryClient.invalidateQueries({ queryKey: ['coin-transactions'] });
     },
   });
 

@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { X, Send, Heart } from "lucide-react";
+import { X, Send, Heart, Coins, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { DigitalGift } from "@/hooks/useGiftStore";
+import { useVirtualCurrency } from "@/hooks/useVirtualCurrency";
+import { getCoinPrice } from "./GiftCard";
+import { toast } from "sonner";
 
 interface GiftMessageModalProps {
   gift: DigitalGift;
   partnerName: string;
   isSending: boolean;
-  onSend: (message?: string) => void;
+  onSend: (message?: string, payWithCoins?: boolean) => void;
   onClose: () => void;
 }
 
@@ -21,9 +24,22 @@ export const GiftMessageModal = ({
   onClose,
 }: GiftMessageModalProps) => {
   const [message, setMessage] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<'money' | 'coins'>('money');
+  const { balance, canAfford } = useVirtualCurrency();
 
   const formatPrice = (cents: number) => {
     return `$${(cents / 100).toFixed(2)}`;
+  };
+
+  const coinPrice = getCoinPrice(gift.price_cents);
+  const hasEnoughCoins = canAfford(coinPrice);
+
+  const handleSend = () => {
+    if (paymentMethod === 'coins' && !hasEnoughCoins) {
+      toast.error("You don't have enough coins!");
+      return;
+    }
+    onSend(message || undefined, paymentMethod === 'coins');
   };
 
   return (
@@ -69,10 +85,41 @@ export const GiftMessageModal = ({
 
           <h3 className="font-bold text-xl text-foreground mt-3">{gift.name}</h3>
           <p className="text-muted-foreground text-sm mt-1">{gift.description}</p>
-          <div className="mt-3">
-            <span className="px-4 py-1.5 bg-primary/20 text-primary rounded-full font-semibold">
-              {formatPrice(gift.price_cents)}
-            </span>
+        </div>
+
+        {/* Payment Method Selection */}
+        <div className="p-4 border-b border-border">
+          <p className="text-sm font-medium text-foreground mb-3">Choose payment method</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setPaymentMethod('money')}
+              className={`p-3 rounded-xl border-2 transition-all ${
+                paymentMethod === 'money'
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <CreditCard className={`w-5 h-5 mx-auto mb-1 ${paymentMethod === 'money' ? 'text-primary' : 'text-muted-foreground'}`} />
+              <p className="text-sm font-semibold">{formatPrice(gift.price_cents)}</p>
+              <p className="text-xs text-muted-foreground">Card</p>
+            </button>
+            <button
+              onClick={() => setPaymentMethod('coins')}
+              disabled={!hasEnoughCoins}
+              className={`p-3 rounded-xl border-2 transition-all ${
+                paymentMethod === 'coins'
+                  ? 'border-yellow-500 bg-yellow-500/10'
+                  : hasEnoughCoins
+                    ? 'border-border hover:border-yellow-500/50'
+                    : 'border-border opacity-50 cursor-not-allowed'
+              }`}
+            >
+              <Coins className={`w-5 h-5 mx-auto mb-1 ${paymentMethod === 'coins' ? 'text-yellow-500' : 'text-muted-foreground'}`} />
+              <p className="text-sm font-semibold">{coinPrice} coins</p>
+              <p className="text-xs text-muted-foreground">
+                {hasEnoughCoins ? `Balance: ${balance}` : `Need ${coinPrice - balance} more`}
+              </p>
+            </button>
           </div>
         </div>
 
@@ -104,8 +151,8 @@ export const GiftMessageModal = ({
               Cancel
             </Button>
             <Button
-              className="flex-1 bg-rose-500 hover:bg-rose-600"
-              onClick={() => onSend(message || undefined)}
+              className={`flex-1 ${paymentMethod === 'coins' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-rose-500 hover:bg-rose-600'}`}
+              onClick={handleSend}
               disabled={isSending}
             >
               {isSending ? (
@@ -120,7 +167,11 @@ export const GiftMessageModal = ({
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4 mr-2" />
+                  {paymentMethod === 'coins' ? (
+                    <Coins className="w-4 h-4 mr-2" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
                   Send Gift
                 </>
               )}
@@ -128,7 +179,10 @@ export const GiftMessageModal = ({
           </div>
 
           <p className="text-xs text-center text-muted-foreground">
-            You'll be redirected to complete the payment
+            {paymentMethod === 'coins' 
+              ? 'Gift will be sent instantly using your coins'
+              : "You'll be redirected to complete the payment"
+            }
           </p>
         </div>
       </motion.div>

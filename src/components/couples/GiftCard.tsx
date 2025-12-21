@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Coins } from "lucide-react";
 import { DigitalGift } from "@/hooks/useGiftStore";
 
 interface GiftCardProps {
@@ -6,10 +7,17 @@ interface GiftCardProps {
   onSelect: () => void;
 }
 
+// Convert cents to coin value (e.g., $0.99 = 50 coins, $1.99 = 100 coins)
+export const getCoinPrice = (priceCents: number): number => {
+  return Math.ceil(priceCents / 2);
+};
+
 export const GiftCard = ({ gift, onSelect }: GiftCardProps) => {
   const formatPrice = (cents: number) => {
     return `$${(cents / 100).toFixed(2)}`;
   };
+
+  const coinPrice = getCoinPrice(gift.price_cents);
 
   const getCategoryGradient = (category: string) => {
     switch (category) {
@@ -74,10 +82,14 @@ export const GiftCard = ({ gift, onSelect }: GiftCardProps) => {
         {gift.description}
       </p>
 
-      {/* Price Badge */}
-      <div className="mt-auto pt-2">
-        <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+      {/* Price Badges - Show both options */}
+      <div className="mt-auto pt-2 flex flex-col gap-1">
+        <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-semibold">
           {formatPrice(gift.price_cents)}
+        </span>
+        <span className="px-3 py-1 bg-yellow-500/10 text-yellow-600 rounded-full text-xs font-semibold flex items-center justify-center gap-1">
+          <Coins className="w-3 h-3" />
+          {coinPrice} coins
         </span>
       </div>
     </motion.button>

@@ -17,11 +17,15 @@ interface GiftStoreProps {
 
 export const GiftStore = ({ partnerLinkId, partnerId, partnerName, onClose }: GiftStoreProps) => {
   const [selectedGift, setSelectedGift] = useState<DigitalGift | null>(null);
-  const { gifts, giftsLoading, sendGift, isSending } = useGiftStore(partnerLinkId, partnerId);
+  const { gifts, giftsLoading, sendGift, sendGiftWithCoins, isSending } = useGiftStore(partnerLinkId, partnerId);
 
-  const handleSendGift = (message?: string) => {
+  const handleSendGift = (message?: string, payWithCoins?: boolean) => {
     if (!selectedGift) return;
-    sendGift({ giftId: selectedGift.id, message });
+    if (payWithCoins) {
+      sendGiftWithCoins({ giftId: selectedGift.id, message });
+    } else {
+      sendGift({ giftId: selectedGift.id, message });
+    }
     setSelectedGift(null);
   };
 
