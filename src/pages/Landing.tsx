@@ -501,6 +501,10 @@ const Landing = () => {
             <Link to="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
               Privacy
             </Link>
+            <span className="text-muted-foreground/50">•</span>
+            <Link to="/blog" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Blog
+            </Link>
           </div>
         </div>
       </div>
