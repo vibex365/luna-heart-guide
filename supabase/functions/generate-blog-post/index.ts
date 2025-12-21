@@ -171,7 +171,7 @@ Return ONLY a JSON object with this exact format:
 }`;
 
   try {
-    const response = await fetch('https://api.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
@@ -261,7 +261,7 @@ IMPORTANT: Return ONLY the JSON object, no other text.`;
   try {
     console.log('[generate-blog-post] Calling Lovable AI...');
     
-    const response = await fetch('https://api.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
