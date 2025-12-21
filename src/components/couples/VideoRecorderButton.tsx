@@ -47,25 +47,69 @@ export const VideoRecorderButton = ({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  // Handle live camera stream - ensure srcObject is set and video plays
   useEffect(() => {
     const video = videoRef.current;
     if (video && stream) {
+      // Always reset srcObject when stream changes
       video.srcObject = stream;
-      // Explicit play call for iOS Safari
-      video.play().catch((error) => {
-        console.error("Error playing video stream:", error);
-      });
+      video.muted = true;
+      video.playsInline = true;
+      
+      // Force play with a small delay for iOS
+      const playVideo = async () => {
+        try {
+          await video.play();
+          console.log("Camera stream playing successfully");
+        } catch (error) {
+          console.error("Error playing video stream:", error);
+          // Retry once after a short delay
+          setTimeout(async () => {
+            try {
+              await video.play();
+              console.log("Camera stream playing on retry");
+            } catch (retryError) {
+              console.error("Retry failed:", retryError);
+            }
+          }, 100);
+        }
+      };
+      
+      // Wait for loadedmetadata before playing
+      video.onloadedmetadata = () => {
+        playVideo();
+      };
+      
+      // Also try to play immediately in case metadata is already loaded
+      if (video.readyState >= 2) {
+        playVideo();
+      }
     }
+    
+    return () => {
+      if (video) {
+        video.srcObject = null;
+      }
+    };
   }, [stream]);
 
   // Handle preview video playback for iOS
   useEffect(() => {
     const previewVideo = previewVideoRef.current;
     if (previewVideo && previewUrl && isPreviewing) {
+      previewVideo.src = previewUrl;
+      previewVideo.muted = true;
+      previewVideo.playsInline = true;
       previewVideo.load();
-      previewVideo.play().catch((error) => {
-        console.error("Error playing preview video:", error);
-      });
+      
+      previewVideo.onloadeddata = async () => {
+        try {
+          await previewVideo.play();
+          console.log("Preview video playing");
+        } catch (error) {
+          console.error("Error playing preview video:", error);
+        }
+      };
     }
   }, [previewUrl, isPreviewing]);
 
