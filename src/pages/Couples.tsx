@@ -52,7 +52,10 @@ import ThirtySixQuestions from "@/components/couples/ThirtySixQuestions";
 import SpinTheWheel from "@/components/couples/SpinTheWheel";
 import { GiftButton } from "@/components/couples/GiftButton";
 import { GiftCollection } from "@/components/couples/GiftCollection";
-
+import { DailyQuestionCard } from "@/components/couples/DailyQuestionCard";
+import { QuickDailyHub } from "@/components/couples/QuickDailyHub";
+import { DailyTip } from "@/components/couples/DailyTip";
+import { CoinBalance } from "@/components/couples/CoinBalance";
 const Couples = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -198,25 +201,28 @@ const Couples = () => {
             <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
             Couples
           </h1>
-          {isLinked && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowChat(true)}
-              className="relative"
-            >
-              <MessageCircle className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-[10px]"
-                >
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </Badge>
-              )}
-            </Button>
-          )}
-          {!isLinked && <div className="w-10" />}
+          <div className="flex items-center gap-2">
+            {/* Coin Balance */}
+            <CoinBalance />
+            {isLinked && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowChat(true)}
+                className="relative"
+              >
+                <MessageCircle className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-[10px]"
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </Badge>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -231,6 +237,16 @@ const Couples = () => {
               daysLeft={trialDaysLeft}
               hoursLeft={trialHoursLeft}
             />
+          </motion.div>
+        )}
+
+        {/* Quick Daily Hub - 5 Minutes a Day Dashboard */}
+        {isLinked && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <QuickDailyHub currentStreak={0} hasDoneChallenge={false} />
           </motion.div>
         )}
 
@@ -277,6 +293,24 @@ const Couples = () => {
                   </div>
                 </div>
               </button>
+            </motion.div>
+
+            {/* Daily Question Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.07 }}
+            >
+              <DailyQuestionCard partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            {/* Expert Daily Tip */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+            >
+              <DailyTip />
             </motion.div>
 
             <motion.div
