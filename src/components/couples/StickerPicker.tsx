@@ -32,7 +32,7 @@ export const StickerPicker = ({ isOpen, onSelect, onClose }: StickerPickerProps)
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 100 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="absolute bottom-full left-0 right-0 mb-2 mx-2 bg-card rounded-2xl shadow-lg border border-border overflow-hidden"
+          className="absolute bottom-full left-0 right-0 mb-2 mx-2 bg-card rounded-2xl shadow-lg border border-border overflow-hidden z-50"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-2 border-b border-border">
@@ -66,23 +66,23 @@ export const StickerPicker = ({ isOpen, onSelect, onClose }: StickerPickerProps)
             ))}
           </div>
 
-          {/* Sticker Grid */}
+          {/* Sticker Grid - Fixed scrolling */}
           <div 
-            className="grid grid-cols-6 gap-1 p-3 max-h-64 overflow-y-auto overscroll-contain touch-pan-y"
-            style={{ WebkitOverflowScrolling: 'touch' }}
+            className="p-3 h-56 overflow-y-scroll"
+            onTouchMove={(e) => e.stopPropagation()}
           >
-            {currentPack.stickers.map((sticker) => (
-              <motion.button
-                key={sticker.id}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => handleSelect(sticker)}
-                className="text-3xl p-2 rounded-lg hover:bg-muted transition-colors"
-                title={sticker.label}
-              >
-                {sticker.emoji}
-              </motion.button>
-            ))}
+            <div className="grid grid-cols-5 gap-2">
+              {currentPack.stickers.map((sticker) => (
+                <button
+                  key={sticker.id}
+                  onClick={() => handleSelect(sticker)}
+                  className="text-3xl p-2 rounded-lg hover:bg-muted active:bg-muted/80 transition-colors"
+                  title={sticker.label}
+                >
+                  {sticker.emoji}
+                </button>
+              ))}
+            </div>
           </div>
         </motion.div>
       )}
