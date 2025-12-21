@@ -69,14 +69,14 @@ const pricingPlans = [{
   popular: false
 }, {
   name: "Pro",
-  price: "$12",
+  price: "$3.99",
   period: "/month",
   features: ["Unlimited conversations", "Advanced mood analytics", "Priority AI responses", "All journal templates", "Weekly insights"],
   highlight: true,
   popular: true
 }, {
   name: "Couples",
-  price: "$19",
+  price: "$7.99",
   period: "/month",
   features: ["Everything in Pro", "Send digital gifts", "Private couples chat", "Daily journal prompts", "Relationship games"],
   highlight: false,
