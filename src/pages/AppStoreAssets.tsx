@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, Smartphone, Monitor } from "lucide-react";
+import { ArrowLeft, Download, Smartphone, Monitor, Video, Image, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import appIcon1024 from "@/assets/app-icon-1024.png";
+import lunaIcon from "@/assets/luna-icon-512.png";
+import ogImage from "@/assets/luna-og-image.png";
 
 // Screenshot frame component
 const PhoneFrame = ({ children, title }: { children: React.ReactNode; title: string }) => (
@@ -27,6 +29,45 @@ const FeatureBadge = ({ text }: { text: string }) => (
     <span className="text-sm font-medium text-foreground">{text}</span>
   </div>
 );
+
+// Download card component
+const DownloadCard = ({ title, description, icon: Icon, downloadUrl, fileName }: { 
+  title: string; 
+  description: string; 
+  icon: any; 
+  downloadUrl: string;
+  fileName: string;
+}) => {
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = fileName;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <Card className="hover:shadow-lg transition-shadow">
+      <CardContent className="p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-pink-500/20 to-purple-500/20">
+            <Icon className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h4 className="font-medium">{title}</h4>
+            <p className="text-xs text-muted-foreground">{description}</p>
+          </div>
+        </div>
+        <Button size="sm" variant="outline" onClick={handleDownload}>
+          <Download className="h-4 w-4 mr-1" />
+          Download
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
 
 const AppStoreAssets = () => {
   const navigate = useNavigate();
@@ -262,13 +303,101 @@ const AppStoreAssets = () => {
                   • Couples mode: Link with your partner for shared activities<br/>
                   • Fun relationship games to deepen your connection<br/>
                   • Daily challenges to strengthen your bond<br/>
-                  • Relationship health scores and progress tracking</p>
+                  • Relationship health scores and progress tracking<br/>
+                  • Daily Questions to spark meaningful conversations<br/>
+                  • Virtual Love Coins economy for fun gifts</p>
                   <p><strong>💜 Why Luna?</strong></p>
                   <p>Luna provides a judgment-free space for emotional exploration. Our AI is trained to be empathetic, supportive, and helpful—never preachy or dismissive.</p>
                 </div>
               </div>
             </CardContent>
           </Card>
+        </motion.section>
+
+        {/* Downloadable Assets */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="space-y-4"
+        >
+          <h2 className="text-2xl font-bold">Downloadable Assets</h2>
+          <p className="text-muted-foreground">Click to download marketing assets for your campaigns.</p>
+          
+          <div className="grid gap-3">
+            <DownloadCard
+              title="App Icon (1024x1024)"
+              description="High-res icon for App Store & marketing"
+              icon={Image}
+              downloadUrl={appIcon1024}
+              fileName="luna-app-icon-1024.png"
+            />
+            <DownloadCard
+              title="Luna Avatar"
+              description="512x512 Luna character icon"
+              icon={Image}
+              downloadUrl={lunaIcon}
+              fileName="luna-avatar-512.png"
+            />
+            <DownloadCard
+              title="Open Graph Image"
+              description="Social media preview image"
+              icon={Image}
+              downloadUrl={ogImage}
+              fileName="luna-og-image.png"
+            />
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-pink-500/20 to-purple-500/20">
+                    <Video className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Promo Video Template</h4>
+                    <p className="text-xs text-muted-foreground">View the promo video page</p>
+                  </div>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => navigate('/promo-video')}>
+                  <ExternalLink className="h-4 w-4 mr-1" />
+                  View
+                </Button>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-pink-500/20 to-purple-500/20">
+                    <FileText className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium">All App Icons (ZIP)</h4>
+                    <p className="text-xs text-muted-foreground">Multiple sizes for iOS & Android</p>
+                  </div>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => {
+                  // Download individual icons
+                  const icons = [
+                    { url: '/icons/icon-72x72.png', name: 'icon-72x72.png' },
+                    { url: '/icons/icon-96x96.png', name: 'icon-96x96.png' },
+                    { url: '/icons/icon-128x128.png', name: 'icon-128x128.png' },
+                    { url: '/icons/icon-192x192.png', name: 'icon-192x192.png' },
+                    { url: '/icons/icon-512x512.png', name: 'icon-512x512.png' },
+                  ];
+                  icons.forEach((icon, i) => {
+                    setTimeout(() => {
+                      const link = document.createElement('a');
+                      link.href = icon.url;
+                      link.download = icon.name;
+                      link.click();
+                    }, i * 300);
+                  });
+                }}>
+                  <Download className="h-4 w-4 mr-1" />
+                  Download All
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </motion.section>
       </div>
     </div>

@@ -579,6 +579,84 @@ export type Database = {
           },
         ]
       }
+      couples_journal_entries: {
+        Row: {
+          content: string
+          created_at: string | null
+          entry_date: string
+          id: string
+          is_shared: boolean | null
+          partner_link_id: string
+          prompt_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          entry_date?: string
+          id?: string
+          is_shared?: boolean | null
+          partner_link_id: string
+          prompt_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          entry_date?: string
+          id?: string
+          is_shared?: boolean | null
+          partner_link_id?: string
+          prompt_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "couples_journal_entries_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "couples_journal_entries_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "couples_journal_prompts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      couples_journal_prompts: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          prompt_text: string
+          sort_order: number | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          prompt_text: string
+          sort_order?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          prompt_text?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
       couples_messages: {
         Row: {
           content: string | null

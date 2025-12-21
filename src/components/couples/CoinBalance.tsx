@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { useVirtualCurrency } from '@/hooks/useVirtualCurrency';
 import { motion } from 'framer-motion';
-import { Coins, TrendingUp } from 'lucide-react';
+import { Coins, TrendingUp, Plus } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -9,8 +10,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
+import { CoinPurchaseModal } from './CoinPurchaseModal';
 
 export const CoinBalance = () => {
+  const [showPurchase, setShowPurchase] = useState(false);
   const { balance, lifetimeEarned, transactions, isLoading } = useVirtualCurrency();
 
   if (isLoading) {
@@ -118,12 +121,21 @@ export const CoinBalance = () => {
           </ScrollArea>
         </div>
 
-        <div className="p-3 border-t bg-muted/30">
+        <div className="p-3 border-t bg-muted/30 space-y-2">
+          <Button 
+            onClick={() => setShowPurchase(true)} 
+            className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white"
+            size="sm"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Buy Coins
+          </Button>
           <p className="text-[10px] text-muted-foreground text-center">
             Earn coins by answering questions, completing challenges, and maintaining streaks!
           </p>
         </div>
       </PopoverContent>
+      <CoinPurchaseModal isOpen={showPurchase} onClose={() => setShowPurchase(false)} />
     </Popover>
   );
 };
