@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Heart, MessageCircle, Wind, BookOpen, Users, Sparkles, Shield, Star, ArrowRight, Check, Rocket, Crown, Quote, Brain, HeartHandshake, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import LunaAvatar from "./LunaAvatar";
 import SocialLinks from "./SocialLinks";
 import CouplesInteractiveDemo from "./CouplesInteractiveDemo";
 import InteractiveDemo from "./InteractiveDemo";
+import DemoVideoDialog from "./DemoVideoDialog";
 
 // Import landing page images
 import heroCouple from "@/assets/landing/hero-couple.jpg";
@@ -95,6 +97,8 @@ const stats = [{
 }];
 const DesktopLanding = () => {
   const navigate = useNavigate();
+  const [showDemoDialog, setShowDemoDialog] = useState(false);
+  
   const fadeInUp = {
     initial: {
       opacity: 0,
@@ -218,7 +222,7 @@ const DesktopLanding = () => {
                 <Rocket className="w-5 h-5 mr-2" />
                 Start Your Journey — Free
               </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6 bg-card/50 backdrop-blur-sm" onClick={() => navigate("/auth")}>
+              <Button size="lg" variant="outline" className="text-lg px-8 py-6 bg-card/50 backdrop-blur-sm" onClick={() => setShowDemoDialog(true)}>
                 Watch Demo
               </Button>
             </motion.div>
@@ -661,6 +665,9 @@ const DesktopLanding = () => {
           </div>
         </div>
       </footer>
+      
+      {/* Demo Video Dialog */}
+      <DemoVideoDialog open={showDemoDialog} onOpenChange={setShowDemoDialog} />
     </div>;
 };
 export default DesktopLanding;
