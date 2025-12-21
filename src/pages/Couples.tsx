@@ -59,6 +59,9 @@ import { QuickDailyHub } from "@/components/couples/QuickDailyHub";
 import { DailyTip } from "@/components/couples/DailyTip";
 import { CoinBalance } from "@/components/couples/CoinBalance";
 import { DailyJournalCard } from "@/components/couples/DailyJournalCard";
+import { TimeCapsuleComposer } from "@/components/couples/TimeCapsuleComposer";
+import { TimeCapsuleInbox } from "@/components/couples/TimeCapsuleInbox";
+
 const Couples = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -368,6 +371,17 @@ const Couples = () => {
               transition={{ delay: 0.14 }}
             >
               <AppreciationPrompts partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            {/* Time Capsule Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.145 }}
+              className="space-y-3"
+            >
+              <TimeCapsuleComposer partnerName={partnerName} />
+              <TimeCapsuleInbox partnerName={partnerName} />
             </motion.div>
 
             {/* Gift Store Section */}
