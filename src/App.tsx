@@ -26,6 +26,7 @@ import Welcome from "./pages/Welcome";
 import CouplesWelcome from "./pages/CouplesWelcome";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import AppStoreAssets from "./pages/AppStoreAssets";
 import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminAnalytics, AdminFunnelAnalytics, AdminMarketing, AdminSettings, AdminFeedback, AdminNotifications } from "./pages/admin";
 import NotFound from "./pages/NotFound";
 
@@ -60,6 +61,7 @@ const App = () => (
           <Route path="/couples-welcome" element={<CouplesWelcome />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/app-store-assets" element={<AppStoreAssets />} />
           <Route
             path="/admin"
             element={
