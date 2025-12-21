@@ -69,16 +69,16 @@ export const FlirtyEmojiButton = ({ onSelect }: FlirtyEmojiButtonProps) => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 10 }}
               transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="absolute bottom-14 right-0 z-50 bg-card border border-border rounded-2xl p-4 shadow-2xl min-w-[280px]"
+              className="absolute bottom-14 right-0 z-50 bg-white dark:bg-zinc-900 border-2 border-rose-200 dark:border-rose-800 rounded-2xl p-4 shadow-2xl min-w-[280px]"
             >
               {/* Header */}
-              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-rose-200 dark:border-rose-800">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center shadow-lg">
                   <Flame className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <span className="text-sm font-semibold text-foreground">Flirty Emojis</span>
-                  <p className="text-xs text-muted-foreground">Send something spicy 🔥</p>
+                  <span className="text-sm font-semibold text-zinc-900 dark:text-white">Flirty Emojis</span>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400">Send something spicy 🔥</p>
                 </div>
               </div>
               
@@ -93,7 +93,7 @@ export const FlirtyEmojiButton = ({ onSelect }: FlirtyEmojiButtonProps) => {
                     whileHover={{ scale: 1.3, rotate: [0, -10, 10, 0] }}
                     whileTap={{ scale: 0.8 }}
                     onClick={() => handleSelect(emoji)}
-                    className="w-12 h-12 flex items-center justify-center text-2xl rounded-xl hover:bg-gradient-to-br hover:from-red-500/10 hover:to-pink-500/10 transition-all duration-200 active:bg-red-500/20"
+                    className="w-12 h-12 flex items-center justify-center text-3xl rounded-xl bg-rose-50 dark:bg-zinc-800 hover:bg-gradient-to-br hover:from-rose-100 hover:to-pink-100 dark:hover:from-rose-900/50 dark:hover:to-pink-900/50 transition-all duration-200 active:scale-95 shadow-sm"
                     title={emoji.label}
                   >
                     {emoji.emoji}
@@ -102,7 +102,7 @@ export const FlirtyEmojiButton = ({ onSelect }: FlirtyEmojiButtonProps) => {
               </div>
               
               {/* Tip */}
-              <p className="text-[10px] text-muted-foreground text-center mt-3 pt-2 border-t border-border">
+              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 text-center mt-3 pt-2 border-t border-rose-200 dark:border-rose-800">
                 Tap to send instantly
               </p>
             </motion.div>
