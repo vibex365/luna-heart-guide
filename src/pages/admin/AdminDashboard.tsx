@@ -5,14 +5,22 @@ import { StatCard } from "@/components/admin/StatCard";
 import { MoodDistributionChart } from "@/components/admin/MoodDistributionChart";
 import { RecentActivityCard } from "@/components/admin/RecentActivityCard";
 import { AdminActionLog } from "@/components/admin/AdminActionLog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
 import { 
   Users, 
   MessageSquare, 
   Heart, 
   TrendingUp,
   UserPlus,
-  Activity
+  Activity,
+  DollarSign,
+  Zap,
+  ArrowUpRight,
+  Clock
 } from "lucide-react";
+import { format } from "date-fns";
 
 const AdminDashboard = () => {
   // Fetch total users
@@ -60,7 +68,6 @@ const AdminDashboard = () => {
         .select("mood_label");
       if (error) throw error;
       
-      // Count mood occurrences
       const moodCounts: Record<string, number> = {};
       data?.forEach((entry) => {
         moodCounts[entry.mood_label] = (moodCounts[entry.mood_label] || 0) + 1;
@@ -110,7 +117,6 @@ const AdminDashboard = () => {
         timestamp: string;
       }> = [];
 
-      // Get recent messages
       const { data: messages } = await supabase
         .from("messages")
         .select("id, created_at, role")
@@ -126,7 +132,6 @@ const AdminDashboard = () => {
         });
       });
 
-      // Get recent mood entries
       const { data: moods } = await supabase
         .from("mood_entries")
         .select("id, created_at, mood_label")
@@ -142,14 +147,12 @@ const AdminDashboard = () => {
         });
       });
 
-      // Sort by timestamp
       return activities.sort(
         (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       ).slice(0, 5);
     },
   });
 
-  // Calculate average messages per conversation
   const avgMessagesPerConversation = conversationCount > 0 
     ? Math.round(messageCount / conversationCount) 
     : 0;
@@ -158,69 +161,140 @@ const AdminDashboard = () => {
     <AdminLayout>
       <div className="space-y-8">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Overview of your Luna platform
-          </p>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-heading font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">
+              Welcome back! Here's what's happening with Luna today.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="w-4 h-4" />
+            <span>Last updated: {format(new Date(), "MMM d, h:mm a")}</span>
+          </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            title="Total Users"
-            value={userCount}
-            icon={Users}
-            trend={{ value: 12, label: "vs last week" }}
-          />
-          <StatCard
-            title="Active Conversations"
-            value={conversationCount}
-            icon={MessageSquare}
-            trend={{ value: 8, label: "vs last week" }}
-          />
-          <StatCard
-            title="Mood Entries"
-            value={moodData.reduce((sum, m) => sum + m.value, 0)}
-            icon={Heart}
-            trend={{ value: 15, label: "vs last week" }}
-          />
-          <StatCard
-            title="Daily Signups"
-            value={recentSignups}
-            icon={UserPlus}
-            subtitle="Last 24 hours"
-          />
+        {/* Hero Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0 }}
+          >
+            <StatCard
+              title="Total Users"
+              value={userCount.toLocaleString()}
+              icon={Users}
+              trend={{ value: 12, label: "vs last week" }}
+              variant="accent"
+            />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <StatCard
+              title="Active Conversations"
+              value={conversationCount.toLocaleString()}
+              icon={MessageSquare}
+              trend={{ value: 8, label: "vs last week" }}
+            />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <StatCard
+              title="Mood Entries"
+              value={moodData.reduce((sum, m) => sum + m.value, 0).toLocaleString()}
+              icon={Heart}
+              trend={{ value: 15, label: "vs last week" }}
+              variant="success"
+            />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <StatCard
+              title="New Signups (24h)"
+              value={recentSignups}
+              icon={UserPlus}
+              subtitle="Last 24 hours"
+              variant="warning"
+            />
+          </motion.div>
         </div>
 
         {/* Secondary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <StatCard
-            title="Avg Messages/Conversation"
-            value={avgMessagesPerConversation}
-            icon={Activity}
-          />
-          <StatCard
-            title="Total Messages"
-            value={messageCount}
-            icon={MessageSquare}
-          />
-          <StatCard
-            title="User Retention"
-            value="78%"
-            icon={TrendingUp}
-            trend={{ value: 3, label: "vs last month" }}
-          />
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="bg-gradient-to-r from-accent/5 via-primary/5 to-peach/5 border-accent/20">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-foreground">{avgMessagesPerConversation}</p>
+                  <p className="text-sm text-muted-foreground mt-1">Avg Messages/Convo</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-foreground">{messageCount.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground mt-1">Total Messages</p>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <p className="text-3xl font-bold text-foreground">78%</p>
+                    <ArrowUpRight className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">User Retention</p>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <p className="text-3xl font-bold text-foreground">4.8</p>
+                    <Zap className="w-5 h-5 text-accent" />
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">Avg. Session (min)</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Charts and Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <MoodDistributionChart data={moodData} />
-          <RecentActivityCard activities={recentActivity} />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <MoodDistributionChart data={moodData} />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <RecentActivityCard activities={recentActivity} />
+          </motion.div>
         </div>
 
         {/* Admin Action Log */}
-        <AdminActionLog />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+        >
+          <AdminActionLog />
+        </motion.div>
       </div>
     </AdminLayout>
   );
