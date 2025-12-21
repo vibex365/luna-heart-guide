@@ -21,6 +21,7 @@ import Resources from "./pages/Resources";
 import ArticleDetail from "./pages/ArticleDetail";
 import Subscription from "./pages/Subscription";
 import Couples from "./pages/Couples";
+import { CouplesGames, CouplesGifts, CouplesHealth, CouplesDaily } from "./pages/couples";
 import DMFunnel from "./pages/DMFunnel";
 import CouplesFunnel from "./pages/CouplesFunnel";
 import Welcome from "./pages/Welcome";
@@ -61,6 +62,10 @@ const App = () => (
           <Route path="/resources/:articleId" element={<ArticleDetail />} />
           <Route path="/subscription" element={<Subscription />} />
           <Route path="/couples" element={<Couples />} />
+          <Route path="/couples/games" element={<CouplesGames />} />
+          <Route path="/couples/gifts" element={<CouplesGifts />} />
+          <Route path="/couples/health" element={<CouplesHealth />} />
+          <Route path="/couples/daily" element={<CouplesDaily />} />
           <Route path="/couples-funnel" element={<CouplesFunnel />} />
           <Route path="/couples-welcome" element={<CouplesWelcome />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
