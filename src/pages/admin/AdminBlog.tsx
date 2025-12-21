@@ -300,6 +300,7 @@ const AdminBlog = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-16">Image</TableHead>
                     <TableHead>Title</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Views</TableHead>
@@ -312,6 +313,7 @@ const AdminBlog = () => {
                   {postsLoading ? (
                     Array.from({ length: 5 }).map((_, i) => (
                       <TableRow key={i}>
+                        <TableCell><Skeleton className="h-10 w-14 rounded" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-12" /></TableCell>
@@ -322,13 +324,26 @@ const AdminBlog = () => {
                     ))
                   ) : posts?.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                         No posts yet. Click "Generate Post Now" to create your first post.
                       </TableCell>
                     </TableRow>
                   ) : (
                     posts?.map((post) => (
                       <TableRow key={post.id}>
+                        <TableCell>
+                          {post.featured_image ? (
+                            <img 
+                              src={post.featured_image} 
+                              alt={post.title}
+                              className="w-14 h-10 object-cover rounded border border-border"
+                            />
+                          ) : (
+                            <div className="w-14 h-10 bg-muted rounded flex items-center justify-center">
+                              <FileText className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                          )}
+                        </TableCell>
                         <TableCell>
                           <div className="max-w-xs">
                             <p className="font-medium text-foreground truncate">{post.title}</p>

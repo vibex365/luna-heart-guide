@@ -35,7 +35,7 @@ const Blog = () => {
     queryFn: async () => {
       let query = supabase
         .from("blog_posts")
-        .select("id, slug, title, excerpt, category, tags, read_time_minutes, published_at, views_count")
+        .select("id, slug, title, excerpt, category, tags, read_time_minutes, published_at, views_count, featured_image")
         .eq("status", "published")
         .order("published_at", { ascending: false })
         .range((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE - 1);
@@ -169,12 +169,14 @@ const Blog = () => {
           {isLoading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-card rounded-xl p-6 border border-border/50">
-                  <Skeleton className="h-4 w-20 mb-4" />
-                  <Skeleton className="h-6 w-full mb-2" />
-                  <Skeleton className="h-6 w-3/4 mb-4" />
-                  <Skeleton className="h-16 w-full mb-4" />
-                  <Skeleton className="h-4 w-1/2" />
+                <div key={i} className="bg-card rounded-xl overflow-hidden border border-border/50">
+                  <Skeleton className="h-48 w-full" />
+                  <div className="p-6">
+                    <Skeleton className="h-4 w-20 mb-4" />
+                    <Skeleton className="h-6 w-full mb-2" />
+                    <Skeleton className="h-6 w-3/4 mb-4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
                 </div>
               ))}
             </div>
@@ -196,30 +198,44 @@ const Blog = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="group bg-card rounded-xl p-6 border border-border/50 hover:border-accent/50 hover:shadow-romantic transition-all duration-300"
+                    className="group bg-card rounded-xl overflow-hidden border border-border/50 hover:border-accent/50 hover:shadow-romantic transition-all duration-300"
                   >
                     <Link to={`/blog/${post.slug}`}>
-                      <Badge variant="secondary" className="mb-3 capitalize">
-                        {post.category}
-                      </Badge>
-                      <h2 className="font-heading text-xl font-semibold text-foreground mb-2 group-hover:text-accent transition-colors line-clamp-2">
-                        {post.title}
-                      </h2>
-                      <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
-                        {post.excerpt}
-                      </p>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" />
-                          {post.read_time_minutes} min read
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {format(new Date(post.published_at), "MMM d, yyyy")}
-                        </span>
+                      {/* Featured Image */}
+                      <div className="relative h-48 bg-gradient-to-br from-accent/20 to-peach/20 overflow-hidden">
+                        {post.featured_image ? (
+                          <img 
+                            src={post.featured_image} 
+                            alt={post.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Heart className="w-12 h-12 text-accent/30" />
+                          </div>
+                        )}
+                        <Badge variant="secondary" className="absolute top-3 left-3 capitalize">
+                          {post.category}
+                        </Badge>
                       </div>
-                      <div className="mt-4 flex items-center text-accent text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                        Read more <ChevronRight className="w-4 h-4 ml-1" />
+                      
+                      <div className="p-6">
+                        <h2 className="font-heading text-xl font-semibold text-foreground mb-2 group-hover:text-accent transition-colors line-clamp-2">
+                          {post.title}
+                        </h2>
+                        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                          {post.excerpt}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5" />
+                            {post.read_time_minutes} min read
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5" />
+                            {format(new Date(post.published_at), "MMM d, yyyy")}
+                          </span>
+                        </div>
                       </div>
                     </Link>
                   </motion.article>
