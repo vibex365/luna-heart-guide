@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, ArrowLeft, MessageCircle } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useVirtualCurrency } from "@/hooks/useVirtualCurrency";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { useCouplesTrial } from "@/hooks/useCouplesTrial";
@@ -40,8 +43,7 @@ import { CouplesFeaturePreviews } from "@/components/couples/CouplesFeaturesPrev
 import { TrialExpiredCard } from "@/components/couples/TrialExpiredCard";
 import { PhoneNumberPrompt } from "@/components/PhoneNumberPrompt";
 import { usePhonePrompt } from "@/hooks/usePhonePrompt";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePartnerNotifications } from "@/hooks/usePartnerNotifications";
 import { Badge } from "@/components/ui/badge";
@@ -56,11 +58,15 @@ import { DailyQuestionCard } from "@/components/couples/DailyQuestionCard";
 import { QuickDailyHub } from "@/components/couples/QuickDailyHub";
 import { DailyTip } from "@/components/couples/DailyTip";
 import { CoinBalance } from "@/components/couples/CoinBalance";
+import { DailyJournalCard } from "@/components/couples/DailyJournalCard";
 const Couples = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { isLinked, isLoading, partnerLink, partnerId } = useCouplesAccount();
   const { shouldPrompt, dismiss } = usePhonePrompt();
+  const { earnCoins } = useVirtualCurrency();
   const [showPhonePrompt, setShowPhonePrompt] = useState(false);
   const [showChat, setShowChat] = useState(false);
   
@@ -80,6 +86,24 @@ const Couples = () => {
 
   // Enable real-time partner notifications
   usePartnerNotifications();
+
+  // Handle coin purchase success from URL params
+  useEffect(() => {
+    const coinsPurchased = searchParams.get('coins_purchased');
+    if (coinsPurchased && user?.id) {
+      const coins = parseInt(coinsPurchased, 10);
+      // Process the coin purchase
+      supabase.functions.invoke('process-coin-purchase', {
+        body: { userId: user.id, coins },
+      }).then(() => {
+        toast.success(`🎉 ${coins} coins added to your balance!`);
+        queryClient.invalidateQueries({ queryKey: ['user-coins'] });
+        queryClient.invalidateQueries({ queryKey: ['coin-transactions'] });
+      });
+      // Clear the URL param
+      setSearchParams({});
+    }
+  }, [searchParams, user?.id]);
 
   // Show phone prompt after a short delay when user is linked but has no phone
   useEffect(() => {
