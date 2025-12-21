@@ -67,7 +67,10 @@ export const StickerPicker = ({ isOpen, onSelect, onClose }: StickerPickerProps)
           </div>
 
           {/* Sticker Grid */}
-          <div className="grid grid-cols-6 gap-1 p-3 max-h-48 overflow-y-auto">
+          <div 
+            className="grid grid-cols-6 gap-1 p-3 max-h-64 overflow-y-auto overscroll-contain touch-pan-y"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
             {currentPack.stickers.map((sticker) => (
               <motion.button
                 key={sticker.id}
