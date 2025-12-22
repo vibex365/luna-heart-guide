@@ -85,12 +85,14 @@ export const CouplesLinkedStatus = () => {
             </div>
 
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mb-0.5">
                 <Users className="w-4 h-4 text-primary" />
-                <span className="font-medium text-sm">Connected</span>
+                <span className="font-semibold">
+                  {ownProfile?.display_name || "You"} & {partnerProfile?.display_name || "Partner"}
+                </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                with {partnerProfile?.display_name || "Your Partner"} since {linkedDate}
+                Connected since {linkedDate}
               </p>
             </div>
           </div>

@@ -101,6 +101,7 @@ Remember: Some topics may require private, individual conversations with a profe
 interface Message {
   role: "user" | "assistant";
   content: string;
+  senderName?: string; // Add sender name for context
 }
 
 serve(async (req) => {
@@ -200,7 +201,7 @@ serve(async (req) => {
 
     console.log("Couples chat for:", partner1Name, "&", partner2Name);
 
-    // Validate messages
+    // Validate messages and format with sender names
     const sanitizedMessages: Message[] = [];
     if (Array.isArray(messages)) {
       for (const msg of messages) {
@@ -211,9 +212,16 @@ serve(async (req) => {
           typeof msg.content === "string" &&
           msg.content.trim().length > 0
         ) {
+          // For user messages, prepend sender name for context
+          let formattedContent = msg.content.trim().substring(0, 4000);
+          if (msg.role === "user" && msg.senderName) {
+            formattedContent = `[${msg.senderName} says]: ${formattedContent}`;
+          }
+          
           sanitizedMessages.push({
             role: msg.role,
-            content: msg.content.trim().substring(0, 4000),
+            content: formattedContent,
+            senderName: msg.senderName,
           });
         }
       }
@@ -232,8 +240,10 @@ serve(async (req) => {
                     COUPLE INFORMATION
 ═══════════════════════════════════════════════════════════════
 This is a shared conversation between ${partner1Name} and ${partner2Name}.
-Address them by name warmly and naturally.
-Celebrate their connection and encourage them to grow together.
+When a message starts with [Name says]:, that tells you which partner is speaking.
+Always acknowledge who just spoke by using their name.
+Address them both warmly and naturally, celebrating their connection.
+When giving advice, consider both partners' perspectives.
 ═══════════════════════════════════════════════════════════════
 `;
 

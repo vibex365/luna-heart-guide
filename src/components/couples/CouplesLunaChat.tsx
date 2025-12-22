@@ -129,10 +129,16 @@ export const CouplesLunaChat = ({ isOpen, onClose, partnerLinkId, partnerName, m
 
       if (insertError) throw insertError;
 
-      // Get conversation history for context
+      // Get conversation history for context, including sender names
       const conversationHistory = [
-        ...messages.map((m) => ({ role: m.role, content: m.content })),
-        { role: "user" as const, content: userMessage },
+        ...messages.map((m) => ({ 
+          role: m.role, 
+          content: m.content,
+          senderName: m.role === "user" 
+            ? (m.user_id === user?.id ? myName : partnerName) 
+            : undefined
+        })),
+        { role: "user" as const, content: userMessage, senderName: myName },
       ];
 
       // Call the edge function
