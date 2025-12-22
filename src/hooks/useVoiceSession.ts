@@ -236,13 +236,15 @@ export const useVoiceSession = () => {
         timerRef.current = null;
       }
 
-      // Report session end to backend
+      // Report session end to backend with transcripts
       if (state.sessionId) {
         const { data, error } = await supabase.functions.invoke('voice-session-end', {
           body: {
             sessionId: state.sessionId,
             durationSeconds: state.durationSeconds,
-            summary: state.lunaResponse.slice(0, 500)
+            summary: state.lunaResponse.slice(0, 500),
+            userTranscript: state.transcript,
+            lunaTranscript: state.lunaResponse
           }
         });
 
