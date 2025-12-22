@@ -124,9 +124,29 @@ const BlogPost = () => {
     );
   }
 
-  // Parse content for rendering (basic markdown to HTML)
-  const renderContent = (content: string) => {
-    // Simple markdown rendering - in production, use a proper markdown library
+  // Check if content is HTML or markdown and render accordingly
+  const isHtmlContent = (content: string) => {
+    return /<[a-z][\s\S]*>/i.test(content);
+  };
+
+  const renderHtmlContent = (content: string) => {
+    // Add proper styling classes to HTML content
+    const styledContent = content
+      .replace(/<h2>/g, '<h2 class="text-2xl font-bold text-foreground mt-10 mb-4">')
+      .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-foreground mt-8 mb-3">')
+      .replace(/<h4>/g, '<h4 class="text-lg font-semibold text-foreground mt-6 mb-2">')
+      .replace(/<p>/g, '<p class="text-muted-foreground leading-relaxed mb-4">')
+      .replace(/<ul>/g, '<ul class="list-disc ml-6 mb-4 space-y-2">')
+      .replace(/<ol>/g, '<ol class="list-decimal ml-6 mb-4 space-y-2">')
+      .replace(/<li>/g, '<li class="text-muted-foreground">')
+      .replace(/<blockquote>/g, '<blockquote class="border-l-4 border-accent pl-4 italic text-muted-foreground my-4">')
+      .replace(/<strong>/g, '<strong class="font-semibold text-foreground">')
+      .replace(/<em>/g, '<em class="italic">');
+    
+    return <div dangerouslySetInnerHTML={{ __html: styledContent }} />;
+  };
+
+  const renderMarkdownContent = (content: string) => {
     return content
       .split('\n')
       .map((line, i) => {
@@ -144,6 +164,13 @@ const BlogPost = () => {
         }
         return <p key={i} className="text-muted-foreground leading-relaxed mb-4">{line}</p>;
       });
+  };
+
+  const renderContent = (content: string) => {
+    if (isHtmlContent(content)) {
+      return renderHtmlContent(content);
+    }
+    return renderMarkdownContent(content);
   };
 
   return (
