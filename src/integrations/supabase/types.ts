@@ -2859,6 +2859,7 @@ export type Database = {
           end_time: string | null
           id: string
           luna_context_summary: string | null
+          luna_transcript: string | null
           metadata: Json | null
           minutes_billed: number | null
           partner_link_id: string | null
@@ -2867,6 +2868,7 @@ export type Database = {
           session_type: string
           start_time: string | null
           status: Database["public"]["Enums"]["voice_session_status"]
+          transcript: string | null
           updated_at: string
           user_id: string
         }
@@ -2877,6 +2879,7 @@ export type Database = {
           end_time?: string | null
           id?: string
           luna_context_summary?: string | null
+          luna_transcript?: string | null
           metadata?: Json | null
           minutes_billed?: number | null
           partner_link_id?: string | null
@@ -2885,6 +2888,7 @@ export type Database = {
           session_type?: string
           start_time?: string | null
           status?: Database["public"]["Enums"]["voice_session_status"]
+          transcript?: string | null
           updated_at?: string
           user_id: string
         }
@@ -2895,6 +2899,7 @@ export type Database = {
           end_time?: string | null
           id?: string
           luna_context_summary?: string | null
+          luna_transcript?: string | null
           metadata?: Json | null
           minutes_billed?: number | null
           partner_link_id?: string | null
@@ -2903,6 +2908,7 @@ export type Database = {
           session_type?: string
           start_time?: string | null
           status?: Database["public"]["Enums"]["voice_session_status"]
+          transcript?: string | null
           updated_at?: string
           user_id?: string
         }

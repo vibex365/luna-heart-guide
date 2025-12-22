@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { Clock, MessageSquare, AlertTriangle } from "lucide-react";
+import { Clock, MessageSquare, AlertTriangle, Download, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 
 interface VoiceSession {
   id: string;
@@ -17,6 +18,8 @@ interface VoiceSession {
   minutes_billed: number;
   cost_cents: number;
   luna_context_summary: string | null;
+  transcript: string | null;
+  luna_transcript: string | null;
   safety_flagged: boolean;
   created_at: string;
 }
@@ -62,6 +65,36 @@ export const VoiceSessionHistory = () => {
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  const downloadTranscript = (session: VoiceSession) => {
+    const sessionDate = format(new Date(session.start_time), 'yyyy-MM-dd HH:mm');
+    let content = `Luna Voice Session - ${sessionDate}\n`;
+    content += `Duration: ${formatDuration(session.duration_seconds)}\n`;
+    content += `Type: ${session.session_type}\n`;
+    content += `\n${'='.repeat(50)}\n\n`;
+    
+    if (session.transcript) {
+      content += `YOUR WORDS:\n${session.transcript}\n\n`;
+    }
+    
+    if (session.luna_transcript) {
+      content += `LUNA'S RESPONSES:\n${session.luna_transcript}\n`;
+    }
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `luna-voice-${format(new Date(session.start_time), 'yyyy-MM-dd-HHmm')}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const hasTranscript = (session: VoiceSession) => {
+    return !!(session.transcript || session.luna_transcript);
   };
 
   if (isLoading) {
@@ -126,15 +159,28 @@ export const VoiceSessionHistory = () => {
               </div>
             </div>
 
-            <div className="text-right">
-              <div className="flex items-center gap-2 justify-end">
-                {getStatusBadge(session.status)}
-              </div>
-              {session.duration_seconds > 0 && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  {formatDuration(session.duration_seconds)} • {session.minutes_billed} min billed
-                </p>
+            <div className="flex items-center gap-2">
+              {hasTranscript(session) && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => downloadTranscript(session)}
+                  className="h-8 w-8"
+                  title="Download transcript"
+                >
+                  <Download className="w-4 h-4" />
+                </Button>
               )}
+              <div className="text-right">
+                <div className="flex items-center gap-2 justify-end">
+                  {getStatusBadge(session.status)}
+                </div>
+                {session.duration_seconds > 0 && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {formatDuration(session.duration_seconds)} • {session.minutes_billed} min billed
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         ))}

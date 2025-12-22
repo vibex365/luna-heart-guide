@@ -42,8 +42,8 @@ serve(async (req) => {
     const userId = userData.user.id;
     logStep("User authenticated", { userId });
 
-    const { sessionId, durationSeconds, summary } = await req.json();
-    logStep("Request params", { sessionId, durationSeconds });
+    const { sessionId, durationSeconds, summary, userTranscript, lunaTranscript } = await req.json();
+    logStep("Request params", { sessionId, durationSeconds, hasTranscripts: !!userTranscript || !!lunaTranscript });
 
     if (!sessionId) {
       throw new Error("Session ID is required");
@@ -99,6 +99,8 @@ serve(async (req) => {
         minutes_billed: actualMinutesDeducted,
         cost_cents: actualMinutesDeducted * COST_PER_MINUTE_CENTS,
         luna_context_summary: summary || null,
+        transcript: userTranscript || null,
+        luna_transcript: lunaTranscript || null,
         metadata: {
           ...session.metadata,
           ended_at: new Date().toISOString(),
