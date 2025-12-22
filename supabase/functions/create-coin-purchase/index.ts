@@ -7,11 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Coin bundle configuration
+// Coin bundle configuration (30% price increase for Apple/Google commission coverage)
 const COIN_BUNDLES: Record<string, { coins: number; priceId: string }> = {
-  "small": { coins: 100, priceId: "price_1Sgf6zAsrgxssNTV0lMkOn0w" },
-  "medium": { coins: 500, priceId: "price_1Sgf71AsrgxssNTVd9q4wuEs" },
-  "large": { coins: 1000, priceId: "price_1Sgf72AsrgxssNTVK6z68q6y" },
+  "small": { coins: 100, priceId: "price_1ShIZqAsrgxssNTVQjIviOrN" },
+  "medium": { coins: 500, priceId: "price_1ShIZsAsrgxssNTVaXZ5fooA" },
+  "large": { coins: 1000, priceId: "price_1ShIZtAsrgxssNTV6jR4lmQ2" },
 };
 
 serve(async (req) => {
