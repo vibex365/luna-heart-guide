@@ -52,6 +52,7 @@ import {
   Crown,
   Coins,
   Gift,
+  Headphones,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -81,6 +82,9 @@ export const UserDetailSheet = ({
   const [giveCoinsOpen, setGiveCoinsOpen] = useState(false);
   const [coinAmount, setCoinAmount] = useState("");
   const [coinReason, setCoinReason] = useState("");
+  const [giveMinutesOpen, setGiveMinutesOpen] = useState(false);
+  const [minuteAmount, setMinuteAmount] = useState("");
+  const [minuteReason, setMinuteReason] = useState("");
   const queryClient = useQueryClient();
 
   // Fetch subscription tiers
@@ -263,6 +267,24 @@ export const UserDetailSheet = ({
     enabled: !!user?.user_id && open,
   });
 
+  // Fetch user minutes balance
+  const { data: userMinutes } = useQuery({
+    queryKey: ["admin-user-minutes", user?.user_id],
+    queryFn: async () => {
+      if (!user?.user_id) return null;
+
+      const { data, error } = await supabase
+        .from("user_minutes")
+        .select("*")
+        .eq("user_id", user.user_id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.user_id && open,
+  });
+
   // Give coins mutation
   const giveCoins = useMutation({
     mutationFn: async ({ userId, amount, reason }: { userId: string; amount: number; reason: string }) => {
@@ -330,6 +352,74 @@ export const UserDetailSheet = ({
     onError: (error) => {
       console.error("Error giving coins:", error);
       toast.error("Failed to give coins");
+    },
+  });
+
+  // Give minutes mutation
+  const giveMinutes = useMutation({
+    mutationFn: async ({ userId, amount, reason }: { userId: string; amount: number; reason: string }) => {
+      const { data: { user: adminUser } } = await supabase.auth.getUser();
+
+      const { data: existing } = await supabase
+        .from("user_minutes")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (existing) {
+        const { error: updateError } = await supabase
+          .from("user_minutes")
+          .update({
+            minutes_balance: existing.minutes_balance + amount,
+            lifetime_purchased: existing.lifetime_purchased + amount,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", userId);
+
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from("user_minutes")
+          .insert({
+            user_id: userId,
+            minutes_balance: amount,
+            lifetime_purchased: amount,
+          });
+
+        if (insertError) throw insertError;
+      }
+
+      const { error: txError } = await supabase
+        .from("minute_transactions")
+        .insert({
+          user_id: userId,
+          amount,
+          transaction_type: "bonus",
+          description: reason || "Admin gift",
+        });
+
+      if (txError) throw txError;
+
+      if (adminUser) {
+        await supabase.from("admin_action_logs").insert({
+          admin_id: adminUser.id,
+          action_type: "give_minutes",
+          target_user_id: userId,
+          details: { amount, reason },
+          reason: `Gave ${amount} voice minutes: ${reason}`,
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-user-minutes", user?.user_id] });
+      toast.success("Voice minutes added successfully!");
+      setGiveMinutesOpen(false);
+      setMinuteAmount("");
+      setMinuteReason("");
+    },
+    onError: (error) => {
+      console.error("Error giving minutes:", error);
+      toast.error("Failed to add voice minutes");
     },
   });
 
@@ -518,6 +608,75 @@ export const UserDetailSheet = ({
                         >
                           <Gift className="w-4 h-4 mr-2" />
                           Give {coinAmount || "0"} Coins
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Voice Minutes Balance */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                <Headphones className="h-4 w-4 text-primary" />
+                Voice Minutes
+              </h3>
+              <div className="bg-muted/50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">
+                      {userMinutes?.minutes_balance || 0}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Lifetime: {userMinutes?.lifetime_purchased || 0} min | Used: {userMinutes?.lifetime_used || 0} min
+                    </p>
+                  </div>
+                  <Dialog open={giveMinutesOpen} onOpenChange={setGiveMinutesOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline" className="gap-1">
+                        <Gift className="w-4 h-4" />
+                        Give Minutes
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Give Voice Minutes to {user.display_name}</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Minutes</Label>
+                          <Input
+                            type="number"
+                            value={minuteAmount}
+                            onChange={(e) => setMinuteAmount(e.target.value)}
+                            placeholder="Enter minutes amount"
+                          />
+                        </div>
+                        <div>
+                          <Label>Reason</Label>
+                          <Textarea
+                            value={minuteReason}
+                            onChange={(e) => setMinuteReason(e.target.value)}
+                            placeholder="Why are you giving these minutes?"
+                          />
+                        </div>
+                        <Button
+                          onClick={() => {
+                            if (!minuteAmount) return;
+                            giveMinutes.mutate({
+                              userId: user.user_id,
+                              amount: parseInt(minuteAmount),
+                              reason: minuteReason,
+                            });
+                          }}
+                          disabled={!minuteAmount || giveMinutes.isPending}
+                          className="w-full"
+                        >
+                          <Gift className="w-4 h-4 mr-2" />
+                          Give {minuteAmount || "0"} Minutes
                         </Button>
                       </div>
                     </DialogContent>
