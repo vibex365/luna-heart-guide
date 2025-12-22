@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, Wind, BookOpen, Users, Sparkles, Shield, Star, ArrowRight, Check, Rocket, Crown, Quote, Brain, HeartHandshake, Zap, Newspaper } from "lucide-react";
+import { Heart, MessageCircle, Wind, BookOpen, Users, Sparkles, Shield, Star, ArrowRight, Check, Rocket, Crown, Quote, Brain, HeartHandshake, Zap, Newspaper, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +18,11 @@ import breathingCalm from "@/assets/landing/breathing-calm.jpg";
 import couplesEmbrace from "@/assets/landing/couples-embrace.jpg";
 
 const features = [{
+  icon: Phone,
+  title: "24/7 Voice Therapy",
+  description: "Real-time voice conversations with Luna. Get immediate support whenever you need someone to talk to — day or night.",
+  gradient: "from-emerald-500/30 to-accent/20"
+}, {
   icon: MessageCircle,
   title: "AI-Powered Conversations",
   description: "Get personalized guidance and communication scripts to navigate difficult conversations with loved ones.",
@@ -42,11 +47,6 @@ const features = [{
   title: "Couples Mode",
   description: "Send digital gifts, play relationship games, daily journaling, private chat, and earn coins together.",
   gradient: "from-primary/40 to-accent/30"
-}, {
-  icon: Brain,
-  title: "Weekly Insights",
-  description: "Receive personalized insights and progress reports based on your activity.",
-  gradient: "from-secondary/40 to-primary/20"
 }];
 const testimonials = [{
   quote: "Luna helped me understand my anxiety patterns and gave me tools to cope. It's like having a therapist in my pocket.",

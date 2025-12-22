@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles, HelpCircle, LogIn, Rocket, Crown, Check, Download, Users } from "lucide-react";
+import { Heart, MessageCircle, Wind, BookOpen, ChevronUp, User, ArrowRight, Sparkles, HelpCircle, LogIn, Rocket, Crown, Check, Download, Users, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import { useNavigate, Link } from "react-router-dom";
@@ -79,6 +79,14 @@ const slides: ReelSlide[] = [
   },
   {
     id: 2,
+    gradient: "from-emerald-500/25 via-background to-background",
+    icon: Phone,
+    title: "Voice Therapy",
+    subtitle: "Talk Anytime, 24/7",
+    description: "Real-time voice conversations with Luna. Get immediate support whenever you need someone to talk to — day or night.",
+  },
+  {
+    id: 3,
     gradient: "from-accent/20 via-background to-background",
     icon: MessageCircle,
     title: "Talk It Out",
@@ -86,7 +94,7 @@ const slides: ReelSlide[] = [
     description: "Get personalized guidance and communication scripts to navigate difficult conversations with loved ones.",
   },
   {
-    id: 3,
+    id: 4,
     gradient: "from-secondary/40 via-background to-background",
     icon: Sparkles,
     title: "Track Your Mood",
@@ -94,7 +102,7 @@ const slides: ReelSlide[] = [
     description: "Log your emotions daily and discover insights about your emotional journey over time.",
   },
   {
-    id: 4,
+    id: 5,
     gradient: "from-primary/20 via-background to-background",
     icon: Wind,
     title: "Breathe & Relax",
@@ -102,7 +110,7 @@ const slides: ReelSlide[] = [
     description: "Access calming breathing techniques whenever you need to center yourself and find peace.",
   },
   {
-    id: 5,
+    id: 6,
     gradient: "from-accent/30 via-background to-background",
     icon: BookOpen,
     title: "Journal",
@@ -110,7 +118,7 @@ const slides: ReelSlide[] = [
     description: "Write freely with thoughtful prompts that help you reflect, process, and grow.",
   },
   {
-    id: 6,
+    id: 7,
     gradient: "from-rose-500/20 via-background to-background",
     icon: Users,
     title: "Couples Mode",
@@ -118,7 +126,7 @@ const slides: ReelSlide[] = [
     description: "Send digital gifts, daily journal prompts, relationship games, private chat, shared mood tracking, and earn coins together.",
   },
   {
-    id: 7,
+    id: 8,
     gradient: "from-primary/25 via-background to-background",
     icon: Crown,
     title: "Simple Pricing",
