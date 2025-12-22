@@ -839,13 +839,13 @@ const Chat = () => {
               </div>
             </div>
             <Button
-              variant="outline"
+              variant="default"
               size="sm"
               onClick={() => navigate("/luna-voice")}
-              className="gap-2 text-primary border-primary/30 hover:bg-primary/10"
+              className="gap-2 bg-primary hover:bg-primary/90"
             >
               <Headphones className="w-4 h-4" />
-              <span className="hidden sm:inline">Voice</span>
+              Voice
             </Button>
           </div>
         </header>
