@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ArrowLeft, MessageCircle, Gamepad2, Gift, Calendar, Activity, Sparkles, Headphones, Bot } from "lucide-react";
+import { Heart, ArrowLeft, MessageCircle, Gamepad2, Gift, Calendar, Activity, Sparkles, Headphones, Bot, Phone } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useVirtualCurrency } from "@/hooks/useVirtualCurrency";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +46,7 @@ const Couples = () => {
   const [showChat, setShowChat] = useState(false);
   const [showLunaChat, setShowLunaChat] = useState(false);
   const [showMinutesPurchase, setShowMinutesPurchase] = useState(false);
+  const [isCallingPartner, setIsCallingPartner] = useState(false);
   
   const { hasMinutes } = useMinutesWallet();
   const { 
@@ -64,6 +65,30 @@ const Couples = () => {
     const result = await startSession('couples', partnerLink.id);
     if (result?.needsMinutes) {
       setShowMinutesPurchase(true);
+    }
+  };
+
+  const handleCallPartner = async () => {
+    if (!partnerLink?.id) return;
+    setIsCallingPartner(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('call-partner', {
+        body: { partnerLinkId: partnerLink.id }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.needsPhone) {
+        toast.error("Your partner hasn't added their phone number yet");
+        return;
+      }
+      
+      toast.success(data?.message || "Calling your partner...");
+    } catch (error: any) {
+      console.error('Call partner error:', error);
+      toast.error(error?.message || "Failed to call partner");
+    } finally {
+      setIsCallingPartner(false);
     }
   };
   
@@ -351,40 +376,56 @@ const Couples = () => {
               </button>
 
               {/* Voice Call CTA */}
-              <button
-                onClick={isActive ? endSession : handleStartCouplesVoice}
-                disabled={isConnecting || isEnding}
-                className={`w-full p-4 rounded-xl border transition-all ${
-                  isActive 
-                    ? 'bg-gradient-to-r from-red-500/20 to-orange-500/20 border-red-500/40 hover:border-red-500/60' 
-                    : 'bg-gradient-to-r from-violet-500/10 to-indigo-500/10 border-violet-500/20 hover:border-violet-500/40'
-                } ${(isConnecting || isEnding) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              <div className="space-y-2">
+                <button
+                  onClick={isActive ? endSession : handleStartCouplesVoice}
+                  disabled={isConnecting || isEnding}
+                  className={`w-full p-4 rounded-xl border transition-all ${
                     isActive 
-                      ? 'bg-gradient-to-br from-red-500 to-orange-500 animate-pulse' 
-                      : 'bg-gradient-to-br from-violet-500 to-indigo-500'
-                  }`}>
-                    <Headphones className="w-6 h-6 text-white" />
+                      ? 'bg-gradient-to-r from-red-500/20 to-orange-500/20 border-red-500/40 hover:border-red-500/60' 
+                      : 'bg-gradient-to-r from-violet-500/10 to-indigo-500/10 border-violet-500/20 hover:border-violet-500/40'
+                  } ${(isConnecting || isEnding) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                      isActive 
+                        ? 'bg-gradient-to-br from-red-500 to-orange-500 animate-pulse' 
+                        : 'bg-gradient-to-br from-violet-500 to-indigo-500'
+                    }`}>
+                      <Headphones className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <h3 className="font-semibold flex items-center gap-2">
+                        {isConnecting ? 'Connecting...' : isActive ? 'End Voice Call' : isEnding ? 'Ending...' : 'Voice Call with Luna'}
+                        {isActive && (
+                          <Badge variant="secondary" className="text-[10px] px-1.5 bg-red-500/20 text-red-500">
+                            {Math.floor(durationSeconds / 60)}:{(durationSeconds % 60).toString().padStart(2, '0')}
+                          </Badge>
+                        )}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {isActive 
+                          ? isLunaSpeaking ? 'Luna is speaking...' : 'Listening...'
+                          : 'Talk through relationship topics together'}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1 text-left">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      {isConnecting ? 'Connecting...' : isActive ? 'End Voice Call' : isEnding ? 'Ending...' : 'Voice Call with Luna'}
-                      {isActive && (
-                        <Badge variant="secondary" className="text-[10px] px-1.5 bg-red-500/20 text-red-500">
-                          {Math.floor(durationSeconds / 60)}:{(durationSeconds % 60).toString().padStart(2, '0')}
-                        </Badge>
-                      )}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {isActive 
-                        ? isLunaSpeaking ? 'Luna is speaking...' : 'Listening...'
-                        : 'Talk through relationship topics together'}
-                    </p>
-                  </div>
-                </div>
-              </button>
+                </button>
+                
+                {/* Call Partner Button */}
+                {!isPartnerOnline && !isActive && (
+                  <button
+                    onClick={handleCallPartner}
+                    disabled={isCallingPartner}
+                    className="w-full p-3 rounded-lg bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 hover:border-green-500/40 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Phone className={`w-4 h-4 text-green-600 dark:text-green-400 ${isCallingPartner ? 'animate-pulse' : ''}`} />
+                    <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                      {isCallingPartner ? 'Calling...' : 'Ring Partner\'s Phone'}
+                    </span>
+                  </button>
+                )}
+              </div>
 
               {/* Luna Chat CTA */}
               <button
