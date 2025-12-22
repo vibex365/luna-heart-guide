@@ -4,7 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
-// Build timestamp to force cache invalidation: 1766372100
+// Build timestamp to force cache invalidation: 1766372200
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
