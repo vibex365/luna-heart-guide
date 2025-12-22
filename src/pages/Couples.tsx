@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ArrowLeft, MessageCircle, Gamepad2, Gift, Calendar, Activity, Sparkles, Headphones } from "lucide-react";
+import { Heart, ArrowLeft, MessageCircle, Gamepad2, Gift, Calendar, Activity, Sparkles, Headphones, Bot } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useVirtualCurrency } from "@/hooks/useVirtualCurrency";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,7 @@ import { CouplesTrialBanner } from "@/components/couples/CouplesTrialBanner";
 import { CouplesFeaturePreviews } from "@/components/couples/CouplesFeaturesPreviews";
 import { TrialExpiredCard } from "@/components/couples/TrialExpiredCard";
 import { CouplesChat } from "@/components/couples/CouplesChat";
+import { CouplesLunaChat } from "@/components/couples/CouplesLunaChat";
 import { PhoneNumberPrompt } from "@/components/PhoneNumberPrompt";
 import { usePhonePrompt } from "@/hooks/usePhonePrompt";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -27,6 +28,7 @@ import { usePartnerSuggestions } from "@/hooks/usePartnerSuggestions";
 import { useVoiceSession } from "@/hooks/useVoiceSession";
 import { useMinutesWallet } from "@/hooks/useMinutesWallet";
 import { MinutesPurchaseModal } from "@/components/voice/MinutesPurchaseModal";
+
 const Couples = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -38,6 +40,7 @@ const Couples = () => {
   const { suggestions, dismissSuggestion, actOnSuggestion } = usePartnerSuggestions();
   const [showPhonePrompt, setShowPhonePrompt] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showLunaChat, setShowLunaChat] = useState(false);
   const [showMinutesPurchase, setShowMinutesPurchase] = useState(false);
   
   const { hasMinutes } = useMinutesWallet();
@@ -367,6 +370,29 @@ const Couples = () => {
                   </div>
                 </div>
               </button>
+
+              {/* Luna Chat CTA */}
+              <button
+                onClick={() => setShowLunaChat(true)}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 hover:border-amber-500/40 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                    <Bot className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      Chat with Luna Together
+                      <Badge variant="secondary" className="text-[10px] px-1.5 bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                        Shared
+                      </Badge>
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Get relationship guidance as a couple
+                    </p>
+                  </div>
+                </div>
+              </button>
             </motion.div>
 
             {/* Category Cards Grid */}
@@ -451,6 +477,17 @@ const Couples = () => {
         open={showMinutesPurchase} 
         onOpenChange={setShowMinutesPurchase} 
       />
+
+      {/* Couples Luna Chat */}
+      {partnerLink?.id && (
+        <CouplesLunaChat
+          isOpen={showLunaChat}
+          onClose={() => setShowLunaChat(false)}
+          partnerLinkId={partnerLink.id}
+          partnerName={partnerName}
+          myName={myProfile?.display_name || undefined}
+        />
+      )}
     </div>
   );
 };

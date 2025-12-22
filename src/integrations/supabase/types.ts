@@ -780,6 +780,41 @@ export type Database = {
         }
         Relationships: []
       }
+      couples_luna_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          partner_link_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          partner_link_id: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          partner_link_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "couples_luna_messages_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       couples_messages: {
         Row: {
           content: string | null
