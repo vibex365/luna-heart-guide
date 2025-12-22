@@ -15,9 +15,9 @@ interface CoinBundle {
 }
 
 const bundles: CoinBundle[] = [
-  { id: 'small', coins: 100, price: '$1.99', icon: <Coins className="h-6 w-6" /> },
-  { id: 'medium', coins: 500, price: '$7.99', icon: <Sparkles className="h-6 w-6" />, popular: true, bonus: '+50 bonus' },
-  { id: 'large', coins: 1000, price: '$14.99', icon: <Crown className="h-6 w-6" />, bonus: '+150 bonus' },
+  { id: 'small', coins: 100, price: '$2.49', icon: <Coins className="h-6 w-6" /> },
+  { id: 'medium', coins: 500, price: '$9.99', icon: <Sparkles className="h-6 w-6" />, popular: true, bonus: '+50 bonus' },
+  { id: 'large', coins: 1000, price: '$18.99', icon: <Crown className="h-6 w-6" />, bonus: '+150 bonus' },
 ];
 
 interface CoinPurchaseModalProps {

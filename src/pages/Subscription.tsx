@@ -36,9 +36,9 @@ const plans = [
   {
     id: "pro",
     name: "Personal Pro",
-    monthlyPrice: 3.99,
-    annualPrice: 29.99,
-    annualSavings: 18,
+    monthlyPrice: 4.99,
+    annualPrice: 38.99,
+    annualSavings: 21,
     icon: Sparkles,
     popular: true,
     features: [
@@ -49,15 +49,15 @@ const plans = [
       "Export your data",
       "Ambient sound library",
     ],
-    monthlyPriceId: "price_1SgtXeAsrgxssNTVaje2ZpfF",
-    annualPriceId: "price_1SgtXfAsrgxssNTVakdF9Ip2",
+    monthlyPriceId: "price_1ShIZlAsrgxssNTVizMEk01u",
+    annualPriceId: "price_1ShIZmAsrgxssNTVDWiPIKmI",
   },
   {
     id: "couples",
     name: "Couples",
-    monthlyPrice: 7.99,
-    annualPrice: 59.99,
-    annualSavings: 36,
+    monthlyPrice: 9.99,
+    annualPrice: 77.99,
+    annualSavings: 42,
     icon: Users,
     features: [
       "Everything in Personal Pro",
@@ -67,8 +67,8 @@ const plans = [
       "Conflict resolution scripts",
       "Relationship health score",
     ],
-    monthlyPriceId: "price_1SgtXhAsrgxssNTVwWhWwzLb",
-    annualPriceId: "price_1SgtXjAsrgxssNTVS4pbUHgj",
+    monthlyPriceId: "price_1ShIZnAsrgxssNTVh4alx0aM",
+    annualPriceId: "price_1ShIZpAsrgxssNTV1uHtEk0k",
   },
 ];
 

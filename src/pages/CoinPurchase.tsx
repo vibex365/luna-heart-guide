@@ -21,9 +21,9 @@ interface CoinBundle {
 }
 
 const bundles: CoinBundle[] = [
-  { id: 'small', coins: 100, price: '$1.99', priceValue: 199, icon: <Coins className="h-8 w-8" /> },
-  { id: 'medium', coins: 500, price: '$7.99', priceValue: 799, icon: <Sparkles className="h-8 w-8" />, popular: true, bonus: 50, savings: '20%' },
-  { id: 'large', coins: 1000, price: '$14.99', priceValue: 1499, icon: <Crown className="h-8 w-8" />, bonus: 150, savings: '25%' },
+  { id: 'small', coins: 100, price: '$2.49', priceValue: 249, icon: <Coins className="h-8 w-8" /> },
+  { id: 'medium', coins: 500, price: '$9.99', priceValue: 999, icon: <Sparkles className="h-8 w-8" />, popular: true, bonus: 50, savings: '20%' },
+  { id: 'large', coins: 1000, price: '$18.99', priceValue: 1899, icon: <Crown className="h-8 w-8" />, bonus: 150, savings: '25%' },
 ];
 
 const CoinPurchase = () => {
