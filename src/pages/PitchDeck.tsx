@@ -224,14 +224,14 @@ const PitchDeck = () => {
                   <div className="p-4 rounded-lg bg-purple-900/30 border border-purple-500/30">
                     <div className="flex justify-between items-center">
                       <span className="text-purple-300 font-medium">Pro</span>
-                      <span className="font-bold text-white">$3.99<span className="text-sm text-gray-400">/mo</span></span>
+                      <span className="font-bold text-white">$4.99<span className="text-sm text-gray-400">/mo</span></span>
                     </div>
                     <p className="text-xs text-gray-400 mt-1">Unlimited AI, Advanced Analytics</p>
                   </div>
                   <div className="p-4 rounded-lg bg-pink-900/30 border border-pink-500/30">
                     <div className="flex justify-between items-center">
                       <span className="text-pink-300 font-medium">Couples</span>
-                      <span className="font-bold text-white">$7.99<span className="text-sm text-gray-400">/mo</span></span>
+                      <span className="font-bold text-white">$9.99<span className="text-sm text-gray-400">/mo</span></span>
                     </div>
                     <p className="text-xs text-gray-400 mt-1">All features, 2 linked accounts</p>
                   </div>
@@ -253,20 +253,20 @@ const PitchDeck = () => {
                   <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-300">100 Coins</span>
-                      <span className="font-bold text-white">$1.99</span>
+                      <span className="font-bold text-white">$2.49</span>
                     </div>
                   </div>
                   <div className="p-4 rounded-lg bg-yellow-900/30 border border-yellow-500/30">
                     <div className="flex justify-between items-center">
                       <span className="text-yellow-300">500 + 50 Bonus</span>
-                      <span className="font-bold text-white">$7.99</span>
+                      <span className="font-bold text-white">$9.99</span>
                     </div>
                     <Badge className="mt-2 bg-yellow-500/20 text-yellow-300 text-xs">Popular</Badge>
                   </div>
                   <div className="p-4 rounded-lg bg-slate-800/50 border border-slate-700">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-300">1000 + 150 Bonus</span>
-                      <span className="font-bold text-white">$14.99</span>
+                      <span className="font-bold text-white">$18.99</span>
                     </div>
                     <Badge className="mt-2 bg-green-500/20 text-green-300 text-xs">Best Value</Badge>
                   </div>
@@ -286,12 +286,12 @@ const PitchDeck = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {[
-                    { name: "Digital Rose 🌹", price: "$0.99" },
-                    { name: "Virtual Chocolates 🍫", price: "$0.99" },
-                    { name: "Heart Bouquet 💐", price: "$1.99" },
-                    { name: "Star Shower ⭐", price: "$2.99" },
-                    { name: "Fireworks Display 🎆", price: "$3.99" },
-                    { name: "Diamond Ring 💎", price: "$4.99" }
+                    { name: "Digital Rose 🌹", price: "$1.29" },
+                    { name: "Virtual Chocolates 🍫", price: "$1.29" },
+                    { name: "Heart Bouquet 💐", price: "$2.49" },
+                    { name: "Star Shower ⭐", price: "$3.99" },
+                    { name: "Fireworks Display 🎆", price: "$4.99" },
+                    { name: "Diamond Ring 💎", price: "$6.49" }
                   ].map((gift, i) => (
                     <div key={i} className="flex justify-between items-center p-2 rounded bg-slate-800/30">
                       <span className="text-gray-300 text-sm">{gift.name}</span>
