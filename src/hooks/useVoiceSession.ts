@@ -35,6 +35,8 @@ export const useVoiceSession = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<Date | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   // Duration timer
   useEffect(() => {
@@ -109,8 +111,19 @@ export const useVoiceSession = () => {
       audioElRef.current = document.createElement('audio');
       audioElRef.current.autoplay = true;
       
+      // Create AudioContext for recording both streams
+      const audioContext = new AudioContext({ sampleRate: 24000 });
+      const destination = audioContext.createMediaStreamDestination();
+      
       pcRef.current.ontrack = (e) => {
         audioElRef.current!.srcObject = e.streams[0];
+        // Add remote audio to recording
+        try {
+          const remoteSource = audioContext.createMediaStreamSource(e.streams[0]);
+          remoteSource.connect(destination);
+        } catch (err) {
+          console.log("Could not add remote audio to recording:", err);
+        }
       };
 
       // Get local audio
@@ -125,6 +138,29 @@ export const useVoiceSession = () => {
       });
       
       pcRef.current.addTrack(streamRef.current.getTracks()[0]);
+      
+      // Add local audio to recording destination
+      try {
+        const localSource = audioContext.createMediaStreamSource(streamRef.current);
+        localSource.connect(destination);
+        
+        // Start recording
+        audioChunksRef.current = [];
+        mediaRecorderRef.current = new MediaRecorder(destination.stream, {
+          mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
+        });
+        
+        mediaRecorderRef.current.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+        
+        mediaRecorderRef.current.start(1000); // Capture every second
+        console.log("Audio recording started");
+      } catch (err) {
+        console.log("Could not start audio recording:", err);
+      }
 
       // Set up data channel for events
       dcRef.current = pcRef.current.createDataChannel('oai-events');
@@ -206,6 +242,48 @@ export const useVoiceSession = () => {
     setState(prev => ({ ...prev, status: 'ending' }));
 
     try {
+      // Stop and save recording
+      let audioUrl: string | null = null;
+      
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+        
+        // Wait for recording to finish
+        await new Promise<void>((resolve) => {
+          if (mediaRecorderRef.current) {
+            mediaRecorderRef.current.onstop = () => resolve();
+          } else {
+            resolve();
+          }
+        });
+        
+        // Upload recording if we have data
+        if (audioChunksRef.current.length > 0 && state.sessionId && user) {
+          try {
+            const mimeType = mediaRecorderRef.current.mimeType || 'audio/webm';
+            const extension = mimeType.includes('webm') ? 'webm' : 'mp4';
+            const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+            const fileName = `${user.id}/${state.sessionId}.${extension}`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from('voice-recordings')
+              .upload(fileName, audioBlob);
+            
+            if (!uploadError) {
+              audioUrl = fileName;
+              console.log("Audio recording uploaded:", fileName);
+            } else {
+              console.error("Failed to upload recording:", uploadError);
+            }
+          } catch (uploadErr) {
+            console.error("Error uploading recording:", uploadErr);
+          }
+        }
+        
+        mediaRecorderRef.current = null;
+        audioChunksRef.current = [];
+      }
+
       // Stop media tracks
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
@@ -236,7 +314,7 @@ export const useVoiceSession = () => {
         timerRef.current = null;
       }
 
-      // Report session end to backend with transcripts
+      // Report session end to backend with transcripts and audio URL
       if (state.sessionId) {
         const { data, error } = await supabase.functions.invoke('voice-session-end', {
           body: {
@@ -244,7 +322,8 @@ export const useVoiceSession = () => {
             durationSeconds: state.durationSeconds,
             summary: state.lunaResponse.slice(0, 500),
             userTranscript: state.transcript,
-            lunaTranscript: state.lunaResponse
+            lunaTranscript: state.lunaResponse,
+            audioUrl
           }
         });
 
@@ -274,7 +353,7 @@ export const useVoiceSession = () => {
       console.error("Error ending session:", error);
       setState(prev => ({ ...prev, status: 'idle' }));
     }
-  }, [state.sessionId, state.durationSeconds, state.lunaResponse, toast, queryClient]);
+  }, [state.sessionId, state.durationSeconds, state.lunaResponse, state.transcript, user, toast, queryClient]);
 
   const resetSession = useCallback(() => {
     setState({

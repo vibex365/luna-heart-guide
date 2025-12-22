@@ -780,6 +780,50 @@ export type Database = {
         }
         Relationships: []
       }
+      couples_luna_insights: {
+        Row: {
+          content: string
+          created_at: string
+          generated_by: string
+          id: string
+          insight_type: string
+          key_topics: string[] | null
+          message_count: number | null
+          partner_link_id: string
+          sentiment: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          generated_by: string
+          id?: string
+          insight_type?: string
+          key_topics?: string[] | null
+          message_count?: number | null
+          partner_link_id: string
+          sentiment?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          generated_by?: string
+          id?: string
+          insight_type?: string
+          key_topics?: string[] | null
+          message_count?: number | null
+          partner_link_id?: string
+          sentiment?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "couples_luna_insights_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       couples_luna_messages: {
         Row: {
           content: string
@@ -2888,6 +2932,7 @@ export type Database = {
       }
       voice_sessions: {
         Row: {
+          audio_url: string | null
           cost_cents: number | null
           created_at: string
           duration_seconds: number | null
@@ -2908,6 +2953,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          audio_url?: string | null
           cost_cents?: number | null
           created_at?: string
           duration_seconds?: number | null
@@ -2928,6 +2974,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          audio_url?: string | null
           cost_cents?: number | null
           created_at?: string
           duration_seconds?: number | null

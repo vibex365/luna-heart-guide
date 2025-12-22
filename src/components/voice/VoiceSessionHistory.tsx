@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, MessageSquare, AlertTriangle, Download, FileText } from "lucide-react";
+import { Clock, MessageSquare, AlertTriangle, Download, FileText, Volume2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow, format } from "date-fns";
 
 interface VoiceSession {
@@ -20,12 +22,15 @@ interface VoiceSession {
   luna_context_summary: string | null;
   transcript: string | null;
   luna_transcript: string | null;
+  audio_url: string | null;
   safety_flagged: boolean;
   created_at: string;
 }
 
 export const VoiceSessionHistory = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [downloadingAudio, setDownloadingAudio] = useState<string | null>(null);
 
   const { data: sessions, isLoading } = useQuery({
     queryKey: ['voice-sessions', user?.id],
@@ -91,6 +96,43 @@ export const VoiceSessionHistory = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const downloadAudio = async (session: VoiceSession) => {
+    if (!session.audio_url) return;
+    
+    setDownloadingAudio(session.id);
+    try {
+      const { data, error } = await supabase.storage
+        .from('voice-recordings')
+        .download(session.audio_url);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      const extension = session.audio_url.split('.').pop() || 'webm';
+      a.download = `luna-voice-${format(new Date(session.start_time), 'yyyy-MM-dd-HHmm')}.${extension}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download Started",
+        description: "Your audio recording is downloading."
+      });
+    } catch (error) {
+      console.error("Error downloading audio:", error);
+      toast({
+        title: "Download Failed",
+        description: "Could not download audio recording.",
+        variant: "destructive"
+      });
+    } finally {
+      setDownloadingAudio(null);
+    }
   };
 
   const hasTranscript = (session: VoiceSession) => {
@@ -159,7 +201,19 @@ export const VoiceSessionHistory = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              {session.audio_url && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => downloadAudio(session)}
+                  className="h-8 w-8"
+                  title="Download audio"
+                  disabled={downloadingAudio === session.id}
+                >
+                  <Volume2 className={`w-4 h-4 ${downloadingAudio === session.id ? 'animate-pulse' : ''}`} />
+                </Button>
+              )}
               {hasTranscript(session) && (
                 <Button
                   variant="ghost"
@@ -168,7 +222,7 @@ export const VoiceSessionHistory = () => {
                   className="h-8 w-8"
                   title="Download transcript"
                 >
-                  <Download className="w-4 h-4" />
+                  <FileText className="w-4 h-4" />
                 </Button>
               )}
               <div className="text-right">

@@ -28,6 +28,9 @@ import { usePartnerSuggestions } from "@/hooks/usePartnerSuggestions";
 import { useVoiceSession } from "@/hooks/useVoiceSession";
 import { useMinutesWallet } from "@/hooks/useMinutesWallet";
 import { MinutesPurchaseModal } from "@/components/voice/MinutesPurchaseModal";
+import { usePartnerPresence } from "@/hooks/usePartnerPresence";
+import { PartnerPresenceIndicator } from "@/components/couples/PartnerPresenceIndicator";
+import { ConversationInsights } from "@/components/couples/ConversationInsights";
 
 const Couples = () => {
   const navigate = useNavigate();
@@ -37,6 +40,7 @@ const Couples = () => {
   const { isLinked, isLoading, partnerLink, partnerId } = useCouplesAccount();
   const { shouldPrompt, dismiss } = usePhonePrompt();
   const { earnCoins } = useVirtualCurrency();
+  const { partnerPresence, updateMyPresence, isPartnerOnline } = usePartnerPresence();
   const { suggestions, dismissSuggestion, actOnSuggestion } = usePartnerSuggestions();
   const [showPhonePrompt, setShowPhonePrompt] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -276,7 +280,18 @@ const Couples = () => {
 
         {/* Connection Status */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          {isLinked ? <CouplesLinkedStatus /> : <PartnerInviteCard />}
+          {isLinked ? (
+            <>
+              <CouplesLinkedStatus />
+              {isPartnerOnline && (
+                <PartnerPresenceIndicator 
+                  isOnline={partnerPresence.isOnline}
+                  status={partnerPresence.status}
+                  partnerName={partnerProfile?.display_name}
+                />
+              )}
+            </>
+          ) : <PartnerInviteCard />}
         </motion.div>
 
         {isLinked && (
