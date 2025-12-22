@@ -46,6 +46,7 @@ const Couples = () => {
   const [showChat, setShowChat] = useState(false);
   const [showLunaChat, setShowLunaChat] = useState(false);
   const [showMinutesPurchase, setShowMinutesPurchase] = useState(false);
+  const [showPreCall, setShowPreCall] = useState(false);
   const [isCallingPartner, setIsCallingPartner] = useState(false);
   
   const { hasMinutes } = useMinutesWallet();
@@ -376,56 +377,93 @@ const Couples = () => {
               </button>
 
               {/* Voice Call CTA */}
-              <div className="space-y-2">
+              {isActive ? (
                 <button
-                  onClick={isActive ? endSession : handleStartCouplesVoice}
-                  disabled={isConnecting || isEnding}
-                  className={`w-full p-4 rounded-xl border transition-all ${
-                    isActive 
-                      ? 'bg-gradient-to-r from-red-500/20 to-orange-500/20 border-red-500/40 hover:border-red-500/60' 
-                      : 'bg-gradient-to-r from-violet-500/10 to-indigo-500/10 border-violet-500/20 hover:border-violet-500/40'
-                  } ${(isConnecting || isEnding) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={endSession}
+                  disabled={isEnding}
+                  className={`w-full p-4 rounded-xl border transition-all bg-gradient-to-r from-red-500/20 to-orange-500/20 border-red-500/40 hover:border-red-500/60 ${isEnding ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                      isActive 
-                        ? 'bg-gradient-to-br from-red-500 to-orange-500 animate-pulse' 
-                        : 'bg-gradient-to-br from-violet-500 to-indigo-500'
-                    }`}>
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-red-500 to-orange-500 animate-pulse">
                       <Headphones className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1 text-left">
                       <h3 className="font-semibold flex items-center gap-2">
-                        {isConnecting ? 'Connecting...' : isActive ? 'End Voice Call' : isEnding ? 'Ending...' : 'Voice Call with Luna'}
-                        {isActive && (
-                          <Badge variant="secondary" className="text-[10px] px-1.5 bg-red-500/20 text-red-500">
-                            {Math.floor(durationSeconds / 60)}:{(durationSeconds % 60).toString().padStart(2, '0')}
-                          </Badge>
-                        )}
+                        {isEnding ? 'Ending...' : 'End Voice Call'}
+                        <Badge variant="secondary" className="text-[10px] px-1.5 bg-red-500/20 text-red-500">
+                          {Math.floor(durationSeconds / 60)}:{(durationSeconds % 60).toString().padStart(2, '0')}
+                        </Badge>
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {isActive 
-                          ? isLunaSpeaking ? 'Luna is speaking...' : 'Listening...'
-                          : 'Talk through relationship topics together'}
+                        {isLunaSpeaking ? 'Luna is speaking...' : 'Listening...'}
                       </p>
                     </div>
                   </div>
                 </button>
-                
-                {/* Call Partner Button */}
-                {!isPartnerOnline && !isActive && (
-                  <button
-                    onClick={handleCallPartner}
-                    disabled={isCallingPartner}
-                    className="w-full p-3 rounded-lg bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 hover:border-green-500/40 transition-all flex items-center justify-center gap-2"
-                  >
-                    <Phone className={`w-4 h-4 text-green-600 dark:text-green-400 ${isCallingPartner ? 'animate-pulse' : ''}`} />
-                    <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                      {isCallingPartner ? 'Calling...' : 'Ring Partner\'s Phone'}
-                    </span>
-                  </button>
-                )}
-              </div>
+              ) : showPreCall ? (
+                <Card className="border-violet-500/30 bg-gradient-to-br from-violet-500/5 to-indigo-500/5">
+                  <CardContent className="p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold flex items-center gap-2">
+                        <Headphones className="w-5 h-5 text-violet-500" />
+                        Voice Call with Luna
+                      </h3>
+                      <Button variant="ghost" size="sm" onClick={() => setShowPreCall(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
+                      <PartnerPresenceIndicator 
+                        isOnline={partnerPresence.isOnline}
+                        status={partnerPresence.status}
+                        partnerName={partnerProfile?.display_name}
+                      />
+                    </div>
+
+                    {!isPartnerOnline && (
+                      <button
+                        onClick={handleCallPartner}
+                        disabled={isCallingPartner}
+                        className="w-full p-3 rounded-lg bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 hover:border-green-500/40 transition-all flex items-center justify-center gap-2"
+                      >
+                        <Phone className={`w-4 h-4 text-green-600 dark:text-green-400 ${isCallingPartner ? 'animate-pulse' : ''}`} />
+                        <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                          {isCallingPartner ? 'Calling...' : 'Ring Partner\'s Phone'}
+                        </span>
+                      </button>
+                    )}
+
+                    <Button
+                      onClick={() => {
+                        handleStartCouplesVoice();
+                        setShowPreCall(false);
+                      }}
+                      disabled={isConnecting}
+                      className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600"
+                    >
+                      {isConnecting ? 'Connecting...' : 'Start Call Now'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <button
+                  onClick={() => setShowPreCall(true)}
+                  className="w-full p-4 rounded-xl border transition-all bg-gradient-to-r from-violet-500/10 to-indigo-500/10 border-violet-500/20 hover:border-violet-500/40"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-violet-500 to-indigo-500">
+                      <Headphones className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <h3 className="font-semibold">Voice Call with Luna</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Talk through relationship topics together
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              )}
 
               {/* Luna Chat CTA */}
               <button
