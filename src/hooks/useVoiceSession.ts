@@ -85,12 +85,12 @@ export const useVoiceSession = () => {
         throw new Error(errorMsg);
       }
 
-      const { sessionId, userName, minutesBalance } = sessionData;
+      const { sessionId, userName, partnerName, minutesBalance } = sessionData;
       setState(prev => ({ ...prev, sessionId }));
 
       // 2. Get ephemeral token from OpenAI
       const { data: tokenData, error: tokenError } = await supabase.functions.invoke('realtime-voice-token', {
-        body: { sessionId, sessionType, userName }
+        body: { sessionId, sessionType, userName, partnerName }
       });
 
       if (tokenError || tokenData?.error) {
