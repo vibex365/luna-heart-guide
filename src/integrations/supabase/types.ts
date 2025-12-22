@@ -1626,6 +1626,102 @@ export type Database = {
           },
         ]
       }
+      minute_packages: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_popular: boolean | null
+          minutes: number
+          name: string
+          price_cents: number
+          savings_percent: number | null
+          sort_order: number | null
+          stripe_price_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_popular?: boolean | null
+          minutes: number
+          name: string
+          price_cents: number
+          savings_percent?: number | null
+          sort_order?: number | null
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_popular?: boolean | null
+          minutes?: number
+          name?: string
+          price_cents?: number
+          savings_percent?: number | null
+          sort_order?: number | null
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      minute_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          package_id: string | null
+          stripe_payment_intent_id: string | null
+          transaction_type: Database["public"]["Enums"]["minute_transaction_type"]
+          user_id: string
+          voice_session_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          package_id?: string | null
+          stripe_payment_intent_id?: string | null
+          transaction_type: Database["public"]["Enums"]["minute_transaction_type"]
+          user_id: string
+          voice_session_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          package_id?: string | null
+          stripe_payment_intent_id?: string | null
+          transaction_type?: Database["public"]["Enums"]["minute_transaction_type"]
+          user_id?: string
+          voice_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "minute_transactions_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "minute_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "minute_transactions_voice_session_id_fkey"
+            columns: ["voice_session_id"]
+            isOneToOne: false
+            referencedRelation: "voice_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mood_entries: {
         Row: {
           created_at: string
@@ -2627,6 +2723,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_minutes: {
+        Row: {
+          created_at: string
+          id: string
+          lifetime_purchased: number
+          lifetime_used: number
+          minutes_balance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lifetime_purchased?: number
+          lifetime_used?: number
+          minutes_balance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lifetime_purchased?: number
+          lifetime_used?: number
+          minutes_balance?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           communication_style: string | null
@@ -2725,6 +2851,71 @@ export type Database = {
           },
         ]
       }
+      voice_sessions: {
+        Row: {
+          cost_cents: number | null
+          created_at: string
+          duration_seconds: number | null
+          end_time: string | null
+          id: string
+          luna_context_summary: string | null
+          metadata: Json | null
+          minutes_billed: number | null
+          partner_link_id: string | null
+          safety_flagged: boolean | null
+          safety_notes: string | null
+          session_type: string
+          start_time: string | null
+          status: Database["public"]["Enums"]["voice_session_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cost_cents?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          end_time?: string | null
+          id?: string
+          luna_context_summary?: string | null
+          metadata?: Json | null
+          minutes_billed?: number | null
+          partner_link_id?: string | null
+          safety_flagged?: boolean | null
+          safety_notes?: string | null
+          session_type?: string
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["voice_session_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cost_cents?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          end_time?: string | null
+          id?: string
+          luna_context_summary?: string | null
+          metadata?: Json | null
+          minutes_billed?: number | null
+          partner_link_id?: string | null
+          safety_flagged?: boolean | null
+          safety_notes?: string | null
+          session_type?: string
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["voice_session_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_sessions_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       would_you_rather_answers: {
         Row: {
           created_at: string
@@ -2786,6 +2977,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      minute_transaction_type: "purchase" | "usage" | "refund" | "bonus"
+      voice_session_status:
+        | "initiated"
+        | "connecting"
+        | "active"
+        | "ended"
+        | "failed"
+        | "no_balance"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2914,6 +3113,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      minute_transaction_type: ["purchase", "usage", "refund", "bonus"],
+      voice_session_status: [
+        "initiated",
+        "connecting",
+        "active",
+        "ended",
+        "failed",
+        "no_balance",
+      ],
     },
   },
 } as const
