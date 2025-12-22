@@ -1,0 +1,158 @@
+// Deal Breakers Content
+export const dealBreakersCards = {
+  habits: [
+    { id: "db-1", text: "They leave dirty dishes in the sink overnight" },
+    { id: "db-2", text: "They snore loudly every night" },
+    { id: "db-3", text: "They're always late to everything" },
+    { id: "db-4", text: "They leave clothes on the floor" },
+    { id: "db-5", text: "They spend hours gaming every day" },
+    { id: "db-6", text: "They check their phone during meals" },
+    { id: "db-7", text: "They forget important dates (birthdays, anniversaries)" },
+    { id: "db-8", text: "They never want to go out" },
+  ],
+  values: [
+    { id: "db-9", text: "They don't want kids (or do want kids)" },
+    { id: "db-10", text: "They have very different political views" },
+    { id: "db-11", text: "They're not close with their family" },
+    { id: "db-12", text: "They're extremely religious (or not at all)" },
+    { id: "db-13", text: "They want to live in a different country" },
+    { id: "db-14", text: "They have significant debt" },
+    { id: "db-15", text: "They're a workaholic" },
+    { id: "db-16", text: "They don't believe in marriage" },
+  ],
+  lifestyle: [
+    { id: "db-17", text: "They smoke cigarettes" },
+    { id: "db-18", text: "They drink alcohol daily" },
+    { id: "db-19", text: "They're a picky eater" },
+    { id: "db-20", text: "They hate traveling" },
+    { id: "db-21", text: "They're a homebody who never goes out" },
+    { id: "db-22", text: "They're extremely messy" },
+    { id: "db-23", text: "They have no hobbies" },
+    { id: "db-24", text: "They're always on social media" },
+  ],
+  quirks: [
+    { id: "db-25", text: "They talk during movies" },
+    { id: "db-26", text: "They chew with their mouth open" },
+    { id: "db-27", text: "They use baby talk" },
+    { id: "db-28", text: "They're extremely competitive about everything" },
+    { id: "db-29", text: "They refuse to try new foods" },
+    { id: "db-30", text: "They're terrible at keeping secrets" },
+    { id: "db-31", text: "They hate pets" },
+    { id: "db-32", text: "They're extremely indecisive" },
+  ],
+};
+
+// Love Trivia Content
+export const loveTriviaQuestions = [
+  { id: "lt-1", question: "What percentage of couples meet online today?", answer: "Around 40%", options: ["10%", "25%", "40%", "60%"] },
+  { id: "lt-2", question: "Which country has the longest average marriages?", answer: "Italy", options: ["USA", "Italy", "Japan", "Sweden"] },
+  { id: "lt-3", question: "What's the most common day for proposals?", answer: "Christmas Day", options: ["Valentine's Day", "Christmas Day", "New Year's Eve", "Their Anniversary"] },
+  { id: "lt-4", question: "How long does the 'honeymoon phase' typically last?", answer: "12-18 months", options: ["3-6 months", "6-12 months", "12-18 months", "2-3 years"] },
+  { id: "lt-5", question: "Which love language is most common?", answer: "Words of Affirmation", options: ["Physical Touch", "Words of Affirmation", "Quality Time", "Acts of Service"] },
+  { id: "lt-6", question: "What's the most popular wedding month?", answer: "October", options: ["June", "October", "May", "September"] },
+  { id: "lt-7", question: "How many times does the average person fall in love?", answer: "2-3 times", options: ["1 time", "2-3 times", "4-5 times", "6+ times"] },
+  { id: "lt-8", question: "Which Shakespeare play features 'star-crossed lovers'?", answer: "Romeo and Juliet", options: ["Hamlet", "Romeo and Juliet", "A Midsummer Night's Dream", "Othello"] },
+  { id: "lt-9", question: "What's the traditional gift for a 25th wedding anniversary?", answer: "Silver", options: ["Gold", "Silver", "Diamond", "Pearl"] },
+  { id: "lt-10", question: "In which city is the famous 'Love Lock Bridge'?", answer: "Paris", options: ["Rome", "Paris", "Venice", "Barcelona"] },
+  { id: "lt-11", question: "What hormone is called the 'love hormone'?", answer: "Oxytocin", options: ["Dopamine", "Serotonin", "Oxytocin", "Adrenaline"] },
+  { id: "lt-12", question: "How many muscles does a passionate kiss use?", answer: "About 34", options: ["About 12", "About 23", "About 34", "About 50"] },
+  { id: "lt-13", question: "Which famous couple was together for 73 years?", answer: "Queen Elizabeth II & Prince Philip", options: ["Paul Newman & Joanne Woodward", "Queen Elizabeth II & Prince Philip", "George & Barbara Bush", "Kirk & Anne Douglas"] },
+  { id: "lt-14", question: "What's the origin of the heart symbol for love?", answer: "Silphium plant seed", options: ["Human heart shape", "Silphium plant seed", "Swan necks", "Medieval art"] },
+  { id: "lt-15", question: "Which country gives spoons as a romantic gift?", answer: "Wales", options: ["Ireland", "Scotland", "Wales", "England"] },
+  { id: "lt-16", question: "What does 'eros' mean in Greek love philosophy?", answer: "Romantic/passionate love", options: ["Friendly love", "Family love", "Romantic/passionate love", "Self love"] },
+];
+
+// Date Night Roulette Content
+export const dateNightIdeas = {
+  adventure: [
+    { id: "dn-1", title: "Go-kart racing", description: "Race each other and see who's the speed champion!" },
+    { id: "dn-2", title: "Rock climbing", description: "Indoor rock climbing with lots of encouragement" },
+    { id: "dn-3", title: "Escape room challenge", description: "Work together to solve puzzles and escape" },
+    { id: "dn-4", title: "Hiking at sunrise", description: "Pack a breakfast picnic for the summit" },
+    { id: "dn-5", title: "Kayaking or paddleboarding", description: "Water adventure and quality time" },
+    { id: "dn-6", title: "Zip lining", description: "Get your adrenaline pumping together" },
+    { id: "dn-7", title: "Laser tag battle", description: "Friendly competition with laser guns" },
+    { id: "dn-8", title: "Trampoline park visit", description: "Jump around like kids again" },
+  ],
+  romantic: [
+    { id: "dn-9", title: "Stargazing picnic", description: "Blanket, snacks, and the night sky" },
+    { id: "dn-10", title: "Sunset beach walk", description: "Simple, romantic, and beautiful" },
+    { id: "dn-11", title: "Couples massage", description: "Relax and unwind together" },
+    { id: "dn-12", title: "Candlelit dinner at home", description: "Cook a fancy meal together" },
+    { id: "dn-13", title: "Wine or cheese tasting", description: "Explore new flavors together" },
+    { id: "dn-14", title: "Hot air balloon ride", description: "Breathtaking views and memories" },
+    { id: "dn-15", title: "Dance class", description: "Learn salsa, tango, or swing together" },
+    { id: "dn-16", title: "Botanical garden stroll", description: "Beautiful scenery and peaceful time" },
+  ],
+  budget: [
+    { id: "dn-17", title: "Movie marathon at home", description: "Pick a theme and make popcorn" },
+    { id: "dn-18", title: "Cook a new cuisine together", description: "Try a recipe from another country" },
+    { id: "dn-19", title: "Board game night", description: "Healthy competition and lots of laughs" },
+    { id: "dn-20", title: "Photo walk around town", description: "Capture beautiful moments together" },
+    { id: "dn-21", title: "Picnic in the park", description: "Pack sandwiches and enjoy nature" },
+    { id: "dn-22", title: "Volunteer together", description: "Do good and grow closer" },
+    { id: "dn-23", title: "Bike ride exploration", description: "Discover new areas of your city" },
+    { id: "dn-24", title: "At-home spa night", description: "Face masks, massages, and relaxation" },
+  ],
+  creative: [
+    { id: "dn-25", title: "Paint & sip night", description: "Create art while enjoying drinks" },
+    { id: "dn-26", title: "Pottery class", description: "Make something together to keep" },
+    { id: "dn-27", title: "Write letters to future selves", description: "Open them on your anniversary" },
+    { id: "dn-28", title: "Create a scrapbook", description: "Compile your favorite memories" },
+    { id: "dn-29", title: "Karaoke night", description: "Sing your hearts out (even badly!)" },
+    { id: "dn-30", title: "DIY project together", description: "Build or create something for your home" },
+    { id: "dn-31", title: "Take a class together", description: "Learn something new as a team" },
+    { id: "dn-32", title: "Photography scavenger hunt", description: "Find and capture specific things around town" },
+  ],
+};
+
+// Compliment Cards Content
+export const complimentPrompts = [
+  { id: "cc-1", prompt: "Tell your partner what you love about their smile", emoji: "😊" },
+  { id: "cc-2", prompt: "Describe how they make you feel when you're together", emoji: "💕" },
+  { id: "cc-3", prompt: "Share something they do that always makes you laugh", emoji: "😂" },
+  { id: "cc-4", prompt: "Tell them what you admire most about their character", emoji: "✨" },
+  { id: "cc-5", prompt: "Describe your favorite physical feature of theirs", emoji: "😍" },
+  { id: "cc-6", prompt: "Share a moment when they made you feel loved", emoji: "🥰" },
+  { id: "cc-7", prompt: "Tell them what makes them an amazing partner", emoji: "💑" },
+  { id: "cc-8", prompt: "Describe how they've helped you grow as a person", emoji: "🌱" },
+  { id: "cc-9", prompt: "Share what you love about their voice or laugh", emoji: "🎵" },
+  { id: "cc-10", prompt: "Tell them something you've never told them before", emoji: "💌" },
+  { id: "cc-11", prompt: "Describe your favorite memory together", emoji: "📸" },
+  { id: "cc-12", prompt: "Share what you love about their creativity", emoji: "🎨" },
+  { id: "cc-13", prompt: "Tell them what makes them unique and special", emoji: "⭐" },
+  { id: "cc-14", prompt: "Describe how they've supported you through hard times", emoji: "🤝" },
+  { id: "cc-15", prompt: "Share what you love about their intelligence", emoji: "🧠" },
+  { id: "cc-16", prompt: "Tell them why you're grateful they're in your life", emoji: "🙏" },
+  { id: "cc-17", prompt: "Describe what you love about their sense of style", emoji: "👗" },
+  { id: "cc-18", prompt: "Share what makes them your best friend", emoji: "👯" },
+  { id: "cc-19", prompt: "Tell them about a quality that inspires you", emoji: "💪" },
+  { id: "cc-20", prompt: "Describe why you fell in love with them", emoji: "💘" },
+];
+
+// Predictions Game Content
+export const predictionPrompts = [
+  { id: "pg-1", prompt: "Where will we be living in 5 years?", category: "future" },
+  { id: "pg-2", prompt: "What will our next vacation destination be?", category: "travel" },
+  { id: "pg-3", prompt: "What new hobby will we pick up together?", category: "lifestyle" },
+  { id: "pg-4", prompt: "Who will say 'I love you' more often?", category: "relationship" },
+  { id: "pg-5", prompt: "What will our next big purchase be?", category: "future" },
+  { id: "pg-6", prompt: "Who will cook dinner more often next month?", category: "daily" },
+  { id: "pg-7", prompt: "What movie will we watch next together?", category: "entertainment" },
+  { id: "pg-8", prompt: "Where will we be in 10 years?", category: "future" },
+  { id: "pg-9", prompt: "What will be our next date night activity?", category: "relationship" },
+  { id: "pg-10", prompt: "Who will plan the next surprise for the other?", category: "relationship" },
+  { id: "pg-11", prompt: "What restaurant will we try next?", category: "food" },
+  { id: "pg-12", prompt: "What will our next argument be about?", category: "daily" },
+  { id: "pg-13", prompt: "Who will wake up earlier tomorrow?", category: "daily" },
+  { id: "pg-14", prompt: "What skill will we learn together this year?", category: "lifestyle" },
+  { id: "pg-15", prompt: "Where will we spend our next anniversary?", category: "travel" },
+  { id: "pg-16", prompt: "What will be our next shared goal?", category: "future" },
+  { id: "pg-17", prompt: "Who will make the other laugh first today?", category: "daily" },
+  { id: "pg-18", prompt: "What will our life look like in 20 years?", category: "future" },
+  { id: "pg-19", prompt: "What new tradition will we start together?", category: "relationship" },
+  { id: "pg-20", prompt: "Who will message first if we're apart?", category: "daily" },
+];
+
+export type DealBreakersCategory = keyof typeof dealBreakersCards;
+export type DateNightCategory = keyof typeof dateNightIdeas;
