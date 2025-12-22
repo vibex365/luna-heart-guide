@@ -1380,6 +1380,69 @@ export type Database = {
         }
         Relationships: []
       }
+      iap_receipts: {
+        Row: {
+          amount_cents: number | null
+          created_at: string
+          currency: string | null
+          expiration_date: string | null
+          id: string
+          is_sandbox: boolean | null
+          is_trial: boolean | null
+          original_transaction_id: string | null
+          platform: string
+          product_id: string
+          product_type: string
+          purchase_date: string
+          receipt_data: string | null
+          status: string
+          transaction_id: string
+          updated_at: string
+          user_id: string
+          verification_response: Json | null
+        }
+        Insert: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          expiration_date?: string | null
+          id?: string
+          is_sandbox?: boolean | null
+          is_trial?: boolean | null
+          original_transaction_id?: string | null
+          platform: string
+          product_id: string
+          product_type: string
+          purchase_date: string
+          receipt_data?: string | null
+          status?: string
+          transaction_id: string
+          updated_at?: string
+          user_id: string
+          verification_response?: Json | null
+        }
+        Update: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          expiration_date?: string | null
+          id?: string
+          is_sandbox?: boolean | null
+          is_trial?: boolean | null
+          original_transaction_id?: string | null
+          platform?: string
+          product_id?: string
+          product_type?: string
+          purchase_date?: string
+          receipt_data?: string | null
+          status?: string
+          transaction_id?: string
+          updated_at?: string
+          user_id?: string
+          verification_response?: Json | null
+        }
+        Relationships: []
+      }
       intimate_game_sessions: {
         Row: {
           created_at: string
