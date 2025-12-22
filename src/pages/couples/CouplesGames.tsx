@@ -26,6 +26,12 @@ import ThirtySixQuestions from "@/components/couples/ThirtySixQuestions";
 import SpinTheWheel from "@/components/couples/SpinTheWheel";
 import { GameStatsCard } from "@/components/couples/GameStatsCard";
 import { LoveLanguageQuiz } from "@/components/couples/LoveLanguageQuiz";
+// New card games
+import { DealBreakers } from "@/components/couples/DealBreakers";
+import { LoveTriviaChallenge } from "@/components/couples/LoveTriviaChallenge";
+import { DateNightRoulette } from "@/components/couples/DateNightRoulette";
+import { ComplimentCards } from "@/components/couples/ComplimentCards";
+import { PredictionsGame } from "@/components/couples/PredictionsGame";
 
 const CouplesGames = () => {
   const navigate = useNavigate();
@@ -61,6 +67,27 @@ const CouplesGames = () => {
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
               <SpinTheWheel partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            {/* New Card Games */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
+              <DealBreakers partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}>
+              <LoveTriviaChallenge partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}>
+              <DateNightRoulette partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.145 }}>
+              <ComplimentCards partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.148 }}>
+              <PredictionsGame partnerLinkId={partnerLink?.id} />
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
