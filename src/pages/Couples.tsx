@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ArrowLeft, MessageCircle, Gamepad2, Gift, Calendar, Activity, Sparkles } from "lucide-react";
+import { Heart, ArrowLeft, MessageCircle, Gamepad2, Gift, Calendar, Activity, Sparkles, Headphones } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useVirtualCurrency } from "@/hooks/useVirtualCurrency";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +24,9 @@ import { usePartnerNotifications } from "@/hooks/usePartnerNotifications";
 import { CoinBalance } from "@/components/couples/CoinBalance";
 import { PartnerSuggestionCard } from "@/components/couples/PartnerSuggestionCard";
 import { usePartnerSuggestions } from "@/hooks/usePartnerSuggestions";
+import { useVoiceSession } from "@/hooks/useVoiceSession";
+import { useMinutesWallet } from "@/hooks/useMinutesWallet";
+import { MinutesPurchaseModal } from "@/components/voice/MinutesPurchaseModal";
 const Couples = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -35,6 +38,27 @@ const Couples = () => {
   const { suggestions, dismissSuggestion, actOnSuggestion } = usePartnerSuggestions();
   const [showPhonePrompt, setShowPhonePrompt] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showMinutesPurchase, setShowMinutesPurchase] = useState(false);
+  
+  const { hasMinutes } = useMinutesWallet();
+  const { 
+    startSession, 
+    endSession, 
+    isConnecting, 
+    isActive, 
+    isEnding,
+    status: voiceStatus,
+    durationSeconds,
+    isLunaSpeaking
+  } = useVoiceSession();
+
+  const handleStartCouplesVoice = async () => {
+    if (!partnerLink?.id) return;
+    const result = await startSession('couples', partnerLink.id);
+    if (result?.needsMinutes) {
+      setShowMinutesPurchase(true);
+    }
+  };
   
   const {
     hasCouplesAccess,
@@ -276,12 +300,14 @@ const Couples = () => {
               )}
             </AnimatePresence>
 
-            {/* Chat CTA */}
+            {/* Chat & Voice CTAs */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
+              className="space-y-3"
             >
+              {/* Chat CTA */}
               <button
                 onClick={() => setShowChat(true)}
                 className="w-full p-4 rounded-xl bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20 hover:border-pink-500/40 transition-all"
@@ -301,6 +327,42 @@ const Couples = () => {
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       Send text, voice & video messages
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Voice Call CTA */}
+              <button
+                onClick={isActive ? endSession : handleStartCouplesVoice}
+                disabled={isConnecting || isEnding}
+                className={`w-full p-4 rounded-xl border transition-all ${
+                  isActive 
+                    ? 'bg-gradient-to-r from-red-500/20 to-orange-500/20 border-red-500/40 hover:border-red-500/60' 
+                    : 'bg-gradient-to-r from-violet-500/10 to-indigo-500/10 border-violet-500/20 hover:border-violet-500/40'
+                } ${(isConnecting || isEnding) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    isActive 
+                      ? 'bg-gradient-to-br from-red-500 to-orange-500 animate-pulse' 
+                      : 'bg-gradient-to-br from-violet-500 to-indigo-500'
+                  }`}>
+                    <Headphones className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      {isConnecting ? 'Connecting...' : isActive ? 'End Voice Call' : isEnding ? 'Ending...' : 'Voice Call with Luna'}
+                      {isActive && (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 bg-red-500/20 text-red-500">
+                          {Math.floor(durationSeconds / 60)}:{(durationSeconds % 60).toString().padStart(2, '0')}
+                        </Badge>
+                      )}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {isActive 
+                        ? isLunaSpeaking ? 'Luna is speaking...' : 'Listening...'
+                        : 'Talk through relationship topics together'}
                     </p>
                   </div>
                 </div>
@@ -382,6 +444,12 @@ const Couples = () => {
           setShowPhonePrompt(open);
           if (!open) dismiss();
         }}
+      />
+
+      {/* Minutes Purchase Modal */}
+      <MinutesPurchaseModal 
+        open={showMinutesPurchase} 
+        onOpenChange={setShowMinutesPurchase} 
       />
     </div>
   );
