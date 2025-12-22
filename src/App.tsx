@@ -37,6 +37,7 @@ import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLun
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import PitchDeck from "./pages/PitchDeck";
+import LunaVoice from "./pages/LunaVoice";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -80,6 +81,7 @@ function App(): React.ReactElement {
           <Route path="/promo-video" element={<PromoVideoTemplate />} />
           <Route path="/promo-videos" element={<PromoVideos />} />
           <Route path="/coins" element={<CoinPurchase />} />
+          <Route path="/luna-voice" element={<LunaVoice />} />
           <Route
             path="/admin"
             element={

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Plus, MessageCircle, LogOut, Trash2, Heart, BookOpen, Wind, LifeBuoy, History, Search, X, Pencil, Check, Settings } from "lucide-react";
+import { Send, Plus, MessageCircle, LogOut, Trash2, Heart, BookOpen, Wind, LifeBuoy, History, Search, X, Pencil, Check, Settings, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LunaAvatar from "@/components/LunaAvatar";
 import UserAvatar from "@/components/UserAvatar";
@@ -782,6 +782,15 @@ const Chat = () => {
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="w-full justify-start text-muted-foreground mb-1"
+                  onClick={() => navigate("/luna-voice")}
+                >
+                  <Headphones className="w-4 h-4 mr-2" />
+                  Luna Voice
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="w-full justify-start text-muted-foreground mb-3"
                   onClick={() => navigate("/crisis")}
                 >
@@ -829,6 +838,15 @@ const Chat = () => {
                 <p className="text-xs text-muted-foreground">Your relationship therapist</p>
               </div>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/luna-voice")}
+              className="gap-2 text-primary border-primary/30 hover:bg-primary/10"
+            >
+              <Headphones className="w-4 h-4" />
+              <span className="hidden sm:inline">Voice</span>
+            </Button>
           </div>
         </header>
 
