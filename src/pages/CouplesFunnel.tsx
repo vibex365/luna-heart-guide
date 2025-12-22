@@ -44,7 +44,7 @@ const defaultContent = {
       emoji: "📈"
     }
   ],
-  cta_text: "Start Together – $7.99/mo for Both",
+  cta_text: "Start Together – $9.99/mo for Both",
   relatability_tagline: "You're not failing. You're struggling to communicate."
 };
 

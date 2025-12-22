@@ -54,6 +54,7 @@ const navSections = [
       { icon: Users, label: "Users", path: "/admin/users" },
       { icon: CreditCard, label: "Subscriptions", path: "/admin/subscriptions" },
       { icon: BarChart3, label: "Coins", path: "/admin/coins" },
+      { icon: BarChart3, label: "Voice Minutes", path: "/admin/minutes" },
     ]
   },
   {

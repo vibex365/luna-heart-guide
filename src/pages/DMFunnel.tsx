@@ -48,7 +48,7 @@ const defaultContent = {
     "typing texts then deleting them",
     "feeling okay during the day, spiraling at night",
   ],
-  ctaText: "Start Healing Today – $3.99",
+  ctaText: "Start Healing Today – $4.99",
 };
 
 interface SegmentData {
@@ -205,7 +205,7 @@ const DMFunnel = () => {
   const headline = segmentData?.headline || defaultContent.headline;
   const subheadline = segmentData?.subheadline || defaultContent.subheadline;
   const painPoints = segmentData?.pain_points || defaultContent.painPoints;
-  const ctaText = segmentData?.cta_text ? `${segmentData.cta_text} – $3.99` : defaultContent.ctaText;
+  const ctaText = segmentData?.cta_text ? `${segmentData.cta_text} – $4.99` : defaultContent.ctaText;
 
   const handleCheckout = async () => {
     setIsLoading(true);
@@ -429,7 +429,7 @@ const DMFunnel = () => {
                 BEST VALUE
               </div>
               <p className="text-xs text-funnel-accent mb-2">Luna</p>
-              <p className="text-2xl font-bold text-white">$3.99</p>
+              <p className="text-2xl font-bold text-white">$4.99</p>
               <p className="text-xs text-white/70">for 30 days</p>
               <div className="mt-3 pt-3 border-t border-funnel-accent/20">
                 <p className="text-sm text-funnel-accent flex items-center gap-1">
