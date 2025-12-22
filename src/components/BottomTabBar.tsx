@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { MessageCircle, SmilePlus, BookOpen, Wind, User, Heart, Shield, Sparkles } from "lucide-react";
+import { MessageCircle, SmilePlus, BookOpen, Wind, User, Heart, Shield, Sparkles, Headphones } from "lucide-react";
 import { motion } from "framer-motion";
 import LunaAvatar from "./LunaAvatar";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
@@ -27,7 +27,7 @@ export const BottomTabBar = () => {
   let tabs = user
     ? [
         baseTabs[0], // Chat
-        baseTabs[1], // Mood
+        { to: "/luna-voice", icon: Headphones, label: "Voice", isVoice: true },
         { to: "/couples", icon: Heart, label: "Couples", isCouples: true },
         baseTabs[3], // Breathe
         baseTabs[4], // Profile
@@ -80,6 +80,7 @@ export const BottomTabBar = () => {
           const Icon = tab.icon;
           const isCouples = 'isCouples' in tab && tab.isCouples;
           const isAdminTab = 'isAdmin' in tab && tab.isAdmin;
+          const isVoice = 'isVoice' in tab && tab.isVoice;
 
           return (
             <NavLink
@@ -93,8 +94,8 @@ export const BottomTabBar = () => {
                   {routeActive && (
                     <motion.div
                       layoutId="activeTab"
-                      className={`absolute inset-x-2 top-0 h-0.5 rounded-full ${
-                        isCouples ? "bg-pink-500" : isAdminTab ? "bg-yellow-500" : "bg-accent"
+                    className={`absolute inset-x-2 top-0 h-0.5 rounded-full ${
+                        isCouples ? "bg-pink-500" : isAdminTab ? "bg-yellow-500" : isVoice ? "bg-primary" : "bg-accent"
                       }`}
                       initial={false}
                       transition={{ type: "spring", stiffness: 500, damping: 35 }}
@@ -103,7 +104,7 @@ export const BottomTabBar = () => {
                   <motion.div
                     className={`flex flex-col items-center justify-center gap-0.5 ${
                       routeActive 
-                        ? isCouples ? "text-pink-500" : isAdminTab ? "text-yellow-500" : "text-accent" 
+                        ? isCouples ? "text-pink-500" : isAdminTab ? "text-yellow-500" : isVoice ? "text-primary" : "text-accent" 
                         : "text-muted-foreground"
                     }`}
                     whileTap={{ scale: 0.9 }}
