@@ -139,11 +139,33 @@ serve(async (req) => {
       .eq('user_id', userId)
       .single();
 
+    // For couples sessions, also get partner's name
+    let partnerName: string | null = null;
+    if (sessionType === 'couples' && partnerLinkId) {
+      const { data: linkData } = await supabaseClient
+        .from('partner_links')
+        .select('user_id, partner_id')
+        .eq('id', partnerLinkId)
+        .single();
+
+      if (linkData) {
+        const partnerId = linkData.user_id === userId ? linkData.partner_id : linkData.user_id;
+        const { data: partnerProfile } = await supabaseClient
+          .from('profiles')
+          .select('display_name')
+          .eq('user_id', partnerId)
+          .single();
+        partnerName = partnerProfile?.display_name || null;
+      }
+      logStep("Partner info fetched", { partnerName });
+    }
+
     return new Response(JSON.stringify({
       sessionId: session.id,
       sessionType,
       minutesBalance,
       userName: profile?.display_name || null,
+      partnerName,
       status: 'initiated'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
