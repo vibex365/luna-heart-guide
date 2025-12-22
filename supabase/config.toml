@@ -77,3 +77,18 @@ verify_jwt = false
 
 [functions.regenerate-blog-images]
 verify_jwt = false
+
+[functions.realtime-voice-token]
+verify_jwt = false
+
+[functions.voice-session-start]
+verify_jwt = false
+
+[functions.voice-session-end]
+verify_jwt = false
+
+[functions.purchase-minutes]
+verify_jwt = false
+
+[functions.process-minutes-webhook]
+verify_jwt = false
