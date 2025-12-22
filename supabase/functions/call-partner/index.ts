@@ -93,16 +93,16 @@ serve(async (req) => {
       throw new Error('Twilio not configured');
     }
 
-    // Create TwiML message
+    // Create TwiML message with neural voice for natural sound
     const twiml = `
       <Response>
-        <Say voice="alice">
+        <Say voice="Polly.Joanna" language="en-US">
           Hi! ${callerName} wants to start a couples therapy session with Luna. 
           Open your Luna app to join them for a meaningful conversation together.
           This call will end now. See you in the app!
         </Say>
         <Pause length="1"/>
-        <Say voice="alice">Goodbye!</Say>
+        <Say voice="Polly.Joanna" language="en-US">Goodbye!</Say>
       </Response>
     `.trim();
 

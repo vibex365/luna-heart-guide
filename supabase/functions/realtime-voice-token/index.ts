@@ -163,7 +163,7 @@ Example opening: "Hi ${userName} and ${partnerName}! I'm so glad you're here tog
       },
       body: JSON.stringify({
         model: "gpt-4o-realtime-preview-2024-12-17",
-        voice: "alloy",
+        voice: "shimmer",
         instructions: personalizedPrompt,
         modalities: ["text", "audio"],
         input_audio_format: "pcm16",
