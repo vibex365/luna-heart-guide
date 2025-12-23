@@ -4,10 +4,12 @@ const config: CapacitorConfig = {
   appId: 'com.talkswithluna.appname',
   appName: 'Luna Ai Relationship Therapist',
   webDir: 'dist',
-  server: {
-    url: 'https://7bc1f449-d149-45db-9d96-d4adb7d018b3.lovableproject.com?forceHideBadge=true',
-    cleartext: true
-  },
+  // Remove server.url for production - app will use bundled assets
+  // Uncomment below for development hot-reload:
+  // server: {
+  //   url: 'https://7bc1f449-d149-45db-9d96-d4adb7d018b3.lovableproject.com?forceHideBadge=true',
+  //   cleartext: true
+  // },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
@@ -27,14 +29,11 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
   },
-  // Deep linking configuration
   android: {
     allowMixedContent: true,
   },
   ios: {
     scheme: 'luna',
-    // Declare that app only uses standard iOS encryption (HTTPS)
-    // This skips the export compliance prompt in App Store Connect
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
