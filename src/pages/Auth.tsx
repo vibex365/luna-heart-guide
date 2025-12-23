@@ -215,15 +215,28 @@ const Auth = () => {
         return;
       }
 
-      // Send welcome SMS with credentials
-      await supabase.functions.invoke("send-sms", {
-        body: {
-          action: "send-welcome",
-          phoneNumber: phoneNumber,
-          email: email,
-          password: password,
-        },
-      });
+      // Get the current session to pass the access token for authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.access_token) {
+        // Send welcome SMS with credentials (authenticated)
+        const { error: welcomeError } = await supabase.functions.invoke("send-sms", {
+          body: {
+            action: "send-welcome",
+            phoneNumber: phoneNumber,
+            email: email,
+            password: password,
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (welcomeError) {
+          console.error("Welcome SMS error:", welcomeError);
+          // Don't block signup if welcome SMS fails
+        }
+      }
 
       toast({
         title: "Account created! 💜",
