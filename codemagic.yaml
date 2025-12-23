@@ -39,14 +39,12 @@ workflows:
           if [ ! -d "ios" ]; then
             npx cap add ios
           fi
-      
-      - name: Sync Capacitor
-        script: |
           npx cap sync ios
       
       - name: Install CocoaPods dependencies
         script: |
           cd ios/App
+          ls -la
           pod install --repo-update
       
       - name: Set up code signing
