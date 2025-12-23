@@ -1282,6 +1282,174 @@ export type Database = {
         }
         Relationships: []
       }
+      ebook_chapters: {
+        Row: {
+          chapter_number: number
+          content: string
+          created_at: string | null
+          ebook_id: string
+          game_data: Json | null
+          game_type: string | null
+          has_game: boolean | null
+          id: string
+          title: string
+        }
+        Insert: {
+          chapter_number: number
+          content: string
+          created_at?: string | null
+          ebook_id: string
+          game_data?: Json | null
+          game_type?: string | null
+          has_game?: boolean | null
+          id?: string
+          title: string
+        }
+        Update: {
+          chapter_number?: number
+          content?: string
+          created_at?: string | null
+          ebook_id?: string
+          game_data?: Json | null
+          game_type?: string | null
+          has_game?: boolean | null
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ebook_chapters_ebook_id_fkey"
+            columns: ["ebook_id"]
+            isOneToOne: false
+            referencedRelation: "ebooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ebook_progress: {
+        Row: {
+          completed: boolean
+          completed_chapters: number[] | null
+          current_chapter: number
+          ebook_id: string
+          id: string
+          last_read_at: string | null
+          started_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_chapters?: number[] | null
+          current_chapter?: number
+          ebook_id: string
+          id?: string
+          last_read_at?: string | null
+          started_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_chapters?: number[] | null
+          current_chapter?: number
+          ebook_id?: string
+          id?: string
+          last_read_at?: string | null
+          started_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ebook_progress_ebook_id_fkey"
+            columns: ["ebook_id"]
+            isOneToOne: false
+            referencedRelation: "ebooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ebook_user_notes: {
+        Row: {
+          chapter_id: string
+          created_at: string | null
+          id: string
+          note_text: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          chapter_id: string
+          created_at?: string | null
+          id?: string
+          note_text: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          chapter_id?: string
+          created_at?: string | null
+          id?: string
+          note_text?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ebook_user_notes_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "ebook_chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ebooks: {
+        Row: {
+          author: string
+          category: string
+          chapters_count: number
+          cover_image: string | null
+          created_at: string | null
+          description: string | null
+          estimated_read_time: number | null
+          id: string
+          is_active: boolean | null
+          is_premium: boolean | null
+          sort_order: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          author?: string
+          category?: string
+          chapters_count?: number
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          estimated_read_time?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          sort_order?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          author?: string
+          category?: string
+          chapters_count?: number
+          cover_image?: string | null
+          created_at?: string | null
+          description?: string | null
+          estimated_read_time?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          sort_order?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       flagged_conversations: {
         Row: {
           conversation_id: string | null
