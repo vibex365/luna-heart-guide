@@ -40,6 +40,8 @@ import PitchDeck from "./pages/PitchDeck";
 import LunaVoice from "./pages/LunaVoice";
 import Library from "./pages/Library";
 import EbookReader from "./pages/EbookReader";
+import DateNight from "./pages/DateNight";
+import ColoringBook from "./pages/ColoringBook";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -86,6 +88,8 @@ function App(): React.ReactElement {
           <Route path="/luna-voice" element={<LunaVoice />} />
           <Route path="/library" element={<Library />} />
           <Route path="/library/:bookId" element={<EbookReader />} />
+          <Route path="/date-night" element={<DateNight />} />
+          <Route path="/date-night/coloring" element={<ColoringBook />} />
           <Route
             path="/admin"
             element={
