@@ -173,6 +173,7 @@ const Onboarding = () => {
     
     setSaving(true);
     try {
+      // Save preferences
       const { error } = await supabase
         .from("user_preferences")
         .upsert({
@@ -184,6 +185,11 @@ const Onboarding = () => {
         }, { onConflict: "user_id" });
 
       if (error) throw error;
+      
+      // Mark onboarding as completed
+      await supabase
+        .from("profiles")
+        .upsert({ user_id: user.id, onboarding_completed: true }, { onConflict: "user_id" });
       
       // Show welcome animation instead of navigating directly
       setShowWelcome(true);
@@ -209,6 +215,12 @@ const Onboarding = () => {
   };
 
   const handleSkip = async () => {
+    // Mark onboarding as completed even if skipped
+    if (user) {
+      await supabase
+        .from("profiles")
+        .upsert({ user_id: user.id, onboarding_completed: true }, { onConflict: "user_id" });
+    }
     navigate("/chat");
   };
 
