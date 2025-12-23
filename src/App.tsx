@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -47,11 +47,18 @@ import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+    },
+  },
+});
 
 function App(): React.ReactElement {
   return (
-  <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <AuthProvider>
         <Toaster />
