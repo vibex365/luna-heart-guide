@@ -130,43 +130,15 @@ const Auth = () => {
 
     setSendingCode(true);
     try {
-      // First create the account
-      const { data, error } = await signUp(email, password);
-      
-      if (error) {
-        if (error.message.includes("already registered")) {
-          toast({
-            title: "Account exists",
-            description: "This email is already registered. Try logging in instead.",
-            variant: "destructive",
-          });
-          setSignupStep("credentials");
-        } else {
-          toast({
-            title: "Sign up failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-        return;
-      }
+      // Generate a temporary ID for verification tracking (don't create account yet)
+      const tempId = `pending_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      setPendingUserId(tempId);
 
-      if (!data?.user?.id) {
-        toast({
-          title: "Error",
-          description: "Failed to create account. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setPendingUserId(data.user.id);
-
-      // Send verification code
+      // Send verification code without creating account
       const { error: smsError } = await supabase.functions.invoke("send-sms", {
         body: {
           action: "send-verification",
-          userId: data.user.id,
+          userId: tempId,
           phoneNumber: phoneNumber,
         },
       });
@@ -196,7 +168,7 @@ const Auth = () => {
 
     setVerifying(true);
     try {
-      // Verify the code
+      // Verify the code first
       const { data: verifyData, error: verifyError } = await supabase.functions.invoke("send-sms", {
         body: {
           action: "verify-code",
@@ -215,32 +187,48 @@ const Auth = () => {
         return;
       }
 
-      // Get the current session to pass the access token for authentication
-      const { data: { session } } = await supabase.auth.getSession();
+      // Phone verified - NOW create the account
+      const { data, error } = await signUp(email, password);
       
-      if (session?.access_token) {
-        // Send welcome SMS with credentials (authenticated)
-        const { error: welcomeError } = await supabase.functions.invoke("send-sms", {
-          body: {
-            action: "send-welcome",
-            phoneNumber: phoneNumber,
-            email: email,
-            password: password,
-          },
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
-
-        if (welcomeError) {
-          console.error("Welcome SMS error:", welcomeError);
-          // Don't block signup if welcome SMS fails
+      if (error) {
+        if (error.message.includes("already registered")) {
+          toast({
+            title: "Account exists",
+            description: "This email is already registered. Try logging in instead.",
+            variant: "destructive",
+          });
+          setSignupStep("credentials");
+        } else {
+          toast({
+            title: "Sign up failed",
+            description: error.message,
+            variant: "destructive",
+          });
         }
+        return;
       }
+
+      if (!data?.user?.id) {
+        toast({
+          title: "Error",
+          description: "Failed to create account. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update profile with verified phone number
+      await supabase
+        .from("profiles")
+        .update({ 
+          phone_number: phoneNumber, 
+          phone_verified: true 
+        })
+        .eq("user_id", data.user.id);
 
       toast({
         title: "Account created! 💜",
-        description: "Welcome SMS sent with your login details.",
+        description: "Your phone has been verified.",
       });
       
       navigate("/onboarding");
