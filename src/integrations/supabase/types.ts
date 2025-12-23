@@ -2322,6 +2322,7 @@ export type Database = {
           display_name: string | null
           gender: string | null
           id: string
+          onboarding_completed: boolean | null
           phone_number: string | null
           phone_verified: boolean | null
           reminder_enabled: boolean | null
@@ -2342,6 +2343,7 @@ export type Database = {
           display_name?: string | null
           gender?: string | null
           id?: string
+          onboarding_completed?: boolean | null
           phone_number?: string | null
           phone_verified?: boolean | null
           reminder_enabled?: boolean | null
@@ -2362,6 +2364,7 @@ export type Database = {
           display_name?: string | null
           gender?: string | null
           id?: string
+          onboarding_completed?: boolean | null
           phone_number?: string | null
           phone_verified?: boolean | null
           reminder_enabled?: boolean | null
