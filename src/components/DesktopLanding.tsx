@@ -4,7 +4,8 @@ import {
   Heart, MessageCircle, Wind, BookOpen, Users, Sparkles, Shield, Star, ArrowRight, Check, 
   Rocket, Crown, Quote, Brain, HeartHandshake, Zap, Newspaper, Phone, Play, X, Clock, 
   AlertCircle, TrendingUp, Lock, Gift, Smile, ThumbsUp, ChevronDown, DollarSign, 
-  Calendar, Target, Award, Lightbulb, MessageSquare, Volume2, HelpCircle
+  Calendar, Target, Award, Lightbulb, MessageSquare, Volume2, HelpCircle, Mic, Video,
+  Palette, ChefHat, Gamepad2, Shuffle, CircleDot, Flame, MessagesSquare, Dices
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -923,7 +924,434 @@ const DesktopLanding = () => {
         </div>
       </section>
 
-      {/* ========== SECTION 10: Couples Interactive Demo ========== */}
+      {/* ========== SECTION 10: Couples Games Showcase ========== */}
+      <section className="py-24 bg-background">
+        <div className="max-w-6xl mx-auto px-6">
+          <motion.div {...fadeInUp} className="text-center mb-16">
+            <span className="text-accent text-sm font-medium uppercase tracking-wider">Games & Activities</span>
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mt-3 mb-4">
+              50+ fun games to play together
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              From deep conversations to playful challenges — strengthen your bond while having fun
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                icon: Shuffle,
+                title: "Would You Rather",
+                description: "Discover how aligned you are with playful dilemmas and fun scenarios",
+                gradient: "from-purple-500/20 to-pink-500/20",
+                iconColor: "text-purple-400"
+              },
+              {
+                icon: CircleDot,
+                title: "Truth or Dare",
+                description: "Spice things up with truths that reveal and dares that excite",
+                gradient: "from-red-500/20 to-orange-500/20",
+                iconColor: "text-red-400"
+              },
+              {
+                icon: Flame,
+                title: "Never Have I Ever",
+                description: "Learn surprising things about each other with revealing confessions",
+                gradient: "from-orange-500/20 to-yellow-500/20",
+                iconColor: "text-orange-400"
+              },
+              {
+                icon: Dices,
+                title: "Spin the Wheel",
+                description: "Let fate decide your next romantic activity or playful challenge",
+                gradient: "from-blue-500/20 to-cyan-500/20",
+                iconColor: "text-blue-400"
+              },
+              {
+                icon: MessagesSquare,
+                title: "36 Questions to Fall in Love",
+                description: "The scientifically-proven questions that create deep connection",
+                gradient: "from-pink-500/20 to-rose-500/20",
+                iconColor: "text-pink-400"
+              },
+              {
+                icon: Gamepad2,
+                title: "The Newlywed Game",
+                description: "Test how well you really know your partner with fun challenges",
+                gradient: "from-green-500/20 to-emerald-500/20",
+                iconColor: "text-green-400"
+              },
+            ].map((game, index) => {
+              const Icon = game.icon;
+              return (
+                <motion.div 
+                  key={game.title} 
+                  initial={{ opacity: 0, y: 30 }} 
+                  whileInView={{ opacity: 1, y: 0 }} 
+                  viewport={{ once: true }} 
+                  transition={{ delay: index * 0.1 }} 
+                  className={`group p-6 rounded-2xl bg-gradient-to-br ${game.gradient} border border-accent/10 hover:border-accent/40 hover:shadow-romantic transition-all duration-300`}
+                >
+                  <div className="w-14 h-14 rounded-xl bg-card/80 backdrop-blur-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-soft">
+                    <Icon className={`w-7 h-7 ${game.iconColor}`} />
+                  </div>
+                  <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
+                    {game.title}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {game.description}
+                  </p>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          <motion.div
+            {...fadeInUp}
+            className="mt-12 text-center"
+          >
+            <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-6 py-3">
+              <Gamepad2 className="w-5 h-5 text-accent" />
+              <span className="text-foreground font-medium">Plus 40+ more games including Hot or Cold, Most Likely To, and more!</span>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ========== SECTION 11: Voice Features ========== */}
+      <section className="py-24 bg-gradient-to-br from-emerald-500/10 via-accent/10 to-teal-500/10">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <span className="text-accent text-sm font-medium uppercase tracking-wider">Voice Sessions</span>
+              <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mt-3 mb-6">
+                Talk it out with <span className="text-accent">real voice</span> conversations
+              </h2>
+              <p className="text-lg text-muted-foreground mb-8">
+                Sometimes typing isn't enough. Luna's voice feature lets you talk naturally, 
+                just like you would with a trusted friend — day or night.
+              </p>
+              
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                    <Phone className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Private Voice Sessions</h3>
+                    <p className="text-muted-foreground">Talk to Luna about anything — relationships, stress, personal growth. She listens and responds with empathy.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center flex-shrink-0">
+                    <Users className="w-6 h-6 text-pink-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Couples Voice Calls</h3>
+                    <p className="text-muted-foreground">Get Luna's guidance together on relationship topics. Perfect for working through challenges as a team.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center flex-shrink-0">
+                    <Mic className="w-6 h-6 text-accent" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Voice Messages in Chat</h3>
+                    <p className="text-muted-foreground">Send voice notes to your partner in the couples chat — when words aren't enough, let them hear your voice.</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="relative"
+            >
+              <div className="relative bg-card/80 backdrop-blur-sm rounded-3xl border border-accent/20 shadow-luna p-8">
+                <div className="text-center mb-6">
+                  <div className="w-24 h-24 mx-auto mb-4 relative">
+                    <LunaAvatar size="lg" showGlow />
+                    <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center border-4 border-card">
+                      <Mic className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+                  <h3 className="font-heading text-xl font-bold text-foreground">Voice Session Active</h3>
+                  <p className="text-muted-foreground text-sm">Luna is listening...</p>
+                </div>
+                
+                {/* Simulated audio waveform */}
+                <div className="flex items-center justify-center gap-1 h-16 mb-6">
+                  {[...Array(20)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="w-1.5 bg-accent rounded-full"
+                      animate={{
+                        height: [8, Math.random() * 40 + 16, 8],
+                      }}
+                      transition={{
+                        duration: 0.8,
+                        repeat: Infinity,
+                        delay: i * 0.05,
+                      }}
+                    />
+                  ))}
+                </div>
+                
+                <div className="flex items-center justify-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                    <Video className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div className="w-16 h-16 rounded-full bg-destructive flex items-center justify-center cursor-pointer hover:bg-destructive/80 transition-colors">
+                    <Phone className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                    <Volume2 className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                </div>
+                
+                <p className="text-center text-sm text-muted-foreground mt-4">5:23 • Private Session</p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========== SECTION 12: Chat Features ========== */}
+      <section className="py-24 bg-background">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="order-2 lg:order-1"
+            >
+              {/* Chat mockup */}
+              <div className="relative bg-card/80 backdrop-blur-sm rounded-3xl border border-accent/20 shadow-luna p-4">
+                <div className="flex items-center justify-between p-4 border-b border-border">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+                      <Heart className="w-5 h-5 text-accent" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">Alex</p>
+                      <p className="text-xs text-emerald-400">Online now</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                      <Phone className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                      <Video className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 space-y-4 max-h-80 overflow-hidden">
+                  <div className="flex justify-end">
+                    <div className="bg-accent text-accent-foreground px-4 py-2 rounded-2xl rounded-tr-sm max-w-[70%]">
+                      <p className="text-sm">Can't wait for our date night tonight! 💕</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-start">
+                    <div className="bg-muted px-4 py-2 rounded-2xl rounded-tl-sm max-w-[70%]">
+                      <p className="text-sm text-foreground">Me too! I found a great recipe we should try 🍝</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <div className="bg-accent/80 text-accent-foreground px-4 py-2 rounded-2xl rounded-tr-sm max-w-[70%]">
+                      <div className="flex items-center gap-2">
+                        <Mic className="w-4 h-4" />
+                        <div className="flex gap-0.5">
+                          {[...Array(12)].map((_, i) => (
+                            <div key={i} className="w-1 bg-accent-foreground/70 rounded-full" style={{ height: `${8 + Math.random() * 12}px` }} />
+                          ))}
+                        </div>
+                        <span className="text-xs">0:08</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-start">
+                    <div className="bg-muted px-4 py-2 rounded-2xl rounded-tl-sm">
+                      <p className="text-sm text-foreground">❤️ Love you!</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-center">
+                    <div className="bg-peach/20 px-3 py-1.5 rounded-full border border-peach/30">
+                      <p className="text-xs text-foreground flex items-center gap-1">
+                        <Gift className="w-3 h-3 text-peach" />
+                        Alex sent you a 🌹 Rose
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="order-1 lg:order-2"
+            >
+              <span className="text-accent text-sm font-medium uppercase tracking-wider">Stay Connected</span>
+              <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mt-3 mb-6">
+                Private & couples <span className="text-accent">chat</span> that brings you closer
+              </h2>
+              <p className="text-lg text-muted-foreground mb-8">
+                Stay connected with your partner through our beautiful, private messaging — 
+                complete with voice notes, digital gifts, stickers, and more.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { icon: MessageCircle, label: "Private Chat with Luna", desc: "Your AI companion" },
+                  { icon: Users, label: "Couples Private Chat", desc: "Just you two" },
+                  { icon: Mic, label: "Voice Messages", desc: "Say it with feeling" },
+                  { icon: Gift, label: "Digital Gifts", desc: "Roses, chocolates & more" },
+                ].map((item, index) => {
+                  const Icon = item.icon;
+                  return (
+                    <motion.div
+                      key={item.label}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                      className="bg-card/50 border border-accent/10 rounded-xl p-4 hover:border-accent/30 transition-all"
+                    >
+                      <Icon className="w-6 h-6 text-accent mb-2" />
+                      <p className="font-semibold text-foreground text-sm">{item.label}</p>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========== SECTION 13: Date Night Activities ========== */}
+      <section className="py-24 bg-gradient-to-br from-pink-500/10 via-rose-500/10 to-orange-500/10">
+        <div className="max-w-6xl mx-auto px-6">
+          <motion.div {...fadeInUp} className="text-center mb-16">
+            <span className="text-accent text-sm font-medium uppercase tracking-wider">Date Night</span>
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mt-3 mb-4">
+              Make every night a <span className="text-accent">date night</span>
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Creative activities designed to help you reconnect, unwind, and create memories together
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Coloring Together */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-card/80 backdrop-blur-sm rounded-3xl border border-accent/20 overflow-hidden shadow-luna"
+            >
+              <div className="p-8">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-6">
+                  <Palette className="w-8 h-8 text-purple-400" />
+                </div>
+                <h3 className="font-heading text-2xl font-bold text-foreground mb-3">
+                  Coloring Together
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Relaxing coloring pages designed for couples. Unwind together, express your creativity, 
+                  and enjoy a peaceful activity that doesn't require conversation — just presence.
+                </p>
+                <ul className="space-y-2">
+                  {["Romantic themed pages", "Mandala patterns", "Nature scenes", "Custom creations"].map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-sm text-foreground">
+                      <Check className="w-4 h-4 text-accent" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="h-40 bg-gradient-to-t from-purple-500/20 via-pink-500/10 to-transparent flex items-end justify-center pb-4">
+                <div className="flex gap-2">
+                  {['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181'].map((color) => (
+                    <div 
+                      key={color} 
+                      className="w-8 h-8 rounded-full shadow-lg border-2 border-white/20" 
+                      style={{ backgroundColor: color }} 
+                    />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Romantic Recipes */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-card/80 backdrop-blur-sm rounded-3xl border border-accent/20 overflow-hidden shadow-luna"
+            >
+              <div className="p-8">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center mb-6">
+                  <ChefHat className="w-8 h-8 text-orange-400" />
+                </div>
+                <h3 className="font-heading text-2xl font-bold text-foreground mb-3">
+                  Romantic Recipes
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Cook a special dinner together with our curated collection of romantic recipes. 
+                  From easy appetizers to impressive desserts — make dinner an experience.
+                </p>
+                <ul className="space-y-2">
+                  {["Step-by-step instructions", "Difficulty ratings", "Wine pairings", "Mood-setting tips"].map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-sm text-foreground">
+                      <Check className="w-4 h-4 text-accent" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="h-40 bg-gradient-to-t from-orange-500/20 via-red-500/10 to-transparent flex items-end justify-center pb-4">
+                <div className="flex gap-3 text-3xl">
+                  🍝 🥂 🍰 🕯️ 🌹
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          <motion.div
+            {...fadeInUp}
+            className="mt-12 text-center"
+          >
+            <Button 
+              size="lg" 
+              variant="peach" 
+              className="shadow-button"
+              onClick={() => navigate("/auth")}
+            >
+              <Heart className="w-5 h-5 mr-2" />
+              Start Your Date Night
+            </Button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ========== SECTION 14: Couples Interactive Demo ========== */}
       <section id="couples-demo">
         <CouplesInteractiveDemo />
       </section>
