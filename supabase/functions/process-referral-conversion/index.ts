@@ -10,6 +10,48 @@ interface ConversionRequest {
   planType: "pro" | "couples";
 }
 
+// Helper to send SMS notification to referrer
+async function notifyReferrerConversion(
+  referrerPhone: string,
+  referredName: string,
+  planType: string,
+  bonusPoints: number
+) {
+  try {
+    const twilioAccountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
+    const twilioAuthToken = Deno.env.get("TWILIO_AUTH_TOKEN");
+    const twilioPhoneNumber = Deno.env.get("TWILIO_PHONE_NUMBER");
+
+    if (!twilioAccountSid || !twilioAuthToken || !twilioPhoneNumber) {
+      console.log("Twilio not configured, skipping SMS");
+      return;
+    }
+
+    const planName = planType === "couples" ? "Couples" : "Pro";
+    const message = `🎊 Amazing! ${referredName || "Your friend"} just subscribed to Luna ${planName}! You earned ${bonusPoints} bonus points. Check your rewards at talkswithluna.com/referrals`;
+
+    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`;
+    const authHeader = btoa(`${twilioAccountSid}:${twilioAuthToken}`);
+
+    await fetch(twilioUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${authHeader}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        To: referrerPhone,
+        From: twilioPhoneNumber,
+        Body: message,
+      }),
+    });
+
+    console.log(`SMS notification sent to referrer about conversion`);
+  } catch (error) {
+    console.error("Failed to send SMS notification:", error);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -46,6 +88,20 @@ Deno.serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Get referrer's profile for SMS
+    const { data: referrer } = await supabase
+      .from("profiles")
+      .select("phone_number, phone_verified, sms_notifications_enabled")
+      .eq("user_id", referral.referrer_id)
+      .maybeSingle();
+
+    // Get referred user's name
+    const { data: referredUser } = await supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("user_id", subscribedUserId)
+      .maybeSingle();
 
     // Calculate bonus points based on plan type
     const bonusPoints = planType === "couples" ? 150 : 100;
@@ -87,6 +143,16 @@ Deno.serve(async (req) => {
           reference_id: referral.id,
           description: `Friend subscribed to ${planType === "couples" ? "Couples" : "Pro"}! 🎉`,
         });
+    }
+
+    // Send SMS notification if referrer has verified phone
+    if (referrer?.phone_number && referrer?.phone_verified && referrer?.sms_notifications_enabled !== false) {
+      await notifyReferrerConversion(
+        referrer.phone_number,
+        referredUser?.display_name || "Your friend",
+        planType,
+        bonusPoints
+      );
     }
 
     console.log(`Conversion processed: referrer=${referral.referrer_id}, bonus=${bonusPoints}`);

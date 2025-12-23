@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminRoute } from "@/components/AdminRoute";
 import { OfflineBanner } from "@/components/OfflineBanner";
@@ -47,6 +48,7 @@ import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
 import NotFound from "./pages/NotFound";
 import Referrals from "./pages/Referrals";
+import ReferralLanding from "./pages/ReferralLanding";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,6 +61,7 @@ const queryClient = new QueryClient({
 
 function App(): React.ReactElement {
   return (
+    <HelmetProvider>
     <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <AuthProvider>
@@ -105,6 +108,7 @@ function App(): React.ReactElement {
           <Route path="/date-night/recipes" element={<Recipes />} />
           <Route path="/date-night/recipes/:recipeId" element={<RecipeDetail />} />
           <Route path="/referrals" element={<Referrals />} />
+          <Route path="/r/:code" element={<ReferralLanding />} />
           <Route
             path="/admin"
             element={
@@ -249,6 +253,7 @@ function App(): React.ReactElement {
       </AuthProvider>
     </BrowserRouter>
   </QueryClientProvider>
+  </HelmetProvider>
   );
 }
 
