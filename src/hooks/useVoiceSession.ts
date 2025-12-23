@@ -6,6 +6,12 @@ import { useQueryClient } from "@tanstack/react-query";
 
 export type VoiceSessionStatus = 'idle' | 'connecting' | 'active' | 'ending' | 'ended' | 'error';
 
+interface TranscriptMessage {
+  speaker: 'user' | 'luna';
+  text: string;
+  timestamp: string;
+}
+
 interface VoiceSessionState {
   status: VoiceSessionStatus;
   sessionId: string | null;
@@ -13,6 +19,7 @@ interface VoiceSessionState {
   isLunaSpeaking: boolean;
   transcript: string;
   lunaResponse: string;
+  structuredTranscript: TranscriptMessage[];
 }
 
 export const useVoiceSession = () => {
@@ -26,7 +33,8 @@ export const useVoiceSession = () => {
     durationSeconds: 0,
     isLunaSpeaking: false,
     transcript: '',
-    lunaResponse: ''
+    lunaResponse: '',
+    structuredTranscript: []
   });
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -37,6 +45,10 @@ export const useVoiceSession = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  
+  // Refs for building complete messages
+  const currentUserMessageRef = useRef<string>('');
+  const currentLunaMessageRef = useRef<string>('');
 
   // Duration timer
   useEffect(() => {
@@ -55,6 +67,21 @@ export const useVoiceSession = () => {
     };
   }, [state.status]);
 
+  const addMessageToTranscript = useCallback((speaker: 'user' | 'luna', text: string) => {
+    if (!text.trim()) return;
+    
+    const message: TranscriptMessage = {
+      speaker,
+      text: text.trim(),
+      timestamp: new Date().toISOString()
+    };
+    
+    setState(prev => ({
+      ...prev,
+      structuredTranscript: [...prev.structuredTranscript, message]
+    }));
+  }, []);
+
   const startSession = useCallback(async (sessionType: 'solo' | 'couples' = 'solo', partnerLinkId?: string) => {
     if (!user) {
       toast({
@@ -65,7 +92,17 @@ export const useVoiceSession = () => {
       return;
     }
 
-    setState(prev => ({ ...prev, status: 'connecting', transcript: '', lunaResponse: '' }));
+    setState(prev => ({ 
+      ...prev, 
+      status: 'connecting', 
+      transcript: '', 
+      lunaResponse: '',
+      structuredTranscript: []
+    }));
+    
+    // Reset message refs
+    currentUserMessageRef.current = '';
+    currentLunaMessageRef.current = '';
 
     try {
       // 1. Start session on backend
@@ -171,20 +208,34 @@ export const useVoiceSession = () => {
           console.log("Voice event:", event.type);
 
           if (event.type === 'response.audio_transcript.delta') {
+            // Luna is speaking - accumulate the message
+            currentLunaMessageRef.current += event.delta || '';
             setState(prev => ({ 
               ...prev, 
               lunaResponse: prev.lunaResponse + (event.delta || ''),
               isLunaSpeaking: true
             }));
-          } else if (event.type === 'response.audio.done') {
-            setState(prev => ({ ...prev, isLunaSpeaking: false }));
-          } else if (event.type === 'conversation.item.input_audio_transcription.completed') {
+          } else if (event.type === 'response.audio.done' || event.type === 'response.done') {
+            // Luna finished speaking - save the complete message
+            if (currentLunaMessageRef.current.trim()) {
+              addMessageToTranscript('luna', currentLunaMessageRef.current);
+              currentLunaMessageRef.current = '';
+            }
             setState(prev => ({ 
               ...prev, 
-              transcript: prev.transcript + (event.transcript || '') + '\n'
+              isLunaSpeaking: false,
+              lunaResponse: prev.lunaResponse + '\n\n'
             }));
-          } else if (event.type === 'response.done') {
-            setState(prev => ({ ...prev, lunaResponse: prev.lunaResponse + '\n\n' }));
+          } else if (event.type === 'conversation.item.input_audio_transcription.completed') {
+            // User finished speaking - add the complete message
+            const userText = event.transcript || '';
+            if (userText.trim()) {
+              addMessageToTranscript('user', userText);
+            }
+            setState(prev => ({ 
+              ...prev, 
+              transcript: prev.transcript + userText + '\n'
+            }));
           }
         } catch (err) {
           console.error("Error parsing voice event:", err);
@@ -236,7 +287,7 @@ export const useVoiceSession = () => {
       });
       return { error: true };
     }
-  }, [user, toast]);
+  }, [user, toast, addMessageToTranscript]);
 
   const endSession = useCallback(async () => {
     setState(prev => ({ ...prev, status: 'ending' }));
@@ -323,6 +374,7 @@ export const useVoiceSession = () => {
             summary: state.lunaResponse.slice(0, 500),
             userTranscript: state.transcript,
             lunaTranscript: state.lunaResponse,
+            structuredTranscript: state.structuredTranscript,
             audioUrl
           }
         });
@@ -346,14 +398,15 @@ export const useVoiceSession = () => {
         durationSeconds: 0,
         isLunaSpeaking: false,
         transcript: '',
-        lunaResponse: ''
+        lunaResponse: '',
+        structuredTranscript: []
       });
 
     } catch (error) {
       console.error("Error ending session:", error);
       setState(prev => ({ ...prev, status: 'idle' }));
     }
-  }, [state.sessionId, state.durationSeconds, state.lunaResponse, state.transcript, user, toast, queryClient]);
+  }, [state.sessionId, state.durationSeconds, state.lunaResponse, state.transcript, state.structuredTranscript, user, toast, queryClient]);
 
   const resetSession = useCallback(() => {
     setState({
@@ -362,8 +415,11 @@ export const useVoiceSession = () => {
       durationSeconds: 0,
       isLunaSpeaking: false,
       transcript: '',
-      lunaResponse: ''
+      lunaResponse: '',
+      structuredTranscript: []
     });
+    currentUserMessageRef.current = '';
+    currentLunaMessageRef.current = '';
   }, []);
 
   return {

@@ -2995,6 +2995,9 @@ export type Database = {
       }
       voice_sessions: {
         Row: {
+          ai_notes: string[] | null
+          ai_recommendations: string[] | null
+          ai_summary: string | null
           audio_url: string | null
           cost_cents: number | null
           created_at: string
@@ -3011,11 +3014,15 @@ export type Database = {
           session_type: string
           start_time: string | null
           status: Database["public"]["Enums"]["voice_session_status"]
+          structured_transcript: Json | null
           transcript: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          ai_notes?: string[] | null
+          ai_recommendations?: string[] | null
+          ai_summary?: string | null
           audio_url?: string | null
           cost_cents?: number | null
           created_at?: string
@@ -3032,11 +3039,15 @@ export type Database = {
           session_type?: string
           start_time?: string | null
           status?: Database["public"]["Enums"]["voice_session_status"]
+          structured_transcript?: Json | null
           transcript?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          ai_notes?: string[] | null
+          ai_recommendations?: string[] | null
+          ai_summary?: string | null
           audio_url?: string | null
           cost_cents?: number | null
           created_at?: string
@@ -3053,6 +3064,7 @@ export type Database = {
           session_type?: string
           start_time?: string | null
           status?: Database["public"]["Enums"]["voice_session_status"]
+          structured_transcript?: Json | null
           transcript?: string | null
           updated_at?: string
           user_id?: string
