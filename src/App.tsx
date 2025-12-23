@@ -38,6 +38,8 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import PitchDeck from "./pages/PitchDeck";
 import LunaVoice from "./pages/LunaVoice";
+import Library from "./pages/Library";
+import EbookReader from "./pages/EbookReader";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,6 +84,8 @@ function App(): React.ReactElement {
           <Route path="/promo-videos" element={<PromoVideos />} />
           <Route path="/coins" element={<CoinPurchase />} />
           <Route path="/luna-voice" element={<LunaVoice />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/library/:bookId" element={<EbookReader />} />
           <Route
             path="/admin"
             element={
