@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import LunaAvatar from './LunaAvatar';
@@ -18,27 +18,86 @@ const LunaVoiceDemo: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: false, amount: 0.5 });
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const transcriptTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
+  
+  // Web Audio API refs
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+  const oscillatorsRef = useRef<OscillatorNode[]>([]);
 
-  // Demo audio URL - using a calming ambient sound as placeholder
-  const demoAudioUrl = "https://assets.mixkit.co/sfx/preview/mixkit-calm-ambient-music-loop-2583.mp3";
+  const createAmbientSound = useCallback(() => {
+    if (audioContextRef.current || isMuted) return;
+    
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      
+      const audioContext = new AudioContextClass();
+      audioContextRef.current = audioContext;
+      
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = 0.02; // Very soft ambient sound
+      gainNode.connect(audioContext.destination);
+      gainNodeRef.current = gainNode;
 
+      // Create soft ambient tones (A minor chord: A, C, E)
+      const frequencies = [220, 261.63, 329.63, 440];
+      frequencies.forEach((freq, index) => {
+        const oscillator = audioContext.createOscillator();
+        const oscGain = audioContext.createGain();
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.value = freq;
+        oscGain.gain.value = 0.3 / (index + 1); // Decreasing volume for higher frequencies
+        
+        // Add slight detuning for richness
+        oscillator.detune.value = Math.random() * 10 - 5;
+        
+        oscillator.connect(oscGain);
+        oscGain.connect(gainNode);
+        oscillator.start();
+        oscillatorsRef.current.push(oscillator);
+      });
+    } catch (e) {
+      console.log('Web Audio API not supported');
+    }
+  }, [isMuted]);
+
+  const stopAmbientSound = useCallback(() => {
+    oscillatorsRef.current.forEach(osc => {
+      try {
+        osc.stop();
+      } catch (e) {}
+    });
+    oscillatorsRef.current = [];
+    
+    if (audioContextRef.current) {
+      try {
+        audioContextRef.current.close();
+      } catch (e) {}
+      audioContextRef.current = null;
+    }
+    gainNodeRef.current = null;
+  }, []);
+
+  // Handle mute toggle
   useEffect(() => {
-    audioRef.current = new Audio(demoAudioUrl);
-    audioRef.current.loop = true;
-    audioRef.current.volume = 0.3;
+    if (gainNodeRef.current) {
+      gainNodeRef.current.gain.value = isMuted ? 0 : 0.02;
+    }
+  }, [isMuted]);
 
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      transcriptTimeoutsRef.current.forEach(clearTimeout);
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
       }
+      stopAmbientSound();
     };
-  }, []);
+  }, [stopAmbientSound]);
 
   useEffect(() => {
     if (isInView && !isPlaying) {
@@ -52,16 +111,20 @@ const LunaVoiceDemo: React.FC = () => {
     setIsPlaying(true);
     setCurrentTranscript([]);
     setProgress(0);
+    
+    // Clear previous timeouts
+    transcriptTimeoutsRef.current.forEach(clearTimeout);
+    transcriptTimeoutsRef.current = [];
 
-    if (audioRef.current && !isMuted) {
-      audioRef.current.play().catch(console.error);
-    }
+    // Start ambient sound
+    createAmbientSound();
 
     // Simulate transcript appearing over time
-    demoTranscript.forEach((item, index) => {
-      setTimeout(() => {
+    demoTranscript.forEach((item) => {
+      const timeout = setTimeout(() => {
         setCurrentTranscript(prev => [...prev, item]);
       }, item.delay);
+      transcriptTimeoutsRef.current.push(timeout);
     });
 
     // Progress bar simulation (20 second demo)
@@ -69,46 +132,45 @@ const LunaVoiceDemo: React.FC = () => {
     const updateInterval = 100;
     let elapsed = 0;
 
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+
     progressIntervalRef.current = setInterval(() => {
       elapsed += updateInterval;
       setProgress((elapsed / totalDuration) * 100);
       
       if (elapsed >= totalDuration) {
-        if (progressIntervalRef.current) {
-          clearInterval(progressIntervalRef.current);
-        }
         // Loop the demo
+        elapsed = 0;
         setCurrentTranscript([]);
         setProgress(0);
-        elapsed = 0;
+        
+        transcriptTimeoutsRef.current.forEach(clearTimeout);
+        transcriptTimeoutsRef.current = [];
+        
         demoTranscript.forEach((item) => {
-          setTimeout(() => {
+          const timeout = setTimeout(() => {
             setCurrentTranscript(prev => [...prev, item]);
           }, item.delay);
+          transcriptTimeoutsRef.current.push(timeout);
         });
-        progressIntervalRef.current = setInterval(() => {
-          elapsed += updateInterval;
-          setProgress((elapsed / totalDuration) * 100);
-        }, updateInterval);
       }
     }, updateInterval);
   };
 
   const handlePause = () => {
     setIsPlaying(false);
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
+    transcriptTimeoutsRef.current.forEach(clearTimeout);
+    transcriptTimeoutsRef.current = [];
     if (progressIntervalRef.current) {
       clearInterval(progressIntervalRef.current);
     }
+    stopAmbientSound();
   };
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
-    if (audioRef.current) {
-      audioRef.current.muted = !isMuted;
-    }
   };
 
   return (
