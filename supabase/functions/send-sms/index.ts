@@ -7,11 +7,13 @@ const corsHeaders = {
 };
 
 interface SendSmsRequest {
-  action: "send-verification" | "verify-code" | "send-notification" | "send-direct";
+  action: "send-verification" | "verify-code" | "send-notification" | "send-direct" | "send-welcome";
   userId?: string;
   phoneNumber?: string;
   code?: string;
   message?: string;
+  email?: string;
+  password?: string;
 }
 
 serve(async (req) => {
@@ -30,7 +32,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body: SendSmsRequest = await req.json();
-    const { action, userId, phoneNumber, code, message } = body;
+    const { action, userId, phoneNumber, code, message, email, password } = body;
 
     // Helper to send SMS via Twilio
     const sendSms = async (to: string, body: string) => {
@@ -241,6 +243,36 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ success: true, message: "SMS sent", sid: result.sid }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "send-welcome") {
+      if (!phoneNumber || !email || !password) {
+        return new Response(
+          JSON.stringify({ error: "phoneNumber, email, and password required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Validate phone number format
+      const phoneRegex = /^\+[1-9]\d{7,14}$/;
+      if (!phoneRegex.test(phoneNumber)) {
+        return new Response(
+          JSON.stringify({ error: "Invalid phone number format" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Send welcome SMS with login credentials
+      const welcomeMessage = `Welcome to Luna! 💜\n\nYour login details:\nEmail: ${email}\nPassword: ${password}\n\nLogin at: https://talkswithluna.com/auth\n\nYour emotional wellness journey starts now!`;
+      
+      await sendSms(phoneNumber, welcomeMessage);
+
+      console.log(`Welcome SMS sent to ${phoneNumber} for ${email}`);
+
+      return new Response(
+        JSON.stringify({ success: true, message: "Welcome SMS sent" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
