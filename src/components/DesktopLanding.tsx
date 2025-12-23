@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import LunaAvatar from "./LunaAvatar";
+import LunaVoiceDemo from "./LunaVoiceDemo";
 import SocialLinks from "./SocialLinks";
 import CouplesInteractiveDemo from "./CouplesInteractiveDemo";
 import InteractiveDemo from "./InteractiveDemo";
@@ -1075,50 +1076,7 @@ const DesktopLanding = () => {
               transition={{ duration: 0.6 }}
               className="relative"
             >
-              <div className="relative bg-card/80 backdrop-blur-sm rounded-3xl border border-accent/20 shadow-luna p-8">
-                <div className="text-center mb-6">
-                  <div className="w-24 h-24 mx-auto mb-4 relative">
-                    <LunaAvatar size="lg" showGlow />
-                    <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center border-4 border-card">
-                      <Mic className="w-4 h-4 text-white" />
-                    </div>
-                  </div>
-                  <h3 className="font-heading text-xl font-bold text-foreground">Voice Session Active</h3>
-                  <p className="text-muted-foreground text-sm">Luna is listening...</p>
-                </div>
-                
-                {/* Simulated audio waveform */}
-                <div className="flex items-center justify-center gap-1 h-16 mb-6">
-                  {[...Array(20)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="w-1.5 bg-accent rounded-full"
-                      animate={{
-                        height: [8, Math.random() * 40 + 16, 8],
-                      }}
-                      transition={{
-                        duration: 0.8,
-                        repeat: Infinity,
-                        delay: i * 0.05,
-                      }}
-                    />
-                  ))}
-                </div>
-                
-                <div className="flex items-center justify-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                    <Video className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <div className="w-16 h-16 rounded-full bg-destructive flex items-center justify-center cursor-pointer hover:bg-destructive/80 transition-colors">
-                    <Phone className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                    <Volume2 className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                </div>
-                
-                <p className="text-center text-sm text-muted-foreground mt-4">5:23 • Private Session</p>
-              </div>
+              <LunaVoiceDemo />
             </motion.div>
           </div>
         </div>
