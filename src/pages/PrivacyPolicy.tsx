@@ -89,7 +89,7 @@ const PrivacyPolicy = () => {
           <h2 className="text-xl font-semibold">8. Contact Us</h2>
           <p className="text-muted-foreground leading-relaxed">
             If you have questions about this Privacy Policy, please contact us at 
-            privacy@lunaapp.com.
+            support@talkswithluna.com.
           </p>
         </section>
       </div>
