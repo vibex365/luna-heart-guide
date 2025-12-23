@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.verify-ios-purchase]
 verify_jwt = false
+
+[functions.voice-session-analyze]
+verify_jwt = false
