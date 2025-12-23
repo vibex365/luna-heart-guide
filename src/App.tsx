@@ -68,6 +68,7 @@ function App(): React.ReactElement {
           <Route path="/chat" element={<Chat />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/profile" element={<ProfileSettings />} />
+          <Route path="/settings" element={<ProfileSettings />} />
           <Route path="/mood" element={<MoodTracker />} />
           <Route path="/journal" element={<Journal />} />
           <Route path="/breathe" element={<Breathe />} />

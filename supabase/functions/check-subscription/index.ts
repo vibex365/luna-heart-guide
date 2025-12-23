@@ -16,6 +16,7 @@ const logStep = (step: string, details?: any) => {
 const PRICE_TO_PLAN: Record<string, string> = {
   "price_1SdhyfAsrgxssNTVTPpZuI3t": "pro",
   "price_1SdhytAsrgxssNTVvlvnqvZr": "couples",
+  "price_1ShIZlAsrgxssNTVizMEk01u": "pro", // $4.99/month Pro plan
 };
 
 // Map plan slugs to tier IDs in database
