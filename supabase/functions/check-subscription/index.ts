@@ -12,11 +12,22 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Map price IDs to plan slugs
+// Map price IDs to plan slugs - includes all subscription prices
 const PRICE_TO_PLAN: Record<string, string> = {
+  // Legacy prices
   "price_1SdhyfAsrgxssNTVTPpZuI3t": "pro",
   "price_1SdhytAsrgxssNTVvlvnqvZr": "couples",
-  "price_1ShIZlAsrgxssNTVizMEk01u": "pro", // $4.99/month Pro plan
+  // Current Pro prices
+  "price_1ShIZlAsrgxssNTVizMEk01u": "pro",  // $4.99/month Pro
+  "price_1ShIZmAsrgxssNTVDWiPIKmI": "pro",  // $38.99/year Pro
+  // Current Couples prices  
+  "price_1ShIZnAsrgxssNTVh4alx0aM": "couples", // $9.99/month Couples
+  "price_1ShIZpAsrgxssNTV1uHtEk0k": "couples", // $77.99/year Couples
+  // Older prices
+  "price_1SgtXeAsrgxssNTVaje2ZpfF": "pro",  // $3.99/month
+  "price_1SgtXfAsrgxssNTVakdF9Ip2": "pro",  // $29.99/year
+  "price_1SgtXhAsrgxssNTVwWhWwzLb": "couples", // $7.99/month
+  "price_1SgtXjAsrgxssNTVS4pbUHgj": "couples", // $59.99/year
 };
 
 // Map plan slugs to tier IDs in database
@@ -118,9 +129,19 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      const priceId = subscription.items.data[0].price.id;
-      plan = PRICE_TO_PLAN[priceId] || "pro";
+      logStep("Subscription data", { 
+        id: subscription.id, 
+        current_period_end: subscription.current_period_end,
+        items: subscription.items?.data?.length
+      });
+      
+      // Safely handle the date conversion
+      if (subscription.current_period_end && typeof subscription.current_period_end === 'number') {
+        subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      }
+      
+      const priceId = subscription.items?.data?.[0]?.price?.id;
+      plan = (priceId && PRICE_TO_PLAN[priceId]) || "pro";
       logStep("Active subscription found", { subscriptionId: subscription.id, plan, endDate: subscriptionEnd });
       
       // Only sync to database if there's an active Stripe subscription

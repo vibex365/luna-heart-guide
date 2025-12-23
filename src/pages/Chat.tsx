@@ -9,7 +9,7 @@ import { MessageLimitBanner } from "@/components/MessageLimitBanner";
 import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import PullToRefresh from "@/components/PullToRefresh";
 import { ChatSkeleton } from "@/components/skeletons/PageSkeletons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -66,6 +66,7 @@ const getWelcomeMessage = (firstName: string | null): Message => ({
 
 const Chat = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, signOut, loading: authLoading } = useAuth();
   const { isOnline } = useOnlineStatus();
   const [messages, setMessages] = useState<Message[]>([getWelcomeMessage(null)]);
@@ -83,6 +84,21 @@ const Chat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle checkout success from URL params
+  useEffect(() => {
+    const checkoutStatus = searchParams.get('checkout');
+    if (checkoutStatus === 'success') {
+      toast({
+        title: "Subscription Active! 🎉",
+        description: "Your subscription has been activated.",
+      });
+      // Clear the param
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('checkout');
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // Redirect to auth if not logged in
   useEffect(() => {
