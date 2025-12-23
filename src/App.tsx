@@ -10,6 +10,7 @@ import { BiometricLockScreen } from "@/components/BiometricLockScreen";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import { RateAppPrompt } from "@/components/RateAppPrompt";
 import Landing from "./pages/Landing";
+import { AuthRedirect } from "@/components/AuthRedirect";
 import Onboarding from "./pages/Onboarding";
 import Chat from "./pages/Chat";
 import Auth from "./pages/Auth";
@@ -60,9 +61,9 @@ function App(): React.ReactElement {
         <RateAppPrompt />
         <DeepLinkHandler />
         <Routes>
-          <Route path="/" element={<Landing />} />
+          <Route path="/" element={<AuthRedirect />} />
+          <Route path="/landing" element={<Landing />} />
           <Route path="/dm" element={<DMFunnel />} />
-          <Route path="/welcome" element={<Welcome />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/auth" element={<Auth />} />
