@@ -4,7 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
-// Build timestamp to force cache invalidation: 1766372200
+// Build timestamp to force cache invalidation: 1766462400
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
@@ -64,10 +64,10 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    dedupe: ["react", "react-dom", "@tanstack/react-query", "react-router-dom"],
+    dedupe: ["react", "react-dom", "@tanstack/react-query", "react-router-dom", "react-markdown"],
   },
   optimizeDeps: {
-    include: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "react-router-dom"],
+    include: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "react-router-dom", "react-markdown"],
     force: true,
     esbuildOptions: {
       target: "esnext",
