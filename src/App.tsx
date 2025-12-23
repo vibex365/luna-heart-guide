@@ -22,7 +22,7 @@ import Resources from "./pages/Resources";
 import ArticleDetail from "./pages/ArticleDetail";
 import Subscription from "./pages/Subscription";
 import Couples from "./pages/Couples";
-import { CouplesGames, CouplesGifts, CouplesHealth, CouplesDaily } from "./pages/couples";
+import { CouplesGames, CouplesGifts, CouplesHealth, CouplesDaily } from "./pages/couples/index";
 import DMFunnel from "./pages/DMFunnel";
 import CouplesFunnel from "./pages/CouplesFunnel";
 import Welcome from "./pages/Welcome";
