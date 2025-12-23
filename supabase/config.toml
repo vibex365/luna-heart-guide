@@ -92,3 +92,6 @@ verify_jwt = false
 
 [functions.process-minutes-webhook]
 verify_jwt = false
+
+[functions.verify-ios-purchase]
+verify_jwt = false
