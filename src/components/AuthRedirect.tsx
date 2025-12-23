@@ -1,21 +1,17 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useCapacitor } from "@/hooks/useCapacitor";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Root route handler - platform-aware routing
+ * Root route handler - simple auth-based routing
  * 
- * Desktop Web → Landing page (marketing site)
- * Mobile Web/PWA → Auth → Onboarding (new users) → App
- * Native App → Auth → Onboarding (new users) → App
+ * Not logged in → Landing page
+ * Logged in (new user) → Onboarding
+ * Logged in (returning) → Chat
  */
 export const AuthRedirect = () => {
   const { user, loading } = useAuth();
-  const isMobile = useIsMobile();
-  const { isNative } = useCapacitor();
   const [checkingOnboarding, setCheckingOnboarding] = useState(false);
   const [onboardingCompleted, setOnboardingCompleted] = useState<boolean | null>(null);
 
@@ -37,7 +33,6 @@ export const AuthRedirect = () => {
         
         setOnboardingCompleted(profile?.onboarding_completed ?? false);
       } catch {
-        // If no profile exists, onboarding is not completed
         setOnboardingCompleted(false);
       } finally {
         setCheckingOnboarding(false);
@@ -56,15 +51,9 @@ export const AuthRedirect = () => {
     );
   }
 
-  // Desktop web users see the landing/marketing page
-  if (!isMobile && !isNative) {
-    return <Navigate to="/landing" replace />;
-  }
-
-  // Mobile web, PWA, or native app users get app flow
-  // Not logged in → go to auth
+  // Not logged in → show landing page
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/landing" replace />;
   }
 
   // Logged in but hasn't completed onboarding → go to onboarding
@@ -72,6 +61,6 @@ export const AuthRedirect = () => {
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Logged in and onboarding completed → go to chat (main app screen)
+  // Logged in and onboarding completed → go to chat
   return <Navigate to="/chat" replace />;
 };
