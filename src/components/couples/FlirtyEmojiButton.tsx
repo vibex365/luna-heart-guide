@@ -63,13 +63,13 @@ export const FlirtyEmojiButton = ({ onSelect }: FlirtyEmojiButtonProps) => {
               onClick={() => setIsOpen(false)}
             />
 
-            {/* Emoji popup */}
+            {/* Emoji popup - positioned to the left so it stays visible */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 10 }}
               transition={{ type: "spring", damping: 20, stiffness: 300 }}
-              className="absolute bottom-14 right-0 z-50 bg-white dark:bg-zinc-900 border-2 border-rose-200 dark:border-rose-800 rounded-2xl p-4 shadow-2xl min-w-[280px]"
+              className="absolute bottom-14 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-zinc-900 border-2 border-rose-200 dark:border-rose-800 rounded-2xl p-4 shadow-2xl min-w-[280px]"
             >
               {/* Header */}
               <div className="flex items-center gap-2 mb-3 pb-2 border-b border-rose-200 dark:border-rose-800">
