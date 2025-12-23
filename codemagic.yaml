@@ -9,7 +9,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: app.lovable.7bc1f449d14945db9d96d4adb7d018b3
+        bundle_identifier: com.talkswithluna.appname
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
