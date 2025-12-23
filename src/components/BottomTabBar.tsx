@@ -28,8 +28,8 @@ export const BottomTabBar = () => {
     ? [
         baseTabs[0], // Chat
         { to: "/couples", icon: Heart, label: "Couples", isCouples: true },
+        { to: "/voice", icon: Headphones, label: "Voice", isVoice: true },
         { to: "/referrals", icon: Gift, label: "Referrals", isReferral: true },
-        { to: "/library", icon: BookOpen, label: "Library" },
         baseTabs[4], // Profile
       ]
     : baseTabs;
