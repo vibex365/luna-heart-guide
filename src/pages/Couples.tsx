@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ArrowLeft, MessageCircle, Gamepad2, Gift, Calendar, Activity, Sparkles, Headphones, Bot, Phone } from "lucide-react";
+import { Heart, ArrowLeft, MessageCircle, Gamepad2, Gift, Calendar, Activity, Sparkles, Headphones, Bot, Phone, Palette } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useVirtualCurrency } from "@/hooks/useVirtualCurrency";
 import { supabase } from "@/integrations/supabase/client";
@@ -224,6 +224,15 @@ const Couples = () => {
       bgColor: "bg-emerald-500/10",
       route: "/couples/health",
       badge: null,
+    },
+    {
+      title: "Date Night",
+      description: "Coloring, recipes & fun activities together",
+      icon: Palette,
+      color: "from-rose-500 to-pink-500",
+      bgColor: "bg-rose-500/10",
+      route: "/date-night",
+      badge: "New!",
     },
   ];
 
