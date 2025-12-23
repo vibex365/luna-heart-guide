@@ -26,6 +26,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { usePartnerNotifications } from "@/hooks/usePartnerNotifications";
 import { WeeklyRelationshipSummary } from "@/components/couples/WeeklyRelationshipSummary";
+import { ReferralWidget } from "@/components/ReferralWidget";
 import { format } from "date-fns";
 
 interface Profile {
@@ -881,6 +882,9 @@ const ProfileSettings = () => {
 
           {/* Couples Section */}
           <CouplesSection userId={user?.id} navigate={navigate} />
+
+          {/* Referral Program Widget */}
+          <ReferralWidget />
 
           {/* Weekly Relationship Summary (only if linked) */}
           <WeeklyRelationshipSummary />

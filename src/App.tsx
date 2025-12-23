@@ -46,6 +46,7 @@ import ColoringBook from "./pages/ColoringBook";
 import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
 import NotFound from "./pages/NotFound";
+import Referrals from "./pages/Referrals";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -103,6 +104,7 @@ function App(): React.ReactElement {
           <Route path="/date-night/coloring" element={<ColoringBook />} />
           <Route path="/date-night/recipes" element={<Recipes />} />
           <Route path="/date-night/recipes/:recipeId" element={<RecipeDetail />} />
+          <Route path="/referrals" element={<Referrals />} />
           <Route
             path="/admin"
             element={

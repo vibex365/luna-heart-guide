@@ -152,6 +152,30 @@ serve(async (req) => {
         plan,
         subscriptionEnd
       );
+
+      // Process referral conversion if this is a new subscription
+      try {
+        const response = await fetch(
+          `${Deno.env.get("SUPABASE_URL")}/functions/v1/process-referral-conversion`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+            },
+            body: JSON.stringify({
+              subscribedUserId: user.id,
+              planType: plan,
+            }),
+          }
+        );
+        const refResult = await response.json();
+        if (refResult.success) {
+          logStep("Referral conversion processed", { referrerId: refResult.referrerId });
+        }
+      } catch (refError) {
+        logStep("Referral conversion check failed (non-blocking)", { error: String(refError) });
+      }
     } else {
       logStep("No active Stripe subscription");
       
