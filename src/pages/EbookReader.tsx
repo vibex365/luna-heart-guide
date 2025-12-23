@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ChevronLeft, ChevronRight, BookOpen, StickyNote, Gamepad2, Check } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, StickyNote, Gamepad2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { ChapterGame } from "@/components/library/ChapterGame";
+import ReactMarkdown from "react-markdown";
 
 const EbookReader = () => {
   const { bookId } = useParams();
@@ -212,12 +213,11 @@ const EbookReader = () => {
           ) : (
             <>
               <h2 className="text-2xl font-bold mb-6">{currentChapterData?.title}</h2>
-              <div 
-                className="prose prose-sm dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ 
-                  __html: currentChapterData?.content?.replace(/\n/g, '<br />') || '' 
-                }}
-              />
+              <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground/80 prose-strong:text-foreground prose-li:text-foreground/80">
+                <ReactMarkdown>
+                  {currentChapterData?.content || ''}
+                </ReactMarkdown>
+              </div>
 
               {/* Notes Section */}
               <Card className="mt-8">
