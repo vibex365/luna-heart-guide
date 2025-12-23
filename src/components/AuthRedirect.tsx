@@ -2,7 +2,6 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCapacitor } from "@/hooks/useCapacitor";
-import Landing from "@/pages/Landing";
 
 /**
  * Root route handler - platform-aware routing
@@ -27,7 +26,7 @@ export const AuthRedirect = () => {
 
   // Desktop web users see the landing/marketing page
   if (!isMobile && !isNative) {
-    return <Landing />;
+    return <Navigate to="/landing" replace />;
   }
 
   // Mobile web, PWA, or native app users get app flow
