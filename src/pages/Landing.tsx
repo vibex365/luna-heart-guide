@@ -123,7 +123,7 @@ const slides: ReelSlide[] = [
     icon: Users,
     title: "Couples Mode",
     subtitle: "Strengthen Your Bond",
-    description: "Send digital gifts, daily journal prompts, relationship games, private chat, shared mood tracking, and earn coins together.",
+    description: "Date nights with coloring books & recipes, relationship games, digital gifts, private chat, and shared mood tracking.",
   },
   {
     id: 8,

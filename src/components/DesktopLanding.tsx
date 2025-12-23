@@ -45,7 +45,7 @@ const features = [{
 }, {
   icon: Users,
   title: "Couples Mode",
-  description: "Send digital gifts, play relationship games, daily journaling, private chat, and earn coins together.",
+  description: "Date nights with coloring books & romantic recipes, relationship games, digital gifts, and private chat.",
   gradient: "from-primary/40 to-accent/30"
 }];
 const testimonials = [{
@@ -79,7 +79,7 @@ const pricingPlans = [{
   name: "Couples",
   price: "$9.99",
   period: "/month",
-  features: ["Everything in Pro", "Send digital gifts", "Private couples chat", "Daily journal prompts", "Relationship games"],
+  features: ["Everything in Pro", "Date night activities", "Romantic recipes", "Coloring together", "Relationship games"],
   highlight: false,
   popular: false
 }];
