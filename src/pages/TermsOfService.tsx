@@ -108,7 +108,7 @@ const TermsOfService = () => {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold">10. Contact</h2>
           <p className="text-muted-foreground leading-relaxed">
-            For questions about these terms, contact us at support@lunaapp.com.
+            For questions about these terms, contact us at support@talkswithluna.com.
           </p>
         </section>
       </div>
