@@ -1,15 +1,16 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, Smartphone, Monitor, Video, Image, FileText, ExternalLink } from "lucide-react";
+import { ArrowLeft, Download, Smartphone, Monitor, Tablet, Video, Image, FileText, ExternalLink, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
 import appIcon1024 from "@/assets/app-icon-1024.png";
 import lunaIcon from "@/assets/luna-icon-512.png";
 import ogImage from "@/assets/luna-og-image.png";
+import InteractiveDemo from "@/components/InteractiveDemo";
 
 // Screenshot frame component with download capability
 const PhoneFrame = ({ children, title, screenshotId }: { children: React.ReactNode; title: string; screenshotId: string }) => {
@@ -189,23 +190,27 @@ const AppStoreAssets = () => {
           </div>
         </motion.section>
 
-        {/* Screenshot Templates */}
+        {/* Real App Screenshots */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="space-y-4"
         >
-          <h2 className="text-2xl font-bold">Screenshot Templates</h2>
+          <h2 className="text-2xl font-bold">App Screenshots</h2>
           <p className="text-muted-foreground">
-            Use these templates for App Store and Play Store listings.
+            Real screenshots from the app for App Store and Play Store listings.
           </p>
 
-          <Tabs defaultValue="ios" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 max-w-xs">
-              <TabsTrigger value="ios" className="gap-2">
+          <Tabs defaultValue="iphone" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 max-w-md">
+              <TabsTrigger value="iphone" className="gap-2">
                 <Smartphone className="w-4 h-4" />
-                iOS
+                iPhone
+              </TabsTrigger>
+              <TabsTrigger value="ipad" className="gap-2">
+                <Tablet className="w-4 h-4" />
+                iPad
               </TabsTrigger>
               <TabsTrigger value="android" className="gap-2">
                 <Monitor className="w-4 h-4" />
@@ -213,87 +218,158 @@ const AppStoreAssets = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="ios" className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Screenshot 1 - Chat */}
-                <PhoneFrame title="AI Relationship Therapist" screenshotId="chat">
-                  <div className="w-full h-full bg-gradient-to-b from-[#1a0f2e] to-[#0f0a1a] p-4 flex flex-col">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-500" />
-                      <span className="text-white font-medium">Luna</span>
-                    </div>
-                    <div className="flex-1 space-y-3">
-                      <div className="bg-white/10 rounded-2xl rounded-tl-sm p-3 max-w-[80%]">
-                        <p className="text-white text-xs">I'm here to listen and help you navigate your feelings. What's on your mind today? 💜</p>
-                      </div>
-                      <div className="bg-gradient-to-r from-pink-500 to-purple-500 rounded-2xl rounded-tr-sm p-3 max-w-[80%] ml-auto">
-                        <p className="text-white text-xs">I've been feeling disconnected from my partner lately...</p>
-                      </div>
-                    </div>
-                    <div className="mt-auto text-center">
-                      <span className="text-xs text-white/50">24/7 AI Support</span>
-                    </div>
-                  </div>
-                </PhoneFrame>
+            <TabsContent value="iphone" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">AI Chat</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-2">
+                    <img 
+                      src="/screenshots/ios-chat-screenshot.png" 
+                      alt="Luna AI Chat" 
+                      className="w-full rounded-lg shadow-lg"
+                    />
+                    <a 
+                      href="/screenshots/ios-chat-screenshot.png" 
+                      download="luna-ios-chat.png"
+                      className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <Download className="w-3 h-3" /> Download
+                    </a>
+                  </CardContent>
+                </Card>
 
-                {/* Screenshot 2 - Mood Tracking */}
-                <PhoneFrame title="Track Your Emotions" screenshotId="mood">
-                  <div className="w-full h-full bg-gradient-to-b from-[#1a0f2e] to-[#0f0a1a] p-4 flex flex-col items-center justify-center">
-                    <h3 className="text-white text-lg font-semibold mb-6">How are you feeling?</h3>
-                    <div className="grid grid-cols-3 gap-4">
-                      {["😊", "😐", "😔", "😰", "😤", "🥰"].map((emoji, i) => (
-                        <div 
-                          key={i} 
-                          className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${i === 5 ? 'bg-gradient-to-br from-pink-500 to-purple-500 scale-110' : 'bg-white/10'}`}
-                        >
-                          {emoji}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-8 w-full">
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full w-3/4 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full" />
-                      </div>
-                      <p className="text-white/50 text-xs mt-2 text-center">7 day streak 🔥</p>
-                    </div>
-                  </div>
-                </PhoneFrame>
+                <Card className="overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Mood Tracking</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-2">
+                    <img 
+                      src="/screenshots/ios-mood-screenshot.png" 
+                      alt="Mood Tracking" 
+                      className="w-full rounded-lg shadow-lg"
+                    />
+                    <a 
+                      href="/screenshots/ios-mood-screenshot.png" 
+                      download="luna-ios-mood.png"
+                      className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <Download className="w-3 h-3" /> Download
+                    </a>
+                  </CardContent>
+                </Card>
 
-                {/* Screenshot 3 - Couples */}
-                <PhoneFrame title="Connect With Your Partner" screenshotId="couples">
-                  <div className="w-full h-full bg-gradient-to-b from-[#1a0f2e] to-[#0f0a1a] p-4 flex flex-col items-center justify-center">
-                    <div className="relative mb-6">
-                      <div className="flex -space-x-4">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-400 to-pink-600 border-4 border-[#1a0f2e]" />
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 border-4 border-[#1a0f2e]" />
-                      </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-pink-500 rounded-full p-1">
-                        <span className="text-white text-xs">💕</span>
-                      </div>
-                    </div>
-                    <h3 className="text-white font-semibold mb-2">You're Connected!</h3>
-                    <p className="text-white/70 text-xs text-center mb-6">Play games, share moods, and grow together</p>
-                    <div className="grid grid-cols-2 gap-2 w-full">
-                      <div className="bg-white/10 rounded-xl p-3 text-center">
-                        <span className="text-2xl">🎮</span>
-                        <p className="text-white text-xs mt-1">Games</p>
-                      </div>
-                      <div className="bg-white/10 rounded-xl p-3 text-center">
-                        <span className="text-2xl">💬</span>
-                        <p className="text-white text-xs mt-1">Chat</p>
-                      </div>
-                    </div>
-                  </div>
-                </PhoneFrame>
+                <Card className="overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Couples Mode</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-2">
+                    <img 
+                      src="/screenshots/ios-couples-screenshot.png" 
+                      alt="Couples Mode" 
+                      className="w-full rounded-lg shadow-lg"
+                    />
+                    <a 
+                      href="/screenshots/ios-couples-screenshot.png" 
+                      download="luna-ios-couples.png"
+                      className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <Download className="w-3 h-3" /> Download
+                    </a>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="ipad" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">AI Chat</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-2">
+                    <img 
+                      src="/screenshots/ipad-chat-screenshot.png" 
+                      alt="Luna AI Chat - iPad" 
+                      className="w-full rounded-lg shadow-lg"
+                    />
+                    <a 
+                      href="/screenshots/ipad-chat-screenshot.png" 
+                      download="luna-ipad-chat.png"
+                      className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <Download className="w-3 h-3" /> Download
+                    </a>
+                  </CardContent>
+                </Card>
+
+                <Card className="overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Mood Tracking</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-2">
+                    <img 
+                      src="/screenshots/ipad-mood-screenshot.png" 
+                      alt="Mood Tracking - iPad" 
+                      className="w-full rounded-lg shadow-lg"
+                    />
+                    <a 
+                      href="/screenshots/ipad-mood-screenshot.png" 
+                      download="luna-ipad-mood.png"
+                      className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <Download className="w-3 h-3" /> Download
+                    </a>
+                  </CardContent>
+                </Card>
+
+                <Card className="overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Couples Mode</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-2">
+                    <img 
+                      src="/screenshots/ipad-couples-screenshot.png" 
+                      alt="Couples Mode - iPad" 
+                      className="w-full rounded-lg shadow-lg"
+                    />
+                    <a 
+                      href="/screenshots/ipad-couples-screenshot.png" 
+                      download="luna-ipad-couples.png"
+                      className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <Download className="w-3 h-3" /> Download
+                    </a>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
 
             <TabsContent value="android" className="mt-6">
               <p className="text-muted-foreground text-center py-8">
-                Android screenshots use the same templates. Export as 1080x1920 for Play Store.
+                Use the iPhone screenshots for Android. Export/resize as 1080x1920 for Play Store.
               </p>
             </TabsContent>
           </Tabs>
+        </motion.section>
+
+        {/* Interactive Demo Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="space-y-4"
+        >
+          <h2 className="text-2xl font-bold">Interactive Demo</h2>
+          <p className="text-muted-foreground">
+            Embed this interactive demo on your landing page or use it for app preview videos.
+          </p>
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              <InteractiveDemo />
+            </CardContent>
+          </Card>
         </motion.section>
 
         {/* Feature Badges for Store Description */}
