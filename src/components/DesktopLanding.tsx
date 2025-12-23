@@ -506,18 +506,16 @@ const DesktopLanding = () => {
             >
               <X className="w-6 h-6" />
             </button>
-            <div className="aspect-video bg-card rounded-2xl border border-accent/20 flex items-center justify-center">
-              {/* Replace this with your actual video embed */}
-              <div className="text-center p-8">
-                <Play className="w-16 h-16 text-accent mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-foreground mb-2">Your Sales Video Here</h3>
-                <p className="text-muted-foreground">
-                  Upload your video and replace this placeholder with an embed code
-                </p>
-                <p className="text-sm text-muted-foreground mt-4">
-                  Tip: Host on YouTube or Vimeo and embed the iframe
-                </p>
-              </div>
+            <div className="aspect-video rounded-2xl border border-accent/20 overflow-hidden">
+              <iframe
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/TnkJ80Yodpo?autoplay=1"
+                title="Luna - Your AI Companion for Emotional Wellness"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
             </div>
           </motion.div>
         </div>
