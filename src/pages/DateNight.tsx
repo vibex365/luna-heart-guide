@@ -21,7 +21,7 @@ const DateNight = () => {
       icon: ChefHat,
       color: 'from-orange-500 to-amber-500',
       route: '/date-night/recipes',
-      comingSoon: true
+      comingSoon: false
     }
   ];
 

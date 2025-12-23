@@ -42,6 +42,8 @@ import Library from "./pages/Library";
 import EbookReader from "./pages/EbookReader";
 import DateNight from "./pages/DateNight";
 import ColoringBook from "./pages/ColoringBook";
+import Recipes from "./pages/Recipes";
+import RecipeDetail from "./pages/RecipeDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -90,6 +92,8 @@ function App(): React.ReactElement {
           <Route path="/library/:bookId" element={<EbookReader />} />
           <Route path="/date-night" element={<DateNight />} />
           <Route path="/date-night/coloring" element={<ColoringBook />} />
+          <Route path="/date-night/recipes" element={<Recipes />} />
+          <Route path="/date-night/recipes/:recipeId" element={<RecipeDetail />} />
           <Route
             path="/admin"
             element={
