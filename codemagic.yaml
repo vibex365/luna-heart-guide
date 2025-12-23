@@ -93,6 +93,13 @@ workflows:
           EOF
           npx cap sync ios
       
+      - name: Set build number
+        script: |
+          # Use Codemagic build number for auto-incrementing
+          cd ios/App
+          agvtool new-version -all $BUILD_NUMBER
+          echo "Set build number to $BUILD_NUMBER"
+      
       - name: Install CocoaPods dependencies
         script: |
           cd ios/App
