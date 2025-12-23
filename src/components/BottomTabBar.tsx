@@ -29,7 +29,7 @@ export const BottomTabBar = () => {
         baseTabs[0], // Chat
         { to: "/luna-voice", icon: Headphones, label: "Voice", isVoice: true },
         { to: "/couples", icon: Heart, label: "Couples", isCouples: true },
-        baseTabs[3], // Breathe
+        { to: "/library", icon: BookOpen, label: "Library" },
         baseTabs[4], // Profile
       ]
     : baseTabs;
