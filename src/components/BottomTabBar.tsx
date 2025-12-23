@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { MessageCircle, SmilePlus, BookOpen, Wind, User, Heart, Shield, Sparkles, Headphones } from "lucide-react";
+import { MessageCircle, SmilePlus, BookOpen, Wind, User, Heart, Shield, Sparkles, Headphones, Gift } from "lucide-react";
 import { motion } from "framer-motion";
 import LunaAvatar from "./LunaAvatar";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
@@ -27,8 +27,8 @@ export const BottomTabBar = () => {
   let tabs = user
     ? [
         baseTabs[0], // Chat
-        { to: "/luna-voice", icon: Headphones, label: "Voice", isVoice: true },
         { to: "/couples", icon: Heart, label: "Couples", isCouples: true },
+        { to: "/referrals", icon: Gift, label: "Referrals", isReferral: true },
         { to: "/library", icon: BookOpen, label: "Library" },
         baseTabs[4], // Profile
       ]
@@ -81,6 +81,7 @@ export const BottomTabBar = () => {
           const isCouples = 'isCouples' in tab && tab.isCouples;
           const isAdminTab = 'isAdmin' in tab && tab.isAdmin;
           const isVoice = 'isVoice' in tab && tab.isVoice;
+          const isReferral = 'isReferral' in tab && tab.isReferral;
 
           return (
             <NavLink
@@ -95,7 +96,7 @@ export const BottomTabBar = () => {
                     <motion.div
                       layoutId="activeTab"
                     className={`absolute inset-x-2 top-0 h-0.5 rounded-full ${
-                        isCouples ? "bg-pink-500" : isAdminTab ? "bg-yellow-500" : isVoice ? "bg-primary" : "bg-accent"
+                        isCouples ? "bg-pink-500" : isAdminTab ? "bg-yellow-500" : isVoice ? "bg-primary" : isReferral ? "bg-green-500" : "bg-accent"
                       }`}
                       initial={false}
                       transition={{ type: "spring", stiffness: 500, damping: 35 }}
@@ -104,7 +105,7 @@ export const BottomTabBar = () => {
                   <motion.div
                     className={`flex flex-col items-center justify-center gap-0.5 ${
                       routeActive 
-                        ? isCouples ? "text-pink-500" : isAdminTab ? "text-yellow-500" : isVoice ? "text-primary" : "text-accent" 
+                        ? isCouples ? "text-pink-500" : isAdminTab ? "text-yellow-500" : isVoice ? "text-primary" : isReferral ? "text-green-500" : "text-accent" 
                         : "text-muted-foreground"
                     }`}
                     whileTap={{ scale: 0.9 }}

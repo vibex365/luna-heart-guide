@@ -55,6 +55,7 @@ const navSections = [
       { icon: CreditCard, label: "Subscriptions", path: "/admin/subscriptions" },
       { icon: BarChart3, label: "Coins", path: "/admin/coins" },
       { icon: BarChart3, label: "Voice Minutes", path: "/admin/minutes" },
+      { icon: Users, label: "Referrals", path: "/admin/referrals" },
     ]
   },
   {
