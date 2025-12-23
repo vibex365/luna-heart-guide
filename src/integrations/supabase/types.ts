@@ -2325,6 +2325,7 @@ export type Database = {
           onboarding_completed: boolean | null
           phone_number: string | null
           phone_verified: boolean | null
+          referral_code: string | null
           reminder_enabled: boolean | null
           reminder_time: string | null
           sexual_orientation: string | null
@@ -2346,6 +2347,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           phone_number?: string | null
           phone_verified?: boolean | null
+          referral_code?: string | null
           reminder_enabled?: boolean | null
           reminder_time?: string | null
           sexual_orientation?: string | null
@@ -2367,6 +2369,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           phone_number?: string | null
           phone_verified?: boolean | null
+          referral_code?: string | null
           reminder_enabled?: boolean | null
           reminder_time?: string | null
           sexual_orientation?: string | null
@@ -2446,6 +2449,177 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "partner_links"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_point_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          reference_id: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_point_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      referral_points: {
+        Row: {
+          balance: number
+          created_at: string
+          current_streak: number
+          id: string
+          level: string
+          lifetime_earned: number
+          longest_streak: number
+          successful_conversions: number
+          total_referrals: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          current_streak?: number
+          id?: string
+          level?: string
+          lifetime_earned?: number
+          longest_streak?: number
+          successful_conversions?: number
+          total_referrals?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          current_streak?: number
+          id?: string
+          level?: string
+          lifetime_earned?: number
+          longest_streak?: number
+          successful_conversions?: number
+          total_referrals?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      referral_redemptions: {
+        Row: {
+          created_at: string
+          id: string
+          months_granted: number | null
+          points_spent: number
+          reward_type: string
+          subscription_extended_to: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          months_granted?: number | null
+          points_spent: number
+          reward_type: string
+          subscription_extended_to?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          months_granted?: number | null
+          points_spent?: number
+          reward_type?: string
+          subscription_extended_to?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_redemptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          converted_at: string | null
+          created_at: string
+          id: string
+          points_awarded: number
+          referred_user_id: string
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          points_awarded?: number
+          referred_user_id: string
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          points_awarded?: number
+          referred_user_id?: string
+          referrer_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -3323,10 +3497,31 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      referral_leaderboard: {
+        Row: {
+          current_streak: number | null
+          display_name: string | null
+          level: string | null
+          lifetime_earned: number | null
+          rank: number | null
+          successful_conversions: number | null
+          total_referrals: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
     }
     Functions: {
       generate_invite_code: { Args: never; Returns: string }
+      generate_referral_code: { Args: never; Returns: string }
       get_pending_invite_by_code: {
         Args: { p_invite_code: string }
         Returns: {
