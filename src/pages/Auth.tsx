@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import { PhoneInput, CountryCode } from "@/components/ui/phone-input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Gift } from "lucide-react";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -22,12 +22,17 @@ type SignupStep = "credentials" | "phone" | "verify";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signIn, signUp, user } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; phone?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; phone?: string; referral?: string }>({});
+  
+  // Referral code state
+  const [referralCode, setReferralCode] = useState("");
+  const [showReferralInput, setShowReferralInput] = useState(false);
   
   // Signup with phone verification state
   const [signupStep, setSignupStep] = useState<SignupStep>("credentials");
@@ -37,6 +42,16 @@ const Auth = () => {
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [sendingCode, setSendingCode] = useState(false);
   const [verifying, setVerifying] = useState(false);
+
+  // Check for referral code in URL
+  useEffect(() => {
+    const refCode = searchParams.get("ref");
+    if (refCode) {
+      setReferralCode(refCode.toUpperCase());
+      setShowReferralInput(true);
+      setIsLogin(false); // Switch to signup if coming from referral link
+    }
+  }, [searchParams]);
 
   // Redirect if already logged in
   if (user) {
@@ -226,6 +241,21 @@ const Auth = () => {
         })
         .eq("user_id", data.user.id);
 
+      // Process referral if a code was provided
+      if (referralCode.trim()) {
+        try {
+          await supabase.functions.invoke("process-referral-signup", {
+            body: {
+              referredUserId: data.user.id,
+              referralCode: referralCode.trim().toUpperCase(),
+            },
+          });
+        } catch (refError) {
+          console.log("Referral processing failed:", refError);
+          // Don't block signup if referral fails
+        }
+      }
+
       toast({
         title: "Account created! 💜",
         description: "Your phone has been verified.",
@@ -304,6 +334,44 @@ const Auth = () => {
           <p className="text-sm text-destructive">{errors.password}</p>
         )}
       </div>
+
+      {/* Referral Code Section (only for signup) */}
+      {!isLogin && (
+        <div className="space-y-2">
+          {showReferralInput ? (
+            <>
+              <Label htmlFor="referralCode" className="text-foreground text-sm flex items-center gap-2">
+                <Gift className="w-4 h-4 text-primary" />
+                Referral Code (optional)
+              </Label>
+              <Input
+                id="referralCode"
+                type="text"
+                placeholder="LUNA-XXXX"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                className="h-12 rounded-xl border-border bg-background font-mono tracking-wider"
+                disabled={loading}
+                maxLength={9}
+              />
+              {referralCode && (
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  You'll both earn points when you sign up! 🎉
+                </p>
+              )}
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowReferralInput(true)}
+              className="text-sm text-muted-foreground hover:text-accent transition-colors flex items-center gap-1.5"
+            >
+              <Gift className="w-3.5 h-3.5" />
+              Have a referral code?
+            </button>
+          )}
+        </div>
+      )}
 
       <Button
         type="submit"
