@@ -12,6 +12,7 @@ import { MinutesPurchaseModal } from "@/components/voice/MinutesPurchaseModal";
 import { VoiceSessionHistory } from "@/components/voice/VoiceSessionHistory";
 import { useVoiceSession } from "@/hooks/useVoiceSession";
 import { useMinutesWallet } from "@/hooks/useMinutesWallet";
+import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 
 const LunaVoice = () => {
   const navigate = useNavigate();
@@ -77,98 +78,100 @@ const LunaVoice = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b">
-        <div className="flex items-center justify-between px-4 py-3 max-w-2xl mx-auto">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-lg font-semibold flex items-center gap-2">
-            <Headphones className="w-5 h-5 text-primary" />
-            Luna Voice
-          </h1>
-          <div className="w-10" /> {/* Spacer */}
-        </div>
-      </header>
+    <MobileOnlyLayout hideTabBar>
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+        {/* Header */}
+        <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b">
+          <div className="flex items-center justify-between px-4 py-3 max-w-2xl mx-auto">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-lg font-semibold flex items-center gap-2">
+              <Headphones className="w-5 h-5 text-primary" />
+              Luna Voice
+            </h1>
+            <div className="w-10" /> {/* Spacer */}
+          </div>
+        </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* Minutes Wallet */}
-        <MinutesWalletCard onPurchase={() => setShowPurchaseModal(true)} />
+        <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+          {/* Minutes Wallet */}
+          <MinutesWalletCard onPurchase={() => setShowPurchaseModal(true)} />
 
-        {/* Voice Session Area */}
-        <Card className="border-2 border-primary/20">
-          <CardContent className="py-12">
-            <div className="flex flex-col items-center justify-center min-h-[300px]">
-              <VoiceSessionButton
-                isConnecting={isConnecting}
-                isActive={isActive}
-                isEnding={isEnding}
-                isLunaSpeaking={isLunaSpeaking}
-                durationSeconds={durationSeconds}
-                onStart={handleStartSession}
-                onEnd={endSession}
-                disabled={!hasMinutes && status === 'idle'}
-                size="large"
-              />
+          {/* Voice Session Area */}
+          <Card className="border-2 border-primary/20">
+            <CardContent className="py-12">
+              <div className="flex flex-col items-center justify-center min-h-[300px]">
+                <VoiceSessionButton
+                  isConnecting={isConnecting}
+                  isActive={isActive}
+                  isEnding={isEnding}
+                  isLunaSpeaking={isLunaSpeaking}
+                  durationSeconds={durationSeconds}
+                  onStart={handleStartSession}
+                  onEnd={endSession}
+                  disabled={!hasMinutes && status === 'idle'}
+                  size="large"
+                />
 
-              {/* Transcript Display */}
-              <AnimatePresence>
-                {isActive && (lunaResponse || transcript) && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    className="mt-8 w-full max-w-md"
-                  >
-                    {lunaResponse && (
-                      <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Volume2 className="w-4 h-4 text-primary" />
-                          <span className="text-sm font-medium text-primary">Luna</span>
+                {/* Transcript Display */}
+                <AnimatePresence>
+                  {isActive && (lunaResponse || transcript) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      className="mt-8 w-full max-w-md"
+                    >
+                      {lunaResponse && (
+                        <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Volume2 className="w-4 h-4 text-primary" />
+                            <span className="text-sm font-medium text-primary">Luna</span>
+                          </div>
+                          <p className="text-sm text-foreground/80 whitespace-pre-wrap">
+                            {lunaResponse.slice(-500)}
+                          </p>
                         </div>
-                        <p className="text-sm text-foreground/80 whitespace-pre-wrap">
-                          {lunaResponse.slice(-500)}
-                        </p>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Tips Card */}
-        {status === 'idle' && (
-          <Card className="bg-muted/50">
-            <CardContent className="py-4">
-              <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-primary mt-0.5" />
-                <div>
-                  <h3 className="font-medium">Voice Session Tips</h3>
-                  <ul className="text-sm text-muted-foreground mt-1 space-y-1">
-                    <li>• Speak naturally - Luna will respond when you pause</li>
-                    <li>• Sessions are billed per minute ($0.25/min)</li>
-                    <li>• Use a quiet environment for best results</li>
-                    <li>• Tap the red button to end your session</li>
-                  </ul>
-                </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </CardContent>
           </Card>
-        )}
 
-        {/* Session History */}
-        <VoiceSessionHistory />
-      </main>
+          {/* Tips Card */}
+          {status === 'idle' && (
+            <Card className="bg-muted/50">
+              <CardContent className="py-4">
+                <div className="flex items-start gap-3">
+                  <Info className="w-5 h-5 text-primary mt-0.5" />
+                  <div>
+                    <h3 className="font-medium">Voice Session Tips</h3>
+                    <ul className="text-sm text-muted-foreground mt-1 space-y-1">
+                      <li>• Speak naturally - Luna will respond when you pause</li>
+                      <li>• Sessions are billed per minute ($0.25/min)</li>
+                      <li>• Use a quiet environment for best results</li>
+                      <li>• Tap the red button to end your session</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-      {/* Purchase Modal */}
-      <MinutesPurchaseModal 
-        open={showPurchaseModal} 
-        onOpenChange={setShowPurchaseModal} 
-      />
-    </div>
+          {/* Session History */}
+          <VoiceSessionHistory />
+        </main>
+
+        {/* Purchase Modal */}
+        <MinutesPurchaseModal 
+          open={showPurchaseModal} 
+          onOpenChange={setShowPurchaseModal} 
+        />
+      </div>
+    </MobileOnlyLayout>
   );
 };
 
