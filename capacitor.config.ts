@@ -33,6 +33,11 @@ const config: CapacitorConfig = {
   },
   ios: {
     scheme: 'luna',
+    // Declare that app only uses standard iOS encryption (HTTPS)
+    // This skips the export compliance prompt in App Store Connect
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+    },
   },
 };
 
