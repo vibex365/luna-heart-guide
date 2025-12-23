@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.7bc1f449d14945db9d96d4adb7d018b3',
+  appId: 'com.talkswithluna.appname',
   appName: 'Luna Ai Relationship Therapist',
   webDir: 'dist',
   server: {
