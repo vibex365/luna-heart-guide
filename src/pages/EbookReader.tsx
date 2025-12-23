@@ -12,7 +12,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { ChapterGame } from "@/components/library/ChapterGame";
-import ReactMarkdown from "react-markdown";
+
+// Simple markdown parser to convert basic markdown to HTML
+const parseMarkdown = (text: string): string => {
+  if (!text) return '';
+  return text
+    // Headers
+    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold mt-6 mb-3">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mt-6 mb-4">$1</h1>')
+    // Bold and italic
+    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    // Lists
+    .replace(/^\- (.*$)/gim, '<li class="ml-4 mb-1">• $1</li>')
+    .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 mb-1">$1</li>')
+    // Paragraphs (double newline)
+    .replace(/\n\n/g, '</p><p class="mb-4">')
+    // Single newlines
+    .replace(/\n/g, '<br />')
+    // Wrap in paragraph
+    .replace(/^(.*)$/, '<p class="mb-4">$1</p>');
+};
 
 const EbookReader = () => {
   const { bookId } = useParams();
@@ -213,11 +235,12 @@ const EbookReader = () => {
           ) : (
             <>
               <h2 className="text-2xl font-bold mb-6">{currentChapterData?.title}</h2>
-              <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground/80 prose-strong:text-foreground prose-li:text-foreground/80">
-                <ReactMarkdown>
-                  {currentChapterData?.content || ''}
-                </ReactMarkdown>
-              </div>
+              <div 
+                className="prose prose-sm dark:prose-invert max-w-none text-foreground/80 leading-relaxed"
+                dangerouslySetInnerHTML={{ 
+                  __html: parseMarkdown(currentChapterData?.content || '')
+                }}
+              />
 
               {/* Notes Section */}
               <Card className="mt-8">
