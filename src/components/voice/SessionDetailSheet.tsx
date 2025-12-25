@@ -196,14 +196,15 @@ export const SessionDetailSheet = ({ session, open, onOpenChange }: SessionDetai
     URL.revokeObjectURL(url);
   };
 
+  // Return early if no session to prevent null access errors
+  if (!session) return null;
+
   const structuredTranscriptForCheck = session.structured_transcript as TranscriptMessage[] | null;
-  const hasConversation = session && (
+  const hasConversation = (
     (structuredTranscriptForCheck && Array.isArray(structuredTranscriptForCheck) && structuredTranscriptForCheck.length > 0) ||
     session.transcript ||
     session.luna_transcript
   );
-
-  if (!session) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
