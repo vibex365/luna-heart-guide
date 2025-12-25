@@ -118,6 +118,56 @@ export type Database = {
           },
         ]
       }
+      argument_analyses: {
+        Row: {
+          analysis: Json | null
+          audio_url: string | null
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          partner_link_id: string
+          recorded_by: string
+          status: string | null
+          title: string | null
+          transcript: string | null
+          updated_at: string
+        }
+        Insert: {
+          analysis?: Json | null
+          audio_url?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          partner_link_id: string
+          recorded_by: string
+          status?: string | null
+          title?: string | null
+          transcript?: string | null
+          updated_at?: string
+        }
+        Update: {
+          analysis?: Json | null
+          audio_url?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          partner_link_id?: string
+          recorded_by?: string
+          status?: string | null
+          title?: string | null
+          transcript?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "argument_analyses_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           ai_model_used: string | null
@@ -1584,6 +1634,95 @@ export type Database = {
         }
         Relationships: []
       }
+      growth_plan_days: {
+        Row: {
+          content: string | null
+          content_type: string
+          created_at: string
+          day_number: number
+          description: string | null
+          id: string
+          is_active: boolean | null
+          plan_id: string
+          title: string
+        }
+        Insert: {
+          content?: string | null
+          content_type?: string
+          created_at?: string
+          day_number: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          plan_id: string
+          title: string
+        }
+        Update: {
+          content?: string | null
+          content_type?: string
+          created_at?: string
+          day_number?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          plan_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_plan_days_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "growth_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      growth_plans: {
+        Row: {
+          category: string
+          cover_image: string | null
+          created_at: string
+          description: string | null
+          duration_days: number
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          is_premium: boolean | null
+          outcomes: Json | null
+          sort_order: number | null
+          title: string
+        }
+        Insert: {
+          category?: string
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          duration_days?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          outcomes?: Json | null
+          sort_order?: number | null
+          title: string
+        }
+        Update: {
+          category?: string
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          duration_days?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          outcomes?: Json | null
+          sort_order?: number | null
+          title?: string
+        }
+        Relationships: []
+      }
       iap_receipts: {
         Row: {
           amount_cents: number | null
@@ -2623,6 +2762,57 @@ export type Database = {
           },
         ]
       }
+      relationship_archetypes: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string
+          emoji: string | null
+          growth_areas: string[] | null
+          icon_url: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          partner_compatibility: Json | null
+          slug: string
+          sort_order: number | null
+          strengths: string[] | null
+          tagline: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description: string
+          emoji?: string | null
+          growth_areas?: string[] | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          partner_compatibility?: Json | null
+          slug: string
+          sort_order?: number | null
+          strengths?: string[] | null
+          tagline: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string
+          emoji?: string | null
+          growth_areas?: string[] | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          partner_compatibility?: Json | null
+          slug?: string
+          sort_order?: number | null
+          strengths?: string[] | null
+          tagline?: string
+        }
+        Relationships: []
+      }
       relationship_assessments: {
         Row: {
           assessment_date: string
@@ -3219,6 +3409,44 @@ export type Database = {
           },
         ]
       }
+      user_archetypes: {
+        Row: {
+          archetype_id: string | null
+          created_at: string
+          id: string
+          quiz_answers: Json | null
+          score_breakdown: Json | null
+          taken_at: string
+          user_id: string
+        }
+        Insert: {
+          archetype_id?: string | null
+          created_at?: string
+          id?: string
+          quiz_answers?: Json | null
+          score_breakdown?: Json | null
+          taken_at?: string
+          user_id: string
+        }
+        Update: {
+          archetype_id?: string | null
+          created_at?: string
+          id?: string
+          quiz_answers?: Json | null
+          score_breakdown?: Json | null
+          taken_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_archetypes_archetype_id_fkey"
+            columns: ["archetype_id"]
+            isOneToOne: false
+            referencedRelation: "relationship_archetypes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_coins: {
         Row: {
           balance: number
@@ -3245,6 +3473,63 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_growth_plans: {
+        Row: {
+          completed_at: string | null
+          completed_days: number[] | null
+          created_at: string
+          current_day: number | null
+          id: string
+          partner_link_id: string
+          plan_id: string
+          started_at: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_days?: number[] | null
+          created_at?: string
+          current_day?: number | null
+          id?: string
+          partner_link_id: string
+          plan_id: string
+          started_at?: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_days?: number[] | null
+          created_at?: string
+          current_day?: number | null
+          id?: string
+          partner_link_id?: string
+          plan_id?: string
+          started_at?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_growth_plans_partner_link_id_fkey"
+            columns: ["partner_link_id"]
+            isOneToOne: false
+            referencedRelation: "partner_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_growth_plans_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "growth_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_minutes: {
         Row: {
