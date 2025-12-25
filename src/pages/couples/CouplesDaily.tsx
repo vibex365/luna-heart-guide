@@ -15,6 +15,7 @@ import { DailyChallenges } from "@/components/couples/DailyChallenges";
 import { CouplesStreakTracker } from "@/components/couples/CouplesStreakTracker";
 import { MilestoneTracker } from "@/components/couples/MilestoneTracker";
 import { AppreciationPrompts } from "@/components/couples/AppreciationPrompts";
+import { DailySparksCard } from "@/components/couples/DailySparksCard";
 
 const CouplesDaily = () => {
   const navigate = useNavigate();
@@ -65,10 +66,14 @@ const CouplesDaily = () => {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-              <DailyQuestionCard partnerLinkId={partnerLink?.id} />
+              <DailySparksCard partnerLinkId={partnerLink?.id} />
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <DailyQuestionCard partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <DailyJournalCard partnerName={partnerName} />
             </motion.div>
 

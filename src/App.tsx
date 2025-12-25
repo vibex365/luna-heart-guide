@@ -25,6 +25,8 @@ import ArticleDetail from "./pages/ArticleDetail";
 import Subscription from "./pages/Subscription";
 import Couples from "./pages/Couples";
 import { CouplesGames, CouplesGifts, CouplesHealth, CouplesDaily } from "./pages/couples/index";
+import ArgumentAnalysis from "./pages/couples/ArgumentAnalysis";
+import PersonalityQuizPage from "./pages/couples/PersonalityQuizPage";
 import DMFunnel from "./pages/DMFunnel";
 import CouplesFunnel from "./pages/CouplesFunnel";
 import Welcome from "./pages/Welcome";
@@ -92,6 +94,8 @@ function App(): React.ReactElement {
           <Route path="/couples/gifts" element={<CouplesGifts />} />
           <Route path="/couples/health" element={<CouplesHealth />} />
           <Route path="/couples/daily" element={<CouplesDaily />} />
+          <Route path="/couples/argument-analysis" element={<ArgumentAnalysis />} />
+          <Route path="/couples/personality-quiz" element={<PersonalityQuizPage />} />
           <Route path="/couples-funnel" element={<CouplesFunnel />} />
           <Route path="/couples-welcome" element={<CouplesWelcome />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
