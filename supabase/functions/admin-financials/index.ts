@@ -232,6 +232,66 @@ serve(async (req) => {
     
     console.log("[ADMIN-FINANCIALS] Couples metrics calculated");
 
+    // --- REFERRAL METRICS ---
+    // Total referrals
+    const { count: totalReferrals } = await supabaseAdmin
+      .from("referrals")
+      .select("*", { count: "exact", head: true });
+    
+    // Successful conversions (status = 'converted')
+    const { count: convertedReferrals } = await supabaseAdmin
+      .from("referrals")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "converted");
+    
+    // Referrals in last 30 days
+    const { count: referrals30d } = await supabaseAdmin
+      .from("referrals")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", thirtyDaysAgoISO);
+    
+    // Conversions in last 30 days
+    const { count: conversions30d } = await supabaseAdmin
+      .from("referrals")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "converted")
+      .gte("converted_at", thirtyDaysAgoISO);
+    
+    // Total points earned (proxy for value given)
+    const { data: pointsData } = await supabaseAdmin
+      .from("referral_points")
+      .select("lifetime_earned, balance");
+    
+    let totalPointsEarned = 0;
+    let totalPointsBalance = 0;
+    for (const p of pointsData || []) {
+      totalPointsEarned += p.lifetime_earned || 0;
+      totalPointsBalance += p.balance || 0;
+    }
+    
+    // Free months redeemed via referrals
+    const { data: redemptions } = await supabaseAdmin
+      .from("referral_redemptions")
+      .select("points_spent, months_granted, reward_type");
+    
+    let freeMonthsRewarded = 0;
+    let totalPointsRedeemed = 0;
+    for (const r of redemptions || []) {
+      if (r.reward_type === 'free_month' || r.months_granted) {
+        freeMonthsRewarded += r.months_granted || 1;
+      }
+      totalPointsRedeemed += r.points_spent || 0;
+    }
+    
+    // Top referrers
+    const { data: topReferrers } = await supabaseAdmin
+      .from("referral_leaderboard")
+      .select("display_name, total_referrals, successful_conversions, level")
+      .order("total_referrals", { ascending: false })
+      .limit(5);
+    
+    console.log("[ADMIN-FINANCIALS] Referral metrics calculated");
+
     // Calculate balance totals
     let availableBalance = 0;
     let pendingBalance = 0;
@@ -267,6 +327,18 @@ serve(async (req) => {
         messages_30d: messagesCount || 0,
         active_streaks: activeStreaks,
         avg_streak: avgStreak,
+      },
+      referrals: {
+        total_referrals: totalReferrals || 0,
+        converted_referrals: convertedReferrals || 0,
+        referrals_30d: referrals30d || 0,
+        conversions_30d: conversions30d || 0,
+        conversion_rate: totalReferrals ? Math.round((convertedReferrals || 0) / totalReferrals * 100) : 0,
+        total_points_earned: totalPointsEarned,
+        total_points_balance: totalPointsBalance,
+        points_redeemed: totalPointsRedeemed,
+        free_months_rewarded: freeMonthsRewarded,
+        top_referrers: topReferrers || [],
       },
       recent_transactions: transactions,
       coin_transactions: coinTx || [],
