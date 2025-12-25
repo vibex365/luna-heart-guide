@@ -18,7 +18,11 @@ import {
   Headphones,
   Gift,
   UserMinus,
-  TrendingDown
+  TrendingDown,
+  Heart,
+  Users,
+  MessageCircle,
+  Flame
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -40,6 +44,15 @@ interface FinancialData {
     churn_rate: number;
     churned_customers: number;
     lost_mrr: number;
+  };
+  couples: {
+    active_couples: number;
+    total_gift_revenue: number;
+    gift_revenue_30d: number;
+    activities_30d: number;
+    messages_30d: number;
+    active_streaks: number;
+    avg_streak: number;
   };
   recent_transactions: Array<{
     id: string;
@@ -71,6 +84,7 @@ interface FinancialData {
     recipient_id: string;
     gift_id: string;
     amount_cents: number;
+    gift_name?: string;
     created_at: string;
   }>;
 }
@@ -245,6 +259,69 @@ const AdminFinancials = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Couples Value Section */}
+        <Card className="border-pink-500/20 bg-gradient-to-r from-pink-500/5 to-purple-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Heart className="w-4 h-4 text-pink-500" />
+              Couples Value
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Users className="w-3 h-3 text-pink-500" />
+                </div>
+                <p className="text-xl font-bold">{data?.couples?.active_couples || 0}</p>
+                <p className="text-xs text-muted-foreground">Active Couples</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Gift className="w-3 h-3 text-pink-500" />
+                </div>
+                <p className="text-xl font-bold">${data?.couples?.total_gift_revenue?.toFixed(2) || "0.00"}</p>
+                <p className="text-xs text-muted-foreground">Total Gift Revenue</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <DollarSign className="w-3 h-3 text-green-500" />
+                </div>
+                <p className="text-xl font-bold">${data?.couples?.gift_revenue_30d?.toFixed(2) || "0.00"}</p>
+                <p className="text-xs text-muted-foreground">Gift Rev (30d)</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Heart className="w-3 h-3 text-red-500" />
+                </div>
+                <p className="text-xl font-bold">{data?.couples?.activities_30d || 0}</p>
+                <p className="text-xs text-muted-foreground">Activities (30d)</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <MessageCircle className="w-3 h-3 text-blue-500" />
+                </div>
+                <p className="text-xl font-bold">{data?.couples?.messages_30d || 0}</p>
+                <p className="text-xs text-muted-foreground">Messages (30d)</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Flame className="w-3 h-3 text-orange-500" />
+                </div>
+                <p className="text-xl font-bold">{data?.couples?.active_streaks || 0}</p>
+                <p className="text-xs text-muted-foreground">Active Streaks</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <TrendingUp className="w-3 h-3 text-purple-500" />
+                </div>
+                <p className="text-xl font-bold">{data?.couples?.avg_streak || 0} days</p>
+                <p className="text-xs text-muted-foreground">Avg Streak</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Secondary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -426,7 +503,7 @@ const AdminFinancials = () => {
                       data?.gift_transactions.map((tx) => (
                         <div key={tx.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                           <div>
-                            <p className="font-medium text-sm">Gift Sent</p>
+                            <p className="font-medium text-sm">{tx.gift_name || "Gift Sent"}</p>
                             <p className="text-xs text-muted-foreground truncate max-w-[200px]">
                               {tx.sender_id.slice(0, 8)}... → {tx.recipient_id.slice(0, 8)}...
                             </p>

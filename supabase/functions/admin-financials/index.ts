@@ -171,12 +171,66 @@ serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(20);
 
-    // Get gift transactions
+    // Get gift transactions (with price info)
     const { data: giftTx } = await supabaseAdmin
-      .from("gift_transactions")
-      .select("*")
+      .from("partner_gifts")
+      .select("*, digital_gifts(price_cents, name)")
       .order("created_at", { ascending: false })
       .limit(20);
+
+    // --- COUPLES METRICS ---
+    // Get active partner links (couples)
+    const { count: activeLinksCount } = await supabaseAdmin
+      .from("partner_links")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "accepted");
+    
+    // Get total gift revenue (all time)
+    const { data: allGifts } = await supabaseAdmin
+      .from("partner_gifts")
+      .select("gift_id, digital_gifts(price_cents)");
+    
+    let totalGiftRevenue = 0;
+    for (const gift of allGifts || []) {
+      totalGiftRevenue += (gift.digital_gifts as any)?.price_cents || 0;
+    }
+    
+    // Get gift revenue last 30 days
+    const thirtyDaysAgoISO = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: recentGifts } = await supabaseAdmin
+      .from("partner_gifts")
+      .select("gift_id, digital_gifts(price_cents)")
+      .gte("created_at", thirtyDaysAgoISO);
+    
+    let giftRevenue30d = 0;
+    for (const gift of recentGifts || []) {
+      giftRevenue30d += (gift.digital_gifts as any)?.price_cents || 0;
+    }
+    
+    // Get couples activities completed (30d)
+    const { count: activitiesCount } = await supabaseAdmin
+      .from("completed_activities")
+      .select("*", { count: "exact", head: true })
+      .gte("completed_at", thirtyDaysAgoISO);
+    
+    // Get couples messages count (30d) for engagement
+    const { count: messagesCount } = await supabaseAdmin
+      .from("couples_messages")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", thirtyDaysAgoISO);
+    
+    // Get couples with active streaks
+    const { data: streakData } = await supabaseAdmin
+      .from("couples_streaks")
+      .select("current_streak")
+      .gt("current_streak", 0);
+    
+    const activeStreaks = streakData?.length || 0;
+    const avgStreak = streakData && streakData.length > 0
+      ? Math.round(streakData.reduce((sum, s) => sum + s.current_streak, 0) / streakData.length)
+      : 0;
+    
+    console.log("[ADMIN-FINANCIALS] Couples metrics calculated");
 
     // Calculate balance totals
     let availableBalance = 0;
@@ -205,10 +259,27 @@ serve(async (req) => {
         churned_customers: canceledSubscriptions.data.length,
         lost_mrr: lostMrr,
       },
+      couples: {
+        active_couples: activeLinksCount || 0,
+        total_gift_revenue: totalGiftRevenue / 100,
+        gift_revenue_30d: giftRevenue30d / 100,
+        activities_30d: activitiesCount || 0,
+        messages_30d: messagesCount || 0,
+        active_streaks: activeStreaks,
+        avg_streak: avgStreak,
+      },
       recent_transactions: transactions,
       coin_transactions: coinTx || [],
       minute_transactions: minuteTx || [],
-      gift_transactions: giftTx || [],
+      gift_transactions: (giftTx || []).map((g: any) => ({
+        id: g.id,
+        sender_id: g.sender_id,
+        recipient_id: g.recipient_id,
+        gift_id: g.gift_id,
+        amount_cents: g.digital_gifts?.price_cents || 0,
+        gift_name: g.digital_gifts?.name || "Gift",
+        created_at: g.created_at,
+      })),
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
