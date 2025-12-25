@@ -3250,6 +3250,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          last_subscription_grant: string | null
           lifetime_purchased: number
           lifetime_used: number
           minutes_balance: number
@@ -3259,6 +3260,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          last_subscription_grant?: string | null
           lifetime_purchased?: number
           lifetime_used?: number
           minutes_balance?: number
@@ -3268,6 +3270,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          last_subscription_grant?: string | null
           lifetime_purchased?: number
           lifetime_used?: number
           minutes_balance?: number
