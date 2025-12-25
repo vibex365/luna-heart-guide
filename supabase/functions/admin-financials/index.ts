@@ -75,12 +75,49 @@ serve(async (req) => {
     refundedAmount = refundedAmount / 100;
     const netRevenue30d = totalRevenue30d - refundedAmount;
 
-    // Get recent subscriptions
+    // Get active subscriptions
     const subscriptions = await stripe.subscriptions.list({
       limit: 100,
       status: "active",
     });
     console.log("[ADMIN-FINANCIALS] Active subscriptions:", subscriptions.data.length);
+
+    // Get canceled subscriptions in last 30 days for churn calculation
+    const canceledSubscriptions = await stripe.subscriptions.list({
+      limit: 100,
+      status: "canceled",
+      created: { gte: thirtyDaysAgo },
+    });
+    console.log("[ADMIN-FINANCIALS] Canceled subscriptions (30d):", canceledSubscriptions.data.length);
+
+    // Get all subscriptions created before 30 days ago (to calculate starting base)
+    const allSubscriptionsAtStart = await stripe.subscriptions.list({
+      limit: 100,
+      created: { lt: thirtyDaysAgo },
+    });
+    
+    // Churn rate = (Canceled in period / Active at start of period) * 100
+    const activeAtStart = allSubscriptionsAtStart.data.filter((s: Stripe.Subscription) => 
+      s.status === "active" || s.status === "canceled"
+    ).length || subscriptions.data.length; // fallback to current active
+    
+    const churnRate = activeAtStart > 0 
+      ? (canceledSubscriptions.data.length / activeAtStart) * 100 
+      : 0;
+    
+    // Calculate monthly churn (annualized would be churnRate * 12)
+    const monthlyChurnRate = Math.round(churnRate * 10) / 10;
+    
+    // Revenue lost from churned customers
+    let lostMrr = 0;
+    for (const sub of canceledSubscriptions.data) {
+      const item = sub.items.data[0];
+      if (item?.price?.unit_amount && item?.price?.recurring?.interval === "month") {
+        lostMrr += item.price.unit_amount / 100;
+      } else if (item?.price?.unit_amount && item?.price?.recurring?.interval === "year") {
+        lostMrr += item.price.unit_amount / 100 / 12;
+      }
+    }
 
     // Calculate MRR from Stripe
     let mrr = 0;
@@ -164,6 +201,9 @@ serve(async (req) => {
         mrr: mrr,
         active_subscriptions: subscriptions.data.length,
         charges_count: successfulCharges.length,
+        churn_rate: monthlyChurnRate,
+        churned_customers: canceledSubscriptions.data.length,
+        lost_mrr: lostMrr,
       },
       recent_transactions: transactions,
       coin_transactions: coinTx || [],

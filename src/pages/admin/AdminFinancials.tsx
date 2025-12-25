@@ -16,7 +16,9 @@ import {
   Clock,
   Coins,
   Headphones,
-  Gift
+  Gift,
+  UserMinus,
+  TrendingDown
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -35,6 +37,9 @@ interface FinancialData {
     mrr: number;
     active_subscriptions: number;
     charges_count: number;
+    churn_rate: number;
+    churned_customers: number;
+    lost_mrr: number;
   };
   recent_transactions: Array<{
     id: string;
@@ -196,6 +201,49 @@ const AdminFinancials = () => {
             icon={CreditCard}
             subtitle="Stripe subscriptions"
           />
+        </div>
+
+        {/* Churn Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-red-500/20 bg-red-500/5">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-red-500/10">
+                  <TrendingDown className="w-4 h-4 text-red-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Churn Rate (30d)</p>
+                  <p className="text-lg font-semibold">{data?.revenue.churn_rate.toFixed(1) || "0"}%</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-orange-500/10">
+                  <UserMinus className="w-4 h-4 text-orange-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Churned Customers</p>
+                  <p className="text-lg font-semibold">{data?.revenue.churned_customers || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-red-500/10">
+                  <DollarSign className="w-4 h-4 text-red-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Lost MRR (30d)</p>
+                  <p className="text-lg font-semibold">${data?.revenue.lost_mrr.toFixed(2) || "0.00"}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Secondary Stats */}
