@@ -126,7 +126,16 @@ serve(async (req) => {
       });
 
       if (!aiResponse.ok) {
-        console.error("[SEND-LOVE-MESSAGE] AI error:", await aiResponse.text());
+        const errorText = await aiResponse.text();
+        console.error("[SEND-LOVE-MESSAGE] AI error:", errorText);
+        
+        if (aiResponse.status === 402) {
+          return new Response(
+            JSON.stringify({ error: "AI service temporarily unavailable. Please try again later." }),
+            { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        
         throw new Error("Failed to generate message");
       }
 
