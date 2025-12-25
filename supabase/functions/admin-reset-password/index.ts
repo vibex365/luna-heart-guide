@@ -82,7 +82,18 @@ Deno.serve(async (req) => {
 
     if (updateError) {
       console.error('Password update error:', updateError);
-      return new Response(JSON.stringify({ error: 'Failed to update password' }), {
+      
+      // Handle weak password error specifically
+      if (updateError.message?.includes('weak') || updateError.code === 'weak_password') {
+        return new Response(JSON.stringify({ 
+          error: 'Password is too weak or commonly used. Please choose a stronger password with mixed characters.' 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      return new Response(JSON.stringify({ error: updateError.message || 'Failed to update password' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
