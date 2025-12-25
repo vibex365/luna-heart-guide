@@ -13,6 +13,10 @@ import { CoupleGoals } from "@/components/couples/CoupleGoals";
 import { ConflictResolutionTools } from "@/components/couples/ConflictResolutionTools";
 import { SharedActivities } from "@/components/couples/SharedActivities";
 import { DateNightGenerator } from "@/components/couples/DateNightGenerator";
+import { GrowthPlansCard } from "@/components/couples/GrowthPlansCard";
+import { ArgumentAnalyzer } from "@/components/couples/ArgumentAnalyzer";
+import { Card, CardContent } from "@/components/ui/card";
+import { Sparkles, Mic } from "lucide-react";
 
 const CouplesHealth = () => {
   const navigate = useNavigate();
@@ -42,7 +46,36 @@ const CouplesHealth = () => {
       <div className="p-4 space-y-4">
         {isLinked ? (
           <>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+            {/* Quick Actions Row */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="grid grid-cols-2 gap-3">
+              <Card 
+                className="cursor-pointer hover:shadow-md transition-all border-amber-500/20 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20"
+                onClick={() => navigate('/couples/personality-quiz')}
+              >
+                <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="font-medium text-sm">Personality Quiz</span>
+                  <span className="text-xs text-muted-foreground">Discover your style</span>
+                </CardContent>
+              </Card>
+              
+              <Card 
+                className="cursor-pointer hover:shadow-md transition-all border-blue-500/20 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20"
+                onClick={() => navigate('/couples/argument-analysis')}
+              >
+                <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+                    <Mic className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="font-medium text-sm">Argument Analysis</span>
+                  <span className="text-xs text-muted-foreground">Record & resolve</span>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
               <RelationshipHealthCard />
             </motion.div>
 
@@ -72,6 +105,10 @@ const CouplesHealth = () => {
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
               <DateNightGenerator partnerLinkId={partnerLink?.id} />
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+              <GrowthPlansCard partnerLinkId={partnerLink?.id} />
             </motion.div>
           </>
         ) : (

@@ -32,7 +32,7 @@ interface UserGrowthPlan {
 }
 
 interface GrowthPlansCardProps {
-  partnerLinkId: string;
+  partnerLinkId?: string;
 }
 
 export const GrowthPlansCard = ({ partnerLinkId }: GrowthPlansCardProps) => {
