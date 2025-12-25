@@ -22,7 +22,11 @@ import {
   Heart,
   Users,
   MessageCircle,
-  Flame
+  Flame,
+  Share2,
+  UserPlus,
+  Award,
+  Calendar
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -53,6 +57,23 @@ interface FinancialData {
     messages_30d: number;
     active_streaks: number;
     avg_streak: number;
+  };
+  referrals: {
+    total_referrals: number;
+    converted_referrals: number;
+    referrals_30d: number;
+    conversions_30d: number;
+    conversion_rate: number;
+    total_points_earned: number;
+    total_points_balance: number;
+    points_redeemed: number;
+    free_months_rewarded: number;
+    top_referrers: Array<{
+      display_name: string;
+      total_referrals: number;
+      successful_conversions: number;
+      level: string;
+    }>;
   };
   recent_transactions: Array<{
     id: string;
@@ -323,7 +344,98 @@ const AdminFinancials = () => {
           </CardContent>
         </Card>
 
-        {/* Secondary Stats */}
+        {/* Referral Income Tracker */}
+        <Card className="border-green-500/20 bg-gradient-to-r from-green-500/5 to-emerald-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Share2 className="w-4 h-4 text-green-500" />
+              Referral Program
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Users className="w-3 h-3 text-green-500" />
+                </div>
+                <p className="text-xl font-bold">{data?.referrals?.total_referrals || 0}</p>
+                <p className="text-xs text-muted-foreground">Total Referrals</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <UserPlus className="w-3 h-3 text-emerald-500" />
+                </div>
+                <p className="text-xl font-bold">{data?.referrals?.converted_referrals || 0}</p>
+                <p className="text-xs text-muted-foreground">Converted</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <TrendingUp className="w-3 h-3 text-blue-500" />
+                </div>
+                <p className="text-xl font-bold">{data?.referrals?.conversion_rate || 0}%</p>
+                <p className="text-xs text-muted-foreground">Conversion Rate</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Calendar className="w-3 h-3 text-purple-500" />
+                </div>
+                <p className="text-xl font-bold">{data?.referrals?.referrals_30d || 0}</p>
+                <p className="text-xs text-muted-foreground">Referrals (30d)</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Award className="w-3 h-3 text-yellow-500" />
+                </div>
+                <p className="text-xl font-bold">{data?.referrals?.conversions_30d || 0}</p>
+                <p className="text-xs text-muted-foreground">Conversions (30d)</p>
+              </div>
+            </div>
+            
+            <div className="border-t border-border pt-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-muted/50 rounded-lg p-3 text-center">
+                  <p className="text-lg font-bold text-green-500">{data?.referrals?.total_points_earned?.toLocaleString() || 0}</p>
+                  <p className="text-xs text-muted-foreground">Points Earned</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3 text-center">
+                  <p className="text-lg font-bold text-blue-500">{data?.referrals?.total_points_balance?.toLocaleString() || 0}</p>
+                  <p className="text-xs text-muted-foreground">Points Balance</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3 text-center">
+                  <p className="text-lg font-bold text-orange-500">{data?.referrals?.points_redeemed?.toLocaleString() || 0}</p>
+                  <p className="text-xs text-muted-foreground">Points Redeemed</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3 text-center">
+                  <p className="text-lg font-bold text-pink-500">{data?.referrals?.free_months_rewarded || 0}</p>
+                  <p className="text-xs text-muted-foreground">Free Months Rewarded</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Referrers */}
+            {data?.referrals?.top_referrers && data.referrals.top_referrers.length > 0 && (
+              <div className="border-t border-border pt-4 mt-4">
+                <p className="text-sm font-medium mb-2">Top Referrers</p>
+                <div className="space-y-2">
+                  {data.referrals.top_referrers.map((referrer, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-muted-foreground">#{idx + 1}</span>
+                        <span className="text-sm font-medium">{referrer.display_name || "Anonymous"}</span>
+                        <Badge variant="outline" className="text-xs capitalize">{referrer.level}</Badge>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span>{referrer.total_referrals} referrals</span>
+                        <span className="text-green-500">{referrer.successful_conversions} converted</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-4">
