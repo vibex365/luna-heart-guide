@@ -53,7 +53,11 @@ import {
   Coins,
   Gift,
   Headphones,
+  KeyRound,
+  Phone,
+  Loader2,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 interface SubscriptionTier {
@@ -85,6 +89,9 @@ export const UserDetailSheet = ({
   const [giveMinutesOpen, setGiveMinutesOpen] = useState(false);
   const [minuteAmount, setMinuteAmount] = useState("");
   const [minuteReason, setMinuteReason] = useState("");
+  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [sendPasswordSms, setSendPasswordSms] = useState(true);
   const queryClient = useQueryClient();
 
   // Fetch subscription tiers
@@ -420,6 +427,51 @@ export const UserDetailSheet = ({
     onError: (error) => {
       console.error("Error giving minutes:", error);
       toast.error("Failed to add voice minutes");
+    },
+  });
+
+  // Fetch user phone info for password reset SMS
+  const { data: userPhone } = useQuery({
+    queryKey: ["admin-user-phone", user?.user_id],
+    queryFn: async () => {
+      if (!user?.user_id) return null;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("phone_number, phone_verified")
+        .eq("user_id", user.user_id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.user_id && open,
+  });
+
+  // Reset password mutation
+  const resetPassword = useMutation({
+    mutationFn: async ({ userId, password, sendSms }: { userId: string; password: string; sendSms: boolean }) => {
+      const { data, error } = await supabase.functions.invoke('admin-reset-password', {
+        body: {
+          targetUserId: userId,
+          newPassword: password,
+          sendSms,
+        },
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || "Password reset successfully");
+      setResetPasswordOpen(false);
+      setNewPassword("");
+      setSendPasswordSms(true);
+    },
+    onError: (error) => {
+      console.error("Error resetting password:", error);
+      toast.error(error.message || "Failed to reset password");
     },
   });
 
@@ -792,6 +844,84 @@ export const UserDetailSheet = ({
             {/* Actions */}
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-foreground">Actions</h3>
+              
+              {/* Password Reset */}
+              <Dialog open={resetPasswordOpen} onOpenChange={setResetPasswordOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full gap-2">
+                    <KeyRound className="h-4 w-4" />
+                    Reset Password
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Reset Password for {user.display_name}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>New Password</Label>
+                      <Input
+                        type="text"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter new password (min 6 characters)"
+                      />
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="send-sms"
+                        checked={sendPasswordSms}
+                        onCheckedChange={(checked) => setSendPasswordSms(checked === true)}
+                        disabled={!userPhone?.phone_verified}
+                      />
+                      <label
+                        htmlFor="send-sms"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                      >
+                        <Phone className="h-4 w-4" />
+                        Send password via SMS
+                      </label>
+                    </div>
+                    
+                    {!userPhone?.phone_verified && (
+                      <p className="text-xs text-muted-foreground">
+                        SMS not available - user has no verified phone number
+                      </p>
+                    )}
+                    
+                    {userPhone?.phone_verified && userPhone?.phone_number && (
+                      <p className="text-xs text-muted-foreground">
+                        Will send to: {userPhone.phone_number}
+                      </p>
+                    )}
+                    
+                    <Button
+                      onClick={() => {
+                        if (!newPassword || newPassword.length < 6) {
+                          toast.error("Password must be at least 6 characters");
+                          return;
+                        }
+                        resetPassword.mutate({
+                          userId: user.user_id,
+                          password: newPassword,
+                          sendSms: sendPasswordSms && !!userPhone?.phone_verified,
+                        });
+                      }}
+                      disabled={!newPassword || newPassword.length < 6 || resetPassword.isPending}
+                      className="w-full"
+                    >
+                      {resetPassword.isPending ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <KeyRound className="h-4 w-4 mr-2" />
+                      )}
+                      Reset Password
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
               {user.suspended ? (
                 <Button
                   onClick={() => onSuspend(user.user_id, false)}
