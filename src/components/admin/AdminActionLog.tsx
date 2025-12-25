@@ -10,7 +10,8 @@ import {
   CheckCircle, 
   Settings, 
   History,
-  User
+  User,
+  Clock
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -44,6 +45,31 @@ const actionTypeConfig: Record<string, { icon: React.ElementType; label: string;
     icon: Settings, 
     label: "Settings Updated", 
     color: "text-blue-500" 
+  },
+  give_coins: {
+    icon: Crown,
+    label: "Coins Given",
+    color: "text-yellow-500"
+  },
+  give_minutes: {
+    icon: Clock,
+    label: "Minutes Given",
+    color: "text-purple-500"
+  },
+  password_reset: {
+    icon: Settings,
+    label: "Password Reset",
+    color: "text-orange-500"
+  },
+  user_deleted: {
+    icon: Ban,
+    label: "User Deleted",
+    color: "text-destructive"
+  },
+  role_changed: {
+    icon: Crown,
+    label: "Role Changed",
+    color: "text-blue-500"
   },
 };
 

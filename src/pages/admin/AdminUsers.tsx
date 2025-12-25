@@ -26,7 +26,7 @@ const AdminUsers = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch all users
+  // Fetch all users with email from auth metadata
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["admin-users", searchQuery],
     queryFn: async () => {
@@ -36,7 +36,8 @@ const AdminUsers = () => {
         .order("created_at", { ascending: false });
 
       if (searchQuery.trim()) {
-        query = query.ilike("display_name", `%${searchQuery}%`);
+        // Search in display_name or use ilike for partial matching
+        query = query.or(`display_name.ilike.%${searchQuery}%`);
       }
 
       const { data, error } = await query;
@@ -45,7 +46,7 @@ const AdminUsers = () => {
     },
   });
 
-  // Suspend/unsuspend mutation
+  // Suspend/unsuspend mutation with logging
   const suspendMutation = useMutation({
     mutationFn: async ({ 
       userId, 
@@ -56,6 +57,9 @@ const AdminUsers = () => {
       suspend: boolean; 
       reason?: string;
     }) => {
+      // Get current admin user
+      const { data: { user: adminUser } } = await supabase.auth.getUser();
+      
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -66,9 +70,23 @@ const AdminUsers = () => {
         .eq("user_id", userId);
 
       if (error) throw error;
+
+      // Log admin action
+      if (adminUser) {
+        await supabase.from("admin_action_logs").insert({
+          admin_id: adminUser.id,
+          action_type: suspend ? "user_suspended" : "user_restored",
+          target_user_id: userId,
+          details: { reason: reason || null },
+          reason: suspend 
+            ? `Suspended user: ${reason || "No reason provided"}`
+            : "Restored user access",
+        });
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-action-logs"] });
       toast({
         title: variables.suspend ? "User Suspended" : "User Restored",
         description: variables.suspend 
