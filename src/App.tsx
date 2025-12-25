@@ -35,7 +35,7 @@ import AppStoreAssets from "./pages/AppStoreAssets";
 import PromoVideoTemplate from "./pages/PromoVideoTemplate";
 import PromoVideos from "./pages/PromoVideos";
 import CoinPurchase from "./pages/CoinPurchase";
-import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminModeration, AdminCoins, AdminMinutes, AdminAnalytics, AdminFunnelAnalytics, AdminMarketing, AdminSettings, AdminFeedback, AdminNotifications, AdminBlog, AdminReferrals } from "./pages/admin";
+import { AdminDashboard, AdminUsers, AdminSubscriptions, AdminFeatures, AdminLuna, AdminContent, AdminSafety, AdminModeration, AdminCoins, AdminMinutes, AdminAnalytics, AdminFunnelAnalytics, AdminMarketing, AdminSettings, AdminFeedback, AdminNotifications, AdminBlog, AdminReferrals, AdminFinancials } from "./pages/admin";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import PitchDeck from "./pages/PitchDeck";
@@ -130,6 +130,14 @@ function App(): React.ReactElement {
             element={
               <AdminRoute>
                 <AdminSubscriptions />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/financials"
+            element={
+              <AdminRoute>
+                <AdminFinancials />
               </AdminRoute>
             }
           />

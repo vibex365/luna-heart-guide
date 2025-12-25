@@ -16,3 +16,4 @@ export { default as AdminFeedback } from "./AdminFeedback";
 export { default as AdminNotifications } from "./AdminNotifications";
 export { default as AdminBlog } from "./AdminBlog";
 export { default as AdminReferrals } from "./AdminReferrals";
+export { default as AdminFinancials } from "./AdminFinancials";

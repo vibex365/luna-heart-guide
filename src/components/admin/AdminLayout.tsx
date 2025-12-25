@@ -20,7 +20,8 @@ import {
   Home,
   Search,
   Command,
-  Newspaper
+  Newspaper,
+  DollarSign
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,7 @@ const navSections = [
     title: "Users & Revenue",
     items: [
       { icon: Users, label: "Users", path: "/admin/users" },
+      { icon: DollarSign, label: "Financials", path: "/admin/financials" },
       { icon: CreditCard, label: "Subscriptions", path: "/admin/subscriptions" },
       { icon: BarChart3, label: "Coins", path: "/admin/coins" },
       { icon: BarChart3, label: "Voice Minutes", path: "/admin/minutes" },
