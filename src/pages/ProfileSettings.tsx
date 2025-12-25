@@ -929,7 +929,7 @@ const ProfileSettings = () => {
           </div>
 
           {/* Security Settings */}
-          <SecuritySettings />
+          <SecuritySettings phoneVerified={phoneVerified} />
 
           {/* Subscription Section */}
           <div className="bg-card rounded-3xl p-6 shadow-luna border border-border">
