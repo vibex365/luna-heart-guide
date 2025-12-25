@@ -31,6 +31,7 @@ import { MinutesPurchaseModal } from "@/components/voice/MinutesPurchaseModal";
 import { usePartnerPresence } from "@/hooks/usePartnerPresence";
 import { PartnerPresenceIndicator } from "@/components/couples/PartnerPresenceIndicator";
 import { ConversationInsights } from "@/components/couples/ConversationInsights";
+import { LoveMessageSender } from "@/components/couples/LoveMessageSender";
 
 const Couples = () => {
   const navigate = useNavigate();
@@ -496,6 +497,15 @@ const Couples = () => {
                   </div>
                 </div>
               </button>
+            </motion.div>
+
+            {/* Love Message Sender */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <LoveMessageSender partnerLinkId={partnerLink?.id} partnerName={partnerName} />
             </motion.div>
 
             {/* Category Cards Grid */}
