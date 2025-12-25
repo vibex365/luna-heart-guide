@@ -69,11 +69,25 @@ const LunaVoice = () => {
     }
   };
 
+  // Show loading state while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-primary">Loading...</div>
-      </div>
+      <MobileOnlyLayout hideTabBar>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/30">
+          <div className="animate-pulse text-primary">Loading...</div>
+        </div>
+      </MobileOnlyLayout>
+    );
+  }
+
+  // If not authenticated, show loading while redirecting
+  if (!user) {
+    return (
+      <MobileOnlyLayout hideTabBar>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/30">
+          <div className="animate-pulse text-primary">Redirecting to login...</div>
+        </div>
+      </MobileOnlyLayout>
     );
   }
 
