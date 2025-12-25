@@ -37,6 +37,12 @@ const PLAN_TO_TIER_ID: Record<string, string> = {
   "couples": "d66e16b8-f1cb-4aa6-9d84-90a19f8720b3",
 };
 
+// Free voice minutes per subscription tier (granted monthly)
+const PLAN_FREE_MINUTES: Record<string, number> = {
+  "pro": 5,
+  "couples": 10,
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -152,6 +158,18 @@ serve(async (req) => {
         plan,
         subscriptionEnd
       );
+
+      // Grant free voice minutes for paid subscriptions
+      const freeMinutes = PLAN_FREE_MINUTES[plan];
+      if (freeMinutes) {
+        await grantSubscriptionMinutes(
+          Deno.env.get("SUPABASE_URL") ?? "",
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+          user.id,
+          plan,
+          freeMinutes
+        );
+      }
 
       // Process referral conversion if this is a new subscription
       try {
@@ -297,5 +315,126 @@ async function syncSubscriptionToDatabase(
     }
   } catch (syncError) {
     logStep("Error syncing subscription", { error: syncError instanceof Error ? syncError.message : String(syncError) });
+  }
+}
+
+async function grantSubscriptionMinutes(
+  supabaseUrl: string,
+  supabaseKey: string,
+  userId: string,
+  plan: string,
+  minutesToGrant: number
+) {
+  try {
+    logStep("Checking subscription minutes grant", { userId, plan, minutesToGrant });
+
+    // Check if user has a minutes record and when they last received subscription bonus
+    const checkResponse = await fetch(
+      `${supabaseUrl}/rest/v1/user_minutes?user_id=eq.${userId}&select=id,minutes_balance,last_subscription_grant`,
+      {
+        headers: {
+          "apikey": supabaseKey,
+          "Authorization": `Bearer ${supabaseKey}`,
+        },
+      }
+    );
+
+    const existingData = await checkResponse.json();
+    const existing = existingData?.[0];
+
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Check if we should grant minutes (not granted in last 30 days)
+    if (existing?.last_subscription_grant) {
+      const lastGrant = new Date(existing.last_subscription_grant);
+      if (lastGrant > thirtyDaysAgo) {
+        logStep("Subscription minutes already granted this period", { 
+          lastGrant: lastGrant.toISOString(),
+          nextEligible: new Date(lastGrant.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        });
+        return;
+      }
+    }
+
+    if (existing) {
+      // Update existing record - add minutes to balance
+      const newBalance = (existing.minutes_balance || 0) + minutesToGrant;
+      
+      const updateResponse = await fetch(
+        `${supabaseUrl}/rest/v1/user_minutes?id=eq.${existing.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`,
+            "Prefer": "return=minimal",
+          },
+          body: JSON.stringify({
+            minutes_balance: newBalance,
+            last_subscription_grant: now.toISOString(),
+            updated_at: now.toISOString(),
+          }),
+        }
+      );
+
+      if (!updateResponse.ok) {
+        logStep("Error updating user minutes", { status: updateResponse.status });
+        return;
+      }
+    } else {
+      // Create new minutes record
+      const insertResponse = await fetch(
+        `${supabaseUrl}/rest/v1/user_minutes`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": supabaseKey,
+            "Authorization": `Bearer ${supabaseKey}`,
+            "Prefer": "return=minimal",
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            minutes_balance: minutesToGrant,
+            last_subscription_grant: now.toISOString(),
+          }),
+        }
+      );
+
+      if (!insertResponse.ok) {
+        logStep("Error creating user minutes", { status: insertResponse.status });
+        return;
+      }
+    }
+
+    // Record the transaction
+    const transactionResponse = await fetch(
+      `${supabaseUrl}/rest/v1/minute_transactions`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": supabaseKey,
+          "Authorization": `Bearer ${supabaseKey}`,
+          "Prefer": "return=minimal",
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          transaction_type: "subscription_bonus",
+          amount: minutesToGrant,
+          description: `Monthly ${plan} subscription bonus - ${minutesToGrant} free minutes`,
+        }),
+      }
+    );
+
+    if (transactionResponse.ok) {
+      logStep("Subscription minutes granted successfully", { userId, plan, minutes: minutesToGrant });
+    } else {
+      logStep("Error recording minutes transaction", { status: transactionResponse.status });
+    }
+  } catch (grantError) {
+    logStep("Error granting subscription minutes", { error: grantError instanceof Error ? grantError.message : String(grantError) });
   }
 }
