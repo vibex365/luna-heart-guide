@@ -124,9 +124,9 @@ serve(async (req) => {
     }
 
     if (action === "verify-code") {
-      if (!userId || !phoneNumber || !code) {
+      if (!phoneNumber || !code) {
         return new Response(
-          JSON.stringify({ error: "userId, phoneNumber, and code required" }),
+          JSON.stringify({ error: "phoneNumber and code required" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -142,11 +142,11 @@ serve(async (req) => {
 
       const formattedPhone = cleaned;
 
-      // Find valid verification code
+      // Find valid verification code - match by phone number and code only
+      // This allows verification even if the temp user ID changed (page refresh, etc.)
       const { data: verification, error: verifyError } = await supabase
         .from("sms_verification_codes")
         .select("*")
-        .eq("user_id", userId)
         .eq("phone_number", formattedPhone)
         .eq("code", code)
         .eq("verified", false)
