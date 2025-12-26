@@ -103,7 +103,7 @@ serve(async (req) => {
       // Generate and store verification code
       const verificationCode = generateCode();
 
-      await supabase
+      const { error: insertError } = await supabase
         .from("sms_verification_codes")
         .insert({
           user_id: userId,
@@ -111,6 +111,14 @@ serve(async (req) => {
           code: verificationCode,
           expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
         });
+
+      if (insertError) {
+        console.error("Failed to store verification code:", insertError);
+        return new Response(
+          JSON.stringify({ error: "Failed to generate verification code. Please try again." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
       // Send SMS
       await sendSms(formattedPhone, `Your Luna verification code is: ${verificationCode}. This code expires in 10 minutes.`);
