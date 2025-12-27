@@ -20,45 +20,79 @@ interface GeoLocation {
 }
 
 async function getGeolocation(ip: string): Promise<Partial<GeoLocation>> {
-  if (!ip || ip === "unknown" || ip === "127.0.0.1" || ip.startsWith("10.") || ip.startsWith("192.168.")) {
+  if (!ip || ip === "unknown" || ip === "127.0.0.1" || ip.startsWith("10.") || ip.startsWith("192.168.") || ip.startsWith("172.")) {
     console.log("[TrackVisitor] Skipping geolocation for local/private IP:", ip);
     return {};
   }
 
-  try {
-    // Use ipapi.co for geolocation (free tier)
-    const response = await fetch(`https://ipapi.co/${ip}/json/`, {
-      headers: {
-        'User-Agent': 'Luna-Tracker/1.0'
+  // Try multiple geolocation services for reliability
+  const geoServices = [
+    `https://ipapi.co/${ip}/json/`,
+    `https://ipwho.is/${ip}`,
+  ];
+
+  for (const serviceUrl of geoServices) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
+      const response = await fetch(serviceUrl, {
+        headers: { 'User-Agent': 'Luna-Tracker/1.0' },
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        console.error("[TrackVisitor] Geolocation API error:", serviceUrl, response.status);
+        continue;
       }
-    });
-    
-    if (!response.ok) {
-      console.error("[TrackVisitor] Geolocation API error:", response.status);
-      return {};
+      
+      const data = await response.json();
+      
+      // Check for rate limiting or error response
+      if (data.error || data.success === false) {
+        console.error("[TrackVisitor] Geolocation API returned error:", data);
+        continue;
+      }
+      
+      // Normalize response from different services
+      const normalized: Partial<GeoLocation> = {
+        ip: data.ip || ip,
+        city: data.city || null,
+        region: data.region || data.region_name || null,
+        region_code: data.region_code || null,
+        country: data.country || data.country_code || null,
+        country_name: data.country_name || data.country || null,
+        country_code: data.country_code || data.country || null,
+        latitude: data.latitude || null,
+        longitude: data.longitude || null,
+        timezone: data.timezone?.id || data.timezone || null,
+        org: data.org || data.connection?.org || data.connection?.isp || null,
+      };
+      
+      console.log("[TrackVisitor] Geolocation success:", {
+        service: serviceUrl.includes('ipapi') ? 'ipapi.co' : 'ipwho.is',
+        ip: normalized.ip,
+        city: normalized.city,
+        region: normalized.region,
+        country: normalized.country_name,
+        org: normalized.org
+      });
+      
+      return normalized;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.error("[TrackVisitor] Geolocation timeout:", serviceUrl);
+      } else {
+        console.error("[TrackVisitor] Geolocation fetch failed:", serviceUrl, err);
+      }
+      continue;
     }
-    
-    const data = await response.json();
-    
-    // Check for rate limiting or error response
-    if (data.error) {
-      console.error("[TrackVisitor] Geolocation API returned error:", data);
-      return {};
-    }
-    
-    console.log("[TrackVisitor] Geolocation success:", {
-      ip: data.ip,
-      city: data.city,
-      region: data.region,
-      country: data.country_name,
-      org: data.org
-    });
-    
-    return data;
-  } catch (error) {
-    console.error("[TrackVisitor] Geolocation fetch failed:", error);
-    return {};
   }
+  
+  console.warn("[TrackVisitor] All geolocation services failed for IP:", ip);
+  return {};
 }
 
 function parseUserAgent(ua: string): { browser: string; os: string; device: string } {

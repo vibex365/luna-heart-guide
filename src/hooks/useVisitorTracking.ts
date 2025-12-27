@@ -27,10 +27,21 @@ const getOrCreateSessionId = (): string => {
 export const useVisitorTracking = () => {
   const { user } = useAuth();
   const trackedRef = useRef(false);
+  const trackingInProgressRef = useRef(false);
   const blockedRef = useRef(false);
 
   const trackVisitor = useCallback(async (): Promise<VisitorData | null> => {
-    if (trackedRef.current) return null;
+    // Prevent duplicate tracking calls
+    if (trackedRef.current || trackingInProgressRef.current) return null;
+    
+    // Check if already tracked this session
+    const alreadyTracked = sessionStorage.getItem('visitor_tracked');
+    if (alreadyTracked) {
+      trackedRef.current = true;
+      return null;
+    }
+    
+    trackingInProgressRef.current = true;
     
     try {
       const sessionId = getOrCreateSessionId();
@@ -47,10 +58,12 @@ export const useVisitorTracking = () => {
 
       if (error) {
         console.error('[VisitorTracking] Error:', error);
+        trackingInProgressRef.current = false;
         return null;
       }
 
       trackedRef.current = true;
+      sessionStorage.setItem('visitor_tracked', 'true');
 
       // Check if visitor is blocked (California)
       if (data?.blocked) {
@@ -69,6 +82,8 @@ export const useVisitorTracking = () => {
     } catch (error) {
       console.error('[VisitorTracking] Exception:', error);
       return null;
+    } finally {
+      trackingInProgressRef.current = false;
     }
   }, [user?.id]);
 
