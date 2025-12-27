@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UsageAnalytics } from "@/components/admin/UsageAnalytics";
+import GeoVisualization from "@/components/admin/GeoVisualization";
 import { 
   BarChart3, 
   Brain, 
@@ -13,7 +14,8 @@ import {
   TrendingUp, 
   Users,
   Calendar,
-  Activity
+  Activity,
+  Globe
 } from "lucide-react";
 import {
   AreaChart,
@@ -213,10 +215,18 @@ export default function AdminAnalytics() {
           <TabsList>
             <TabsTrigger value="usage">Usage & Subscriptions</TabsTrigger>
             <TabsTrigger value="mood">Mood Analytics</TabsTrigger>
+            <TabsTrigger value="visitors" className="flex items-center gap-1">
+              <Globe className="h-4 w-4" />
+              Visitor Tracking
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="usage" className="space-y-6">
             <UsageAnalytics />
+          </TabsContent>
+
+          <TabsContent value="visitors" className="space-y-6">
+            <GeoVisualization />
           </TabsContent>
 
           <TabsContent value="mood" className="space-y-6">
