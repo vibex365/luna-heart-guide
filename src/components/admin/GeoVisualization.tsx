@@ -99,11 +99,11 @@ const GeoVisualization = () => {
     queryKey: ['push-subscriptions'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('push_subscriptions')
+        .from('push_subscriptions' as any)
         .select('*')
         .eq('is_active', true);
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
