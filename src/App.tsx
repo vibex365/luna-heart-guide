@@ -10,6 +10,7 @@ import { OfflineBanner } from "@/components/OfflineBanner";
 import { BiometricLockScreen } from "@/components/BiometricLockScreen";
 import { DeepLinkHandler } from "@/components/DeepLinkHandler";
 import { RateAppPrompt } from "@/components/RateAppPrompt";
+import { VisitorTracker } from "@/components/VisitorTracker";
 import Landing from "./pages/Landing";
 import { AuthRedirect } from "@/components/AuthRedirect";
 import Onboarding from "./pages/Onboarding";
@@ -73,6 +74,7 @@ function App(): React.ReactElement {
         <BiometricLockScreen />
         <RateAppPrompt />
         <DeepLinkHandler />
+        <VisitorTracker />
         <Routes>
           <Route path="/" element={<AuthRedirect />} />
           <Route path="/landing" element={<Landing />} />
