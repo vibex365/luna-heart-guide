@@ -116,3 +116,15 @@ verify_jwt = false
 
 [functions.send-love-message]
 verify_jwt = false
+
+[functions.track-visitor]
+verify_jwt = false
+
+[functions.track-event]
+verify_jwt = false
+
+[functions.tracking-pixel]
+verify_jwt = false
+
+[functions.process-automated-push]
+verify_jwt = false
