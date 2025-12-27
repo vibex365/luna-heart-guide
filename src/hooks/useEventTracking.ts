@@ -56,11 +56,11 @@ export const useEventTracking = () => {
   const trackLinkClick = useCallback((
     linkName: string,
     url: string,
-    options?: { elementId?: string; elementText?: string }
+    options?: { elementId?: string; elementText?: string; eventData?: EventData }
   ) => {
     return trackEvent('link_click', linkName, {
       ...options,
-      eventData: { url },
+      eventData: { url, ...options?.eventData },
     });
   }, [trackEvent]);
 
