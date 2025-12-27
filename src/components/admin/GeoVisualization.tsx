@@ -322,35 +322,80 @@ const GeoVisualization = () => {
               </Button>
             </div>
             
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="space-y-2 max-h-[500px] overflow-y-auto">
               {loadingVisitors ? (
                 <p className="text-muted-foreground">Loading...</p>
               ) : visitors?.length === 0 ? (
                 <p className="text-muted-foreground">No visitors in the last 30 minutes</p>
               ) : (
-                visitors?.map((visitor) => (
-                  <div key={visitor.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <MapPin className="h-4 w-4 text-primary" />
-                      <div>
-                        <p className="font-medium">
-                          {visitor.city || 'Unknown'}, {visitor.region || ''} {visitor.country_code || ''}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {visitor.page_path}
-                        </p>
+                visitors?.map((visitor) => {
+                  // Parse user agent for device info
+                  const ua = visitor.user_agent || '';
+                  let device = 'Desktop';
+                  let browser = 'Unknown';
+                  let os = 'Unknown';
+                  
+                  if (ua.includes('Mobile') || ua.includes('Android') && !ua.includes('Tablet')) device = 'Mobile';
+                  else if (ua.includes('Tablet') || ua.includes('iPad')) device = 'Tablet';
+                  
+                  if (ua.includes('Firefox')) browser = 'Firefox';
+                  else if (ua.includes('Edg/')) browser = 'Edge';
+                  else if (ua.includes('Chrome')) browser = 'Chrome';
+                  else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
+                  
+                  if (ua.includes('Windows')) os = 'Windows';
+                  else if (ua.includes('Mac OS')) os = 'macOS';
+                  else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+                  else if (ua.includes('Android')) os = 'Android';
+                  else if (ua.includes('Linux')) os = 'Linux';
+
+                  return (
+                    <div key={visitor.id} className="p-3 bg-muted/50 rounded-lg border">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          <MapPin className="h-4 w-4 text-primary mt-1" />
+                          <div>
+                            <p className="font-medium">
+                              {visitor.city || 'Unknown City'}{visitor.region ? `, ${visitor.region}` : ''}{visitor.country ? `, ${visitor.country}` : ''}
+                            </p>
+                            <p className="text-sm text-muted-foreground font-mono">
+                              IP: {visitor.ip_address || 'Unknown'}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Page: {visitor.page_path || '/'}
+                            </p>
+                            {visitor.referrer && (
+                              <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                Ref: {visitor.referrer}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right space-y-1">
+                          <div className="flex gap-1 justify-end flex-wrap">
+                            <Badge variant="outline" className="text-xs">
+                              {device}
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              {browser}
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              {os}
+                            </Badge>
+                          </div>
+                          {visitor.country_code && (
+                            <Badge className="text-xs">
+                              {visitor.country_code}
+                            </Badge>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            {formatTimeEST(visitor.created_at)} EST
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <Badge variant="outline">
-                        {visitor.user_agent?.includes('Mobile') ? 'Mobile' : 'Desktop'}
-                      </Badge>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {formatTimeEST(visitor.created_at)} EST
-                      </p>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </TabsContent>
