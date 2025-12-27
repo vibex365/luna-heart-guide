@@ -168,6 +168,83 @@ export type Database = {
           },
         ]
       }
+      automated_push_campaigns: {
+        Row: {
+          body: string
+          created_at: string
+          delay_minutes: number
+          id: string
+          is_active: boolean
+          name: string
+          title: string
+          trigger_type: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          delay_minutes?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          title: string
+          trigger_type: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          delay_minutes?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          title?: string
+          trigger_type?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      automated_push_logs: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          session_id: string | null
+          status: string
+          subscription_id: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          session_id?: string | null
+          status?: string
+          subscription_id?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          session_id?: string | null
+          status?: string
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automated_push_logs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "automated_push_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           ai_model_used: string | null
@@ -3359,6 +3436,66 @@ export type Database = {
           },
         ]
       }
+      tracking_events: {
+        Row: {
+          city: string | null
+          country: string | null
+          country_code: string | null
+          created_at: string
+          element_id: string | null
+          element_text: string | null
+          event_data: Json | null
+          event_name: string
+          event_type: string
+          id: string
+          ip_address: string | null
+          page_path: string | null
+          referrer: string | null
+          region: string | null
+          session_id: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string
+          element_id?: string | null
+          element_text?: string | null
+          event_data?: Json | null
+          event_name: string
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          page_path?: string | null
+          referrer?: string | null
+          region?: string | null
+          session_id: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string
+          element_id?: string | null
+          element_text?: string | null
+          event_data?: Json | null
+          event_name?: string
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          page_path?: string | null
+          referrer?: string | null
+          region?: string | null
+          session_id?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       truth_or_dare_sessions: {
         Row: {
           created_at: string | null
@@ -3661,6 +3798,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      visitor_locations: {
+        Row: {
+          city: string | null
+          country: string | null
+          country_code: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          latitude: number | null
+          longitude: number | null
+          page_path: string | null
+          referrer: string | null
+          region: string | null
+          session_id: string
+          timezone: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          page_path?: string | null
+          referrer?: string | null
+          region?: string | null
+          session_id: string
+          timezone?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          page_path?: string | null
+          referrer?: string | null
+          region?: string | null
+          session_id?: string
+          timezone?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       voice_sessions: {
         Row: {
