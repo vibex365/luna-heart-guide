@@ -67,6 +67,9 @@ export const AutoEventTracker = () => {
       // Skip tracking for certain buttons
       if (button.closest('[data-no-track]')) return;
       
+      console.log('[AutoEventTracker] Button clicked:', buttonText, buttonCategory);
+      
+      // Fire and forget - don't await
       trackButtonClick(buttonText, {
         elementId: buttonId,
         elementText: buttonText,
@@ -95,6 +98,8 @@ export const AutoEventTracker = () => {
       // Track all links now for better insights
       const isExternal = linkHref.startsWith('http') && !linkHref.includes(window.location.host);
       const isAnchor = linkHref.startsWith('#');
+      
+      console.log('[AutoEventTracker] Link clicked:', linkText, linkHref);
       
       trackLinkClick(linkText, linkHref, {
         elementId: link.id || undefined,
@@ -140,8 +145,9 @@ export const AutoEventTracker = () => {
   }, [location.pathname, trackCustomEvent]);
 
   useEffect(() => {
-    document.addEventListener('click', handleGlobalClick, { passive: true });
-    return () => document.removeEventListener('click', handleGlobalClick);
+    // Use capture phase to ensure we catch clicks before they bubble
+    document.addEventListener('click', handleGlobalClick, { capture: true });
+    return () => document.removeEventListener('click', handleGlobalClick, { capture: true });
   }, [handleGlobalClick]);
 
   return null;
