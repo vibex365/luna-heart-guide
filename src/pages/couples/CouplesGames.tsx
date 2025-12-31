@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Gamepad2 } from "lucide-react";
+import { ArrowLeft, Gamepad2, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useCouplesAccount } from "@/hooks/useCouplesAccount";
 import { useCouplesTrial } from "@/hooks/useCouplesTrial";
+import { useGameVisibility } from "@/hooks/useGameVisibility";
 
 // Game components
 import { WouldYouRather } from "@/components/couples/WouldYouRather";
@@ -37,11 +38,27 @@ const CouplesGames = () => {
   const navigate = useNavigate();
   const { isLinked, partnerLink } = useCouplesAccount();
   const { hasCouplesAccess } = useCouplesTrial();
+  const { isGameVisible, isLoading: loadingGames } = useGameVisibility();
 
   if (!hasCouplesAccess) {
     navigate("/couples");
     return null;
   }
+
+  // Helper to conditionally render games based on visibility
+  const renderGame = (gameKey: string, component: React.ReactNode, delay: number) => {
+    if (!isGameVisible(gameKey)) return null;
+    return (
+      <motion.div 
+        key={gameKey}
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        transition={{ delay }}
+      >
+        {component}
+      </motion.div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -59,81 +76,39 @@ const CouplesGames = () => {
       </header>
 
       <div className="p-4 space-y-4">
-        {isLinked ? (
+        {loadingGames ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : isLinked ? (
           <>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
               <GameStatsCard partnerLinkId={partnerLink?.id} />
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-              <SpinTheWheel partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            {/* New Card Games */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
-              <DealBreakers partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}>
-              <LoveTriviaChallenge partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}>
-              <DateNightRoulette partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.145 }}>
-              <ComplimentCards partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.148 }}>
-              <PredictionsGame partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-              <WouldYouRather partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-              <TruthOrDare partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-              <CouplesQuizGame partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-              <NeverHaveIEver partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-              <ThisOrThat partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-              <TwoTruthsOneLie partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
-              <MostLikelyTo partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-              <NewlywedGame partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
-              <ThirtySixQuestions partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
+            {renderGame('spin_the_wheel', <SpinTheWheel partnerLinkId={partnerLink?.id} />, 0.1)}
+            {renderGame('deal_breakers', <DealBreakers partnerLinkId={partnerLink?.id} />, 0.12)}
+            {renderGame('love_trivia', <LoveTriviaChallenge partnerLinkId={partnerLink?.id} />, 0.13)}
+            {renderGame('date_night_roulette', <DateNightRoulette partnerLinkId={partnerLink?.id} />, 0.14)}
+            {renderGame('compliment_cards', <ComplimentCards partnerLinkId={partnerLink?.id} />, 0.145)}
+            {renderGame('predictions_game', <PredictionsGame partnerLinkId={partnerLink?.id} />, 0.148)}
+            {renderGame('would_you_rather', <WouldYouRather partnerLinkId={partnerLink?.id} />, 0.15)}
+            {renderGame('truth_or_dare', <TruthOrDare partnerLinkId={partnerLink?.id} />, 0.2)}
+            {renderGame('couples_quiz', <CouplesQuizGame partnerLinkId={partnerLink?.id} />, 0.25)}
+            {renderGame('never_have_i_ever', <NeverHaveIEver partnerLinkId={partnerLink?.id} />, 0.3)}
+            {renderGame('this_or_that', <ThisOrThat partnerLinkId={partnerLink?.id} />, 0.35)}
+            {renderGame('two_truths_one_lie', <TwoTruthsOneLie partnerLinkId={partnerLink?.id} />, 0.4)}
+            {renderGame('most_likely_to', <MostLikelyTo partnerLinkId={partnerLink?.id} />, 0.45)}
+            {renderGame('newlywed_game', <NewlywedGame partnerLinkId={partnerLink?.id} />, 0.5)}
+            {renderGame('36_questions', <ThirtySixQuestions partnerLinkId={partnerLink?.id} />, 0.55)}
+            
+            {/* These don't have visibility toggles - always show */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
               <ConversationStarters />
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}>
-              <FinishMySentence partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
+            {renderGame('finish_my_sentence', <FinishMySentence partnerLinkId={partnerLink?.id} />, 0.65)}
+            
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
               <LoveLanguageQuiz />
             </motion.div>
@@ -142,25 +117,11 @@ const CouplesGames = () => {
               <LoveLetterGenerator />
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
-              <DrinkingGame partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.85 }}>
-              <RateTheFantasy partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
-              <TonightsPlans partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.95 }}>
-              <HotColdGame partnerLinkId={partnerLink?.id} />
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }}>
-              <FantasyCards partnerLinkId={partnerLink?.id} />
-            </motion.div>
+            {renderGame('drinking_game', <DrinkingGame partnerLinkId={partnerLink?.id} />, 0.8)}
+            {renderGame('rate_the_fantasy', <RateTheFantasy partnerLinkId={partnerLink?.id} />, 0.85)}
+            {renderGame('tonights_plans', <TonightsPlans partnerLinkId={partnerLink?.id} />, 0.9)}
+            {renderGame('hot_cold_game', <HotColdGame partnerLinkId={partnerLink?.id} />, 0.95)}
+            {renderGame('fantasy_cards', <FantasyCards partnerLinkId={partnerLink?.id} />, 1.0)}
           </>
         ) : (
           <div className="text-center py-12">
