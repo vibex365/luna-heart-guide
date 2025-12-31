@@ -1711,6 +1711,42 @@ export type Database = {
         }
         Relationships: []
       }
+      game_visibility: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          game_key: string
+          game_name: string
+          id: string
+          is_visible: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          game_key: string
+          game_name: string
+          id?: string
+          is_visible?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          game_key?: string
+          game_name?: string
+          id?: string
+          is_visible?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       growth_plan_days: {
         Row: {
           content: string | null
