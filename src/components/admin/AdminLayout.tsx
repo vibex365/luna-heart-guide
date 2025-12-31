@@ -21,7 +21,8 @@ import {
   Search,
   Command,
   Newspaper,
-  DollarSign
+  DollarSign,
+  Gamepad2
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,7 @@ const navSections = [
     items: [
       { icon: Brain, label: "Luna Settings", path: "/admin/luna" },
       { icon: FileText, label: "Content", path: "/admin/content" },
+      { icon: Gamepad2, label: "Games", path: "/admin/games" },
       { icon: Newspaper, label: "Blog", path: "/admin/blog" },
       { icon: Shield, label: "Feature Access", path: "/admin/features" },
     ]
