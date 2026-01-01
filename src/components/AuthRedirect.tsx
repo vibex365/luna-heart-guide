@@ -25,12 +25,13 @@ export const AuthRedirect = () => {
       
       setCheckingOnboarding(true);
       try {
-        // Use maybeSingle() to handle case where profile doesn't exist yet
         const { data: profile, error } = await supabase
           .from("profiles")
           .select("onboarding_completed")
           .eq("user_id", user.id)
           .maybeSingle();
+        
+        console.log("AuthRedirect - Profile check:", { profile, error, userId: user.id });
         
         if (error) {
           console.error("Error checking onboarding:", error);
