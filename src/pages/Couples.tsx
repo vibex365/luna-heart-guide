@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ArrowLeft, MessageCircle, Gamepad2, Gift, Calendar, Activity, Sparkles, Headphones, Bot, Phone, Palette } from "lucide-react";
+import { Heart, MessageCircle, Gamepad2, Gift, Calendar, Activity, Sparkles, Headphones, Bot, Phone, Palette } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import MobileOnlyLayout from "@/components/MobileOnlyLayout";
 import { useVirtualCurrency } from "@/hooks/useVirtualCurrency";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -240,17 +241,13 @@ const Couples = () => {
   // If user doesn't have access
   if (!hasCouplesAccess) {
     return (
-      <div className="min-h-screen bg-background pb-24">
+      <MobileOnlyLayout>
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border safe-area-top">
-          <div className="flex items-center justify-between p-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
+          <div className="flex items-center justify-center p-4">
             <h1 className="text-lg font-semibold flex items-center gap-2">
               <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
               Couples
             </h1>
-            <div className="w-10" />
           </div>
         </header>
 
@@ -267,17 +264,15 @@ const Couples = () => {
             isStartingTrial={isStartingTrial}
           />
         </div>
-      </div>
+      </MobileOnlyLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <MobileOnlyLayout>
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border safe-area-top">
         <div className="flex items-center justify-between p-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
+          <div className="w-10" />
           <h1 className="text-lg font-semibold flex items-center gap-2">
             <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
             Couples
@@ -601,7 +596,7 @@ const Couples = () => {
           myName={myProfile?.display_name || undefined}
         />
       )}
-    </div>
+    </MobileOnlyLayout>
   );
 };
 
