@@ -31,8 +31,6 @@ export const AuthRedirect = () => {
           .eq("user_id", user.id)
           .maybeSingle();
         
-        console.log("AuthRedirect - Profile check:", { profile, error, userId: user.id });
-        
         if (error) {
           console.error("Error checking onboarding:", error);
           setOnboardingCompleted(false);
