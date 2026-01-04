@@ -4057,7 +4057,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
-      minute_transaction_type: "purchase" | "usage" | "refund" | "bonus"
+      minute_transaction_type:
+        | "purchase"
+        | "usage"
+        | "refund"
+        | "bonus"
+        | "signup_bonus"
       voice_session_status:
         | "initiated"
         | "connecting"
@@ -4193,7 +4198,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
-      minute_transaction_type: ["purchase", "usage", "refund", "bonus"],
+      minute_transaction_type: [
+        "purchase",
+        "usage",
+        "refund",
+        "bonus",
+        "signup_bonus",
+      ],
       voice_session_status: [
         "initiated",
         "connecting",
